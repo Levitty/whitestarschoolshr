@@ -9,7 +9,116 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      employees: {
+        Row: {
+          address: string | null
+          certifications: Json | null
+          contract_type: string | null
+          created_at: string | null
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          emergency_contact_relationship: string | null
+          employee_number: string
+          id: string
+          position: string
+          profile_id: string
+          qualifications: Json | null
+          salary_grade: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          certifications?: Json | null
+          contract_type?: string | null
+          created_at?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relationship?: string | null
+          employee_number: string
+          id?: string
+          position: string
+          profile_id: string
+          qualifications?: Json | null
+          salary_grade?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          certifications?: Json | null
+          contract_type?: string | null
+          created_at?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relationship?: string | null
+          employee_number?: string
+          id?: string
+          position?: string
+          profile_id?: string
+          qualifications?: Json | null
+          salary_grade?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employees_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          department: string | null
+          email: string
+          employee_id: string | null
+          first_name: string | null
+          hire_date: string | null
+          id: string
+          is_active: boolean | null
+          last_name: string | null
+          phone: string | null
+          role: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          department?: string | null
+          email: string
+          employee_id?: string | null
+          first_name?: string | null
+          hire_date?: string | null
+          id: string
+          is_active?: boolean | null
+          last_name?: string | null
+          phone?: string | null
+          role?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          department?: string | null
+          email?: string
+          employee_id?: string | null
+          first_name?: string | null
+          hire_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_name?: string | null
+          phone?: string | null
+          role?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

@@ -9,13 +9,18 @@ import {
   Menu, 
   X,
   Home,
-  FileText
+  FileText,
+  LogOut
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
 
 const Navigation = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const { signOut } = useAuth();
+  const { profile } = useProfile();
 
   const navigationItems = [
     { name: 'Dashboard', href: '/', icon: Home },
@@ -25,6 +30,28 @@ const Navigation = () => {
     { name: 'Analytics', href: '/analytics', icon: BarChart3 },
     { name: 'Settings', href: '/settings', icon: Settings },
   ];
+
+  const handleLogout = async () => {
+    await signOut();
+  };
+
+  const getInitials = (firstName: string | null, lastName: string | null) => {
+    const first = firstName ? firstName.charAt(0).toUpperCase() : '';
+    const last = lastName ? lastName.charAt(0).toUpperCase() : '';
+    return first + last || 'U';
+  };
+
+  const getDisplayName = () => {
+    if (profile?.first_name && profile?.last_name) {
+      return `${profile.first_name} ${profile.last_name}`;
+    }
+    return profile?.email || 'User';
+  };
+
+  const getRoleDisplay = () => {
+    if (!profile?.role) return 'User';
+    return profile.role.charAt(0).toUpperCase() + profile.role.slice(1);
+  };
 
   return (
     <>
@@ -49,7 +76,7 @@ const Navigation = () => {
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center justify-center h-16 px-4 bg-slate-800">
-            <h1 className="text-xl font-bold text-white">HR Portal</h1>
+            <h1 className="text-xl font-bold text-white">School HR Portal</h1>
           </div>
 
           {/* Navigation items */}
@@ -80,15 +107,30 @@ const Navigation = () => {
 
           {/* User section */}
           <div className="p-4 border-t border-slate-700">
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-3 mb-3">
               <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                <span className="text-sm font-medium text-white">JD</span>
+                <span className="text-sm font-medium text-white">
+                  {getInitials(profile?.first_name, profile?.last_name)}
+                </span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-white truncate">John Doe</p>
-                <p className="text-xs text-slate-400 truncate">HR Manager</p>
+                <p className="text-sm font-medium text-white truncate">
+                  {getDisplayName()}
+                </p>
+                <p className="text-xs text-slate-400 truncate">
+                  {getRoleDisplay()}
+                </p>
               </div>
             </div>
+            <Button
+              onClick={handleLogout}
+              variant="outline"
+              size="sm"
+              className="w-full text-slate-300 border-slate-600 hover:bg-slate-800"
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Sign Out
+            </Button>
           </div>
         </div>
       </nav>
