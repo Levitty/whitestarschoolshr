@@ -10,7 +10,7 @@ interface Profile {
   last_name: string | null;
   phone: string | null;
   department: string | null;
-  role: 'admin' | 'teacher' | 'staff';
+  role: 'admin' | 'teacher' | 'staff' | null;
   hire_date: string | null;
   employee_id: string | null;
   avatar_url: string | null;
