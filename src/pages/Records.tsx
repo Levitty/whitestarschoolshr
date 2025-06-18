@@ -207,7 +207,7 @@ const Records = () => {
                     </div>
                   )}
                 </CardContent>
-              </div>
+              </Card>
             </div>
           </TabsContent>
         )}
