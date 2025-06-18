@@ -9,6 +9,130 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      document_signatures: {
+        Row: {
+          document_id: string
+          id: string
+          ip_address: unknown | null
+          signature_data: string | null
+          signed_at: string | null
+          signer_id: string
+        }
+        Insert: {
+          document_id: string
+          id?: string
+          ip_address?: unknown | null
+          signature_data?: string | null
+          signed_at?: string | null
+          signer_id: string
+        }
+        Update: {
+          document_id?: string
+          id?: string
+          ip_address?: unknown | null
+          signature_data?: string | null
+          signed_at?: string | null
+          signer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_signatures_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_signatures_signer_id_fkey"
+            columns: ["signer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documents: {
+        Row: {
+          category: Database["public"]["Enums"]["document_category"]
+          created_at: string | null
+          description: string | null
+          employee_id: string | null
+          file_name: string | null
+          file_path: string | null
+          file_size: number | null
+          file_type: string | null
+          id: string
+          is_shared: boolean | null
+          requires_signature: boolean | null
+          signed_at: string | null
+          signed_by: string | null
+          status: Database["public"]["Enums"]["document_status"] | null
+          title: string
+          updated_at: string | null
+          uploaded_by: string
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["document_category"]
+          created_at?: string | null
+          description?: string | null
+          employee_id?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          is_shared?: boolean | null
+          requires_signature?: boolean | null
+          signed_at?: string | null
+          signed_by?: string | null
+          status?: Database["public"]["Enums"]["document_status"] | null
+          title: string
+          updated_at?: string | null
+          uploaded_by: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["document_category"]
+          created_at?: string | null
+          description?: string | null
+          employee_id?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          is_shared?: boolean | null
+          requires_signature?: boolean | null
+          signed_at?: string | null
+          signed_by?: string | null
+          status?: Database["public"]["Enums"]["document_status"] | null
+          title?: string
+          updated_at?: string | null
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_signed_by_fkey"
+            columns: ["signed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employees: {
         Row: {
           address: string | null
@@ -71,6 +195,125 @@ export type Database = {
           },
         ]
       }
+      interview_records: {
+        Row: {
+          candidate_email: string | null
+          candidate_name: string
+          created_at: string | null
+          id: string
+          interview_date: string
+          interview_type: string | null
+          interviewer_id: string
+          notes: string | null
+          position: string
+          rating: number | null
+          recommendation: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          candidate_email?: string | null
+          candidate_name: string
+          created_at?: string | null
+          id?: string
+          interview_date: string
+          interview_type?: string | null
+          interviewer_id: string
+          notes?: string | null
+          position: string
+          rating?: number | null
+          recommendation?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          candidate_email?: string | null
+          candidate_name?: string
+          created_at?: string | null
+          id?: string
+          interview_date?: string
+          interview_type?: string | null
+          interviewer_id?: string
+          notes?: string | null
+          position?: string
+          rating?: number | null
+          recommendation?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interview_records_interviewer_id_fkey"
+            columns: ["interviewer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leave_requests: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          comments: string | null
+          created_at: string | null
+          days_requested: number
+          employee_id: string
+          end_date: string
+          id: string
+          leave_type: string
+          reason: string | null
+          start_date: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          comments?: string | null
+          created_at?: string | null
+          days_requested: number
+          employee_id: string
+          end_date: string
+          id?: string
+          leave_type: string
+          reason?: string | null
+          start_date: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          comments?: string | null
+          created_at?: string | null
+          days_requested?: number
+          employee_id?: string
+          end_date?: string
+          id?: string
+          leave_type?: string
+          reason?: string | null
+          start_date?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leave_requests_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_requests_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -127,7 +370,20 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      document_category:
+        | "employment_records"
+        | "disciplinary_records"
+        | "performance_records"
+        | "leave_requests"
+        | "interview_records"
+        | "shared_documents"
+      document_status:
+        | "draft"
+        | "pending_review"
+        | "approved"
+        | "rejected"
+        | "signed"
+        | "archived"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -242,6 +498,23 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      document_category: [
+        "employment_records",
+        "disciplinary_records",
+        "performance_records",
+        "leave_requests",
+        "interview_records",
+        "shared_documents",
+      ],
+      document_status: [
+        "draft",
+        "pending_review",
+        "approved",
+        "rejected",
+        "signed",
+        "archived",
+      ],
+    },
   },
 } as const
