@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,6 +17,7 @@ interface Question {
   options?: string[];
   correct_answer?: string;
   points: number;
+  [key: string]: any; // Add index signature for Json compatibility
 }
 
 const RecruitmentAssessments = () => {
@@ -120,7 +120,7 @@ const RecruitmentAssessments = () => {
       position: newAssessment.position,
       assessment_type: newAssessment.assessment_type as any,
       time_limit: newAssessment.time_limit,
-      questions: newAssessment.questions,
+      questions: newAssessment.questions as any, // Cast to any for Json compatibility
       max_score: maxScore
     });
 
