@@ -39,14 +39,22 @@ export const useRecruitmentAssessments = () => {
     }
   };
 
-  const createAssessment = async (assessment: Omit<RecruitmentAssessmentInsert, 'id' | 'created_at' | 'updated_at'>) => {
+  const createAssessment = async (assessmentData: {
+    candidate_name: string;
+    candidate_email: string;
+    position: string;
+    assessment_type: string;
+    time_limit: number;
+    questions: any;
+    max_score: number;
+  }) => {
     if (!user) return { error: 'No user found' };
 
     try {
       const { error } = await supabase
         .from('recruitment_assessments')
         .insert({
-          ...assessment,
+          ...assessmentData,
           created_by: user.id
         });
 

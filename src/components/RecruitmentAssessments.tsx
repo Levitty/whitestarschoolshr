@@ -118,7 +118,7 @@ const RecruitmentAssessments = () => {
       candidate_name: newAssessment.candidate_name,
       candidate_email: newAssessment.candidate_email,
       position: newAssessment.position,
-      assessment_type: newAssessment.assessment_type as any,
+      assessment_type: newAssessment.assessment_type,
       time_limit: newAssessment.time_limit,
       questions: newAssessment.questions as any, // Cast to any for Json compatibility
       max_score: maxScore
