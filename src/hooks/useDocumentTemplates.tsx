@@ -40,7 +40,7 @@ export const useDocumentTemplates = () => {
     }
   };
 
-  const createTemplate = async (template: Omit<DocumentTemplateInsert, 'id' | 'created_at' | 'updated_at'>) => {
+  const createTemplate = async (template: Omit<DocumentTemplateInsert, 'id' | 'created_at' | 'updated_at' | 'created_by'>) => {
     if (!user) return { error: 'No user found' };
 
     try {

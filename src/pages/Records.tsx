@@ -4,7 +4,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import DocumentUpload from '@/components/DocumentUpload';
+import CameraUpload from '@/components/CameraUpload';
+import DocumentTemplateManager from '@/components/DocumentTemplateManager';
+import RecruitmentAssessments from '@/components/RecruitmentAssessments';
 import LeaveRequestForm from '@/components/LeaveRequestForm';
 import InterviewForm from '@/components/InterviewForm';
 import { useDocuments } from '@/hooks/useDocuments';
@@ -17,7 +19,9 @@ import {
   UserCheck, 
   Download,
   Eye,
-  PenTool
+  PenTool,
+  Camera,
+  Users
 } from 'lucide-react';
 
 const Records = () => {
@@ -49,41 +53,56 @@ const Records = () => {
     return new Date(dateString).toLocaleDateString();
   };
 
+  // Different tab configurations for admin vs regular users
+  const getTabsConfig = () => {
+    if (isAdmin) {
+      return [
+        { value: 'documents', label: 'Documents', icon: FileText },
+        { value: 'templates', label: 'Templates', icon: FileText },
+        { value: 'recruitment', label: 'Recruitment', icon: Users },
+        { value: 'leave', label: 'Leave Requests', icon: Calendar },
+        { value: 'interviews', label: 'Interviews', icon: UserCheck },
+        { value: 'upload', label: 'Upload', icon: Camera }
+      ];
+    } else {
+      return [
+        { value: 'documents', label: 'My Documents', icon: FileText },
+        { value: 'leave', label: 'Leave Requests', icon: Calendar },
+        { value: 'upload', label: 'Upload', icon: Camera }
+      ];
+    }
+  };
+
+  const tabsConfig = getTabsConfig();
+
   return (
     <div className="container mx-auto px-6 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900">Records Management</h1>
+        <h1 className="text-3xl font-bold text-slate-900">
+          {isAdmin ? 'Admin Dashboard' : 'My Dashboard'}
+        </h1>
         <p className="text-slate-600 mt-2">
-          Manage documents, leave requests, and interview records
+          {isAdmin 
+            ? 'Manage all documents, templates, recruitment, and employee records'
+            : 'Access your documents, submit leave requests, and upload files'
+          }
         </p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="documents" className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            Documents
-          </TabsTrigger>
-          <TabsTrigger value="leave" className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            Leave Requests
-          </TabsTrigger>
-          {isAdmin && (
-            <TabsTrigger value="interviews" className="flex items-center gap-2">
-              <UserCheck className="h-4 w-4" />
-              Interviews
+        <TabsList className={`grid w-full grid-cols-${tabsConfig.length}`}>
+          {tabsConfig.map(({ value, label, icon: Icon }) => (
+            <TabsTrigger key={value} value={value} className="flex items-center gap-2">
+              <Icon className="h-4 w-4" />
+              {label}
             </TabsTrigger>
-          )}
-          <TabsTrigger value="upload" className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            Upload
-          </TabsTrigger>
+          ))}
         </TabsList>
 
         <TabsContent value="documents" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Document Library</CardTitle>
+              <CardTitle>{isAdmin ? 'All Documents' : 'My Documents'}</CardTitle>
             </CardHeader>
             <CardContent>
               {documentsLoading ? (
@@ -107,6 +126,9 @@ const Records = () => {
                           <span className="text-xs text-slate-500">
                             {formatDate(doc.created_at || '')}
                           </span>
+                          {doc.is_system_generated && (
+                            <Badge variant="secondary">System Generated</Badge>
+                          )}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -130,12 +152,24 @@ const Records = () => {
           </Card>
         </TabsContent>
 
+        {isAdmin && (
+          <TabsContent value="templates" className="space-y-6">
+            <DocumentTemplateManager />
+          </TabsContent>
+        )}
+
+        {isAdmin && (
+          <TabsContent value="recruitment" className="space-y-6">
+            <RecruitmentAssessments />
+          </TabsContent>
+        )}
+
         <TabsContent value="leave" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <LeaveRequestForm />
             <Card>
               <CardHeader>
-                <CardTitle>My Leave Requests</CardTitle>
+                <CardTitle>{isAdmin ? 'All Leave Requests' : 'My Leave Requests'}</CardTitle>
               </CardHeader>
               <CardContent>
                 {leaveLoading ? (
@@ -213,10 +247,7 @@ const Records = () => {
         )}
 
         <TabsContent value="upload" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <DocumentUpload />
-            {isAdmin && <InterviewForm />}
-          </div>
+          <CameraUpload />
         </TabsContent>
       </Tabs>
     </div>
