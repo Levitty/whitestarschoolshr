@@ -51,6 +51,50 @@ export type Database = {
           },
         ]
       }
+      document_templates: {
+        Row: {
+          content: string
+          created_at: string | null
+          created_by: string
+          id: string
+          is_active: boolean | null
+          name: string
+          template_type: string
+          updated_at: string | null
+          variables: Json | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          created_by: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          template_type: string
+          updated_at?: string | null
+          variables?: Json | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          created_by?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          template_type?: string
+          updated_at?: string | null
+          variables?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documents: {
         Row: {
           category: Database["public"]["Enums"]["document_category"]
@@ -63,10 +107,13 @@ export type Database = {
           file_type: string | null
           id: string
           is_shared: boolean | null
+          is_system_generated: boolean | null
+          recipient_id: string | null
           requires_signature: boolean | null
           signed_at: string | null
           signed_by: string | null
           status: Database["public"]["Enums"]["document_status"] | null
+          template_type: string | null
           title: string
           updated_at: string | null
           uploaded_by: string
@@ -82,10 +129,13 @@ export type Database = {
           file_type?: string | null
           id?: string
           is_shared?: boolean | null
+          is_system_generated?: boolean | null
+          recipient_id?: string | null
           requires_signature?: boolean | null
           signed_at?: string | null
           signed_by?: string | null
           status?: Database["public"]["Enums"]["document_status"] | null
+          template_type?: string | null
           title: string
           updated_at?: string | null
           uploaded_by: string
@@ -101,10 +151,13 @@ export type Database = {
           file_type?: string | null
           id?: string
           is_shared?: boolean | null
+          is_system_generated?: boolean | null
+          recipient_id?: string | null
           requires_signature?: boolean | null
           signed_at?: string | null
           signed_by?: string | null
           status?: Database["public"]["Enums"]["document_status"] | null
+          template_type?: string | null
           title?: string
           updated_at?: string | null
           uploaded_by?: string
@@ -113,6 +166,13 @@ export type Database = {
           {
             foreignKeyName: "documents_employee_id_fkey"
             columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_recipient_id_fkey"
+            columns: ["recipient_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -314,6 +374,47 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          related_id: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          related_id?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          related_id?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -361,6 +462,81 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      recruitment_assessments: {
+        Row: {
+          answers: Json | null
+          assessment_type: string
+          candidate_email: string
+          candidate_name: string
+          completed_at: string | null
+          created_at: string | null
+          created_by: string
+          evaluated_by: string | null
+          id: string
+          max_score: number | null
+          position: string
+          questions: Json | null
+          score: number | null
+          started_at: string | null
+          status: string | null
+          time_limit: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          answers?: Json | null
+          assessment_type: string
+          candidate_email: string
+          candidate_name: string
+          completed_at?: string | null
+          created_at?: string | null
+          created_by: string
+          evaluated_by?: string | null
+          id?: string
+          max_score?: number | null
+          position: string
+          questions?: Json | null
+          score?: number | null
+          started_at?: string | null
+          status?: string | null
+          time_limit?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          answers?: Json | null
+          assessment_type?: string
+          candidate_email?: string
+          candidate_name?: string
+          completed_at?: string | null
+          created_at?: string | null
+          created_by?: string
+          evaluated_by?: string | null
+          id?: string
+          max_score?: number | null
+          position?: string
+          questions?: Json | null
+          score?: number | null
+          started_at?: string | null
+          status?: string | null
+          time_limit?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recruitment_assessments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recruitment_assessments_evaluated_by_fkey"
+            columns: ["evaluated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
