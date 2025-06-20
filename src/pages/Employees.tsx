@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Search, Filter, Plus, Mail, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -5,13 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import EmployeeProfile from '@/components/EmployeeProfile';
-import SuperAdminSetup from '@/components/SuperAdminSetup';
-import { useProfile } from '@/hooks/useProfile';
 
 const Employees = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
-  const { profile } = useProfile();
 
   const employees = [
     {
@@ -65,19 +63,6 @@ const Employees = () => {
     employee.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
     employee.department.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  // Show Super Admin Setup if no admin exists
-  if (!profile || profile.role !== 'admin') {
-    return (
-      <div className="space-y-6">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-slate-900 mb-4">Welcome to School HR Portal</h1>
-          <p className="text-slate-600 mb-8">Set up your super admin account to get started</p>
-        </div>
-        <SuperAdminSetup />
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
