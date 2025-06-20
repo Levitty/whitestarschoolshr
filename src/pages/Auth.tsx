@@ -1,207 +1,246 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import SuperAdminSetup from '@/components/SuperAdminSetup';
+import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { GraduationCap, Users, BookOpen } from 'lucide-react';
+import { School, Mail, Lock, User, Shield } from 'lucide-react';
 
 const Auth = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const { signIn, signUp } = useAuth();
-  const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [showSuperAdminSetup, setShowSuperAdminSetup] = useState(false);
+  
+  const { signIn, signUp, user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
-  const [loginForm, setLoginForm] = useState({
-    email: '',
-    password: ''
-  });
+  useEffect(() => {
+    if (user) {
+      navigate('/');
+    }
+  }, [user, navigate]);
 
-  const [signupForm, setSignupForm] = useState({
-    email: '',
-    password: '',
-    firstName: '',
-    lastName: ''
-  });
-
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setLoading(true);
 
-    const { error } = await signIn(loginForm.email, loginForm.password);
-
+    const { error } = await signIn(email, password);
+    
     if (error) {
       toast({
-        title: "Login Failed",
+        title: "Sign In Failed",
         description: error.message,
         variant: "destructive"
       });
     } else {
       toast({
         title: "Welcome back!",
-        description: "You have successfully logged in."
+        description: "You have successfully signed in.",
       });
-      navigate('/');
     }
-
-    setIsLoading(false);
+    
+    setLoading(false);
   };
 
-  const handleSignup = async (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setLoading(true);
 
-    const { error } = await signUp(
-      signupForm.email, 
-      signupForm.password, 
-      signupForm.firstName, 
-      signupForm.lastName
-    );
-
+    const { error } = await signUp(email, password, firstName, lastName);
+    
     if (error) {
       toast({
-        title: "Signup Failed",
+        title: "Sign Up Failed",
         description: error.message,
         variant: "destructive"
       });
     } else {
       toast({
         title: "Account Created!",
-        description: "Please check your email to verify your account."
+        description: "Please check your email to verify your account.",
       });
+      setEmail('');
+      setPassword('');
+      setFirstName('');
+      setLastName('');
     }
-
-    setIsLoading(false);
+    
+    setLoading(false);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 flex items-center justify-center p-6">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="w-full max-w-md space-y-6">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center mb-4">
-            <div className="bg-blue-600 p-3 rounded-full">
-              <GraduationCap className="h-8 w-8 text-white" />
-            </div>
+        <div className="text-center">
+          <div className="flex justify-center items-center gap-2 mb-4">
+            <School className="h-8 w-8 text-blue-600" />
+            <h1 className="text-2xl font-bold text-slate-900">School HR Portal</h1>
           </div>
-          <h1 className="text-3xl font-bold text-slate-900">School HR Portal</h1>
-          <p className="text-slate-600 mt-2">Manage your school's human resources</p>
+          <p className="text-slate-600">
+            Comprehensive Human Resources Management System
+          </p>
         </div>
 
-        <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-center">Access Your Account</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="login" className="space-y-4">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login">Login</TabsTrigger>
-                <TabsTrigger value="signup">Sign Up</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="login">
-                <form onSubmit={handleLogin} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="login-email">Email</Label>
-                    <Input
-                      id="login-email"
-                      type="email"
-                      placeholder="Enter your email"
-                      value={loginForm.email}
-                      onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="login-password">Password</Label>
-                    <Input
-                      id="login-password"
-                      type="password"
-                      placeholder="Enter your password"
-                      value={loginForm.password}
-                      onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={isLoading}>
-                    {isLoading ? 'Signing in...' : 'Sign In'}
-                  </Button>
-                </form>
-              </TabsContent>
-
-              <TabsContent value="signup">
-                <form onSubmit={handleSignup} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-firstName">First Name</Label>
-                      <Input
-                        id="signup-firstName"
-                        placeholder="First name"
-                        value={signupForm.firstName}
-                        onChange={(e) => setSignupForm({ ...signupForm, firstName: e.target.value })}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-lastName">Last Name</Label>
-                      <Input
-                        id="signup-lastName"
-                        placeholder="Last name"
-                        value={signupForm.lastName}
-                        onChange={(e) => setSignupForm({ ...signupForm, lastName: e.target.value })}
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
-                    <Input
-                      id="signup-email"
-                      type="email"
-                      placeholder="Enter your email"
-                      value={signupForm.email}
-                      onChange={(e) => setSignupForm({ ...signupForm, email: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
-                    <Input
-                      id="signup-password"
-                      type="password"
-                      placeholder="Create a password"
-                      value={signupForm.password}
-                      onChange={(e) => setSignupForm({ ...signupForm, password: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={isLoading}>
-                    {isLoading ? 'Creating account...' : 'Create Account'}
-                  </Button>
-                </form>
-              </TabsContent>
-            </Tabs>
+        {/* Super Admin Setup Option */}
+        <Card className="border-2 border-blue-200">
+          <CardContent className="p-6 text-center">
+            <Shield className="h-12 w-12 text-blue-600 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">First Time Setup?</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Create your super admin account to get started with the HR system
+            </p>
+            <Button 
+              onClick={() => setShowSuperAdminSetup(!showSuperAdminSetup)}
+              variant={showSuperAdminSetup ? "secondary" : "default"}
+              className="w-full"
+            >
+              {showSuperAdminSetup ? "Back to Sign In" : "Setup Super Admin"}
+            </Button>
           </CardContent>
         </Card>
 
-        {/* Features Preview */}
-        <div className="mt-8 grid grid-cols-3 gap-4 text-center">
-          <div className="flex flex-col items-center space-y-2">
-            <Users className="h-6 w-6 text-blue-600" />
-            <span className="text-sm text-slate-600">Employee Management</span>
-          </div>
-          <div className="flex flex-col items-center space-y-2">
-            <BookOpen className="h-6 w-6 text-blue-600" />
-            <span className="text-sm text-slate-600">Professional Development</span>
-          </div>
-          <div className="flex flex-col items-center space-y-2">
-            <GraduationCap className="h-6 w-6 text-blue-600" />
-            <span className="text-sm text-slate-600">Performance Tracking</span>
-          </div>
+        {/* Super Admin Setup or Auth Forms */}
+        {showSuperAdminSetup ? (
+          <SuperAdminSetup />
+        ) : (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-center">Welcome Back</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue="signin" className="space-y-4">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="signin">Sign In</TabsTrigger>
+                  <TabsTrigger value="signup">Sign Up</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="signin">
+                  <form onSubmit={handleSignIn} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="signin-email">Email</Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                        <Input
+                          id="signin-email"
+                          type="email"
+                          placeholder="Enter your email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          className="pl-10"
+                          required
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="signin-password">Password</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                        <Input
+                          id="signin-password"
+                          type="password"
+                          placeholder="Enter your password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          className="pl-10"
+                          required
+                        />
+                      </div>
+                    </div>
+                    
+                    <Button type="submit" className="w-full" disabled={loading}>
+                      {loading ? 'Signing In...' : 'Sign In'}
+                    </Button>
+                  </form>
+                </TabsContent>
+                
+                <TabsContent value="signup">
+                  <form onSubmit={handleSignUp} className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="signup-firstname">First Name</Label>
+                        <div className="relative">
+                          <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                          <Input
+                            id="signup-firstname"
+                            type="text"
+                            placeholder="First name"
+                            value={firstName}
+                            onChange={(e) => setFirstName(e.target.value)}
+                            className="pl-10"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="signup-lastname">Last Name</Label>
+                        <Input
+                          id="signup-lastname"
+                          type="text"
+                          placeholder="Last name"
+                          value={lastName}
+                          onChange={(e) => setLastName(e.target.value)}
+                          required
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-email">Email</Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                        <Input
+                          id="signup-email"
+                          type="email"
+                          placeholder="Enter your email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          className="pl-10"
+                          required
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-password">Password</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                        <Input
+                          id="signup-password"
+                          type="password"
+                          placeholder="Create a password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          className="pl-10"
+                          required
+                          minLength={6}
+                        />
+                      </div>
+                    </div>
+                    
+                    <Button type="submit" className="w-full" disabled={loading}>
+                      {loading ? 'Creating Account...' : 'Create Account'}
+                    </Button>
+                  </form>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Footer */}
+        <div className="text-center text-sm text-slate-600">
+          <p>Secure, compliant, and user-friendly HR management</p>
         </div>
       </div>
     </div>
