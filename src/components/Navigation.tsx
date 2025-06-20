@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -25,6 +24,8 @@ const Navigation = () => {
   const navigationItems = [
     { name: 'Dashboard', href: '/', icon: Home },
     { name: 'Employees', href: '/employees', icon: Users },
+    { name: 'Recruitment', href: '/recruitment', icon: Users },
+    { name: 'Performance', href: '/performance', icon: BarChart3 },
     { name: 'Upskilling', href: '/upskilling', icon: BookOpen },
     { name: 'Records', href: '/records', icon: FileText },
     { name: 'Analytics', href: '/analytics', icon: BarChart3 },

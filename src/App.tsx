@@ -9,6 +9,8 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "./pages/Layout";
 import Dashboard from "./pages/Dashboard";
 import Employees from "./pages/Employees";
+import Recruitment from "./pages/Recruitment";
+import Performance from "./pages/Performance";
 import Upskilling from "./pages/Upskilling";
 import Records from "./pages/Records";
 import Auth from "./pages/Auth";
@@ -32,6 +34,8 @@ const App = () => (
             }>
               <Route index element={<Dashboard />} />
               <Route path="employees" element={<Employees />} />
+              <Route path="recruitment" element={<Recruitment />} />
+              <Route path="performance" element={<Performance />} />
               <Route path="upskilling" element={<Upskilling />} />
               <Route path="records" element={<Records />} />
               <Route path="analytics" element={<Dashboard />} />
