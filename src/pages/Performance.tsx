@@ -9,12 +9,33 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Search, Filter, Users, Target, TrendingUp, Award } from 'lucide-react';
+import { Plus, Search, Filter, Users, Target, TrendingUp, Award, Star, Calendar } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const Performance = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('overview');
+
+  // Add missing state for new evaluation form
+  const [newEvaluation, setNewEvaluation] = useState({
+    employee_id: '',
+    evaluation_period: '',
+    evaluation_type: 'annual',
+    teaching_effectiveness: 5,
+    classroom_management: 5,
+    lesson_planning: 5,
+    student_engagement: 5,
+    communication: 5,
+    teamwork: 5,
+    leadership: 5,
+    professional_development: 5,
+    punctuality: 5,
+    innovation: 5,
+    comments: '',
+    goals_for_next_period: '',
+    student_feedback_score: 4.5,
+    parent_feedback_score: 4.2
+  });
 
   // Mock data for performance evaluations with school-specific metrics
   const evaluations = [
