@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,35 +9,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { TrendingUp, Plus, Star, Calendar, Target, Users, BarChart3, Award } from 'lucide-react';
-import { useProfile } from '@/hooks/useProfile';
+import { Plus, Search, Filter, Users, Target, TrendingUp, Award } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const Performance = () => {
-  const { profile } = useProfile();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('overview');
-  const [newEvaluation, setNewEvaluation] = useState({
-    employee_id: '',
-    evaluation_period: '',
-    evaluation_type: 'annual',
-    teaching_effectiveness: 5,
-    classroom_management: 5,
-    lesson_planning: 5,
-    student_engagement: 5,
-    communication: 5,
-    teamwork: 5,
-    leadership: 5,
-    professional_development: 5,
-    punctuality: 5,
-    innovation: 5,
-    comments: '',
-    goals_for_next_period: '',
-    student_feedback_score: 4.5,
-    parent_feedback_score: 4.2
-  });
-
-  const isAdmin = profile?.role === 'admin';
 
   // Mock data for performance evaluations with school-specific metrics
   const evaluations = [
@@ -171,20 +147,12 @@ const Performance = () => {
     { key: 'innovation', label: 'Innovation & Creativity', icon: Star }
   ];
 
-  if (!isAdmin) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-gray-500">Access denied. Admin privileges required.</p>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Performance Management</h1>
-          <p className="text-slate-600 mt-1">Comprehensive performance tracking and evaluation system</p>
+          <p className="text-slate-600 mt-1">Track and evaluate employee performance</p>
         </div>
       </div>
 

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,11 +9,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, Search, Filter, Users, Calendar, FileText, TrendingUp } from 'lucide-react';
-import { useProfile } from '@/hooks/useProfile';
 import { useToast } from '@/hooks/use-toast';
 
 const Recruitment = () => {
-  const { profile } = useProfile();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('overview');
   const [newJobPosting, setNewJobPosting] = useState({
@@ -26,8 +23,6 @@ const Recruitment = () => {
     application_deadline: '',
     employment_type: 'full-time'
   });
-
-  const isAdmin = profile?.role === 'admin';
 
   // Mock data for job postings
   const jobPostings = [
@@ -154,14 +149,6 @@ const Recruitment = () => {
       </Badge>
     );
   };
-
-  if (!isAdmin) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-gray-500">Access denied. Admin privileges required.</p>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
