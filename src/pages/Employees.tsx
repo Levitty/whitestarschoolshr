@@ -65,13 +65,12 @@ const Employees = () => {
       </div>
 
       <Tabs defaultValue="employees" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="employees">Employees</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
-          <TabsTrigger value="leave">Leave</TabsTrigger>
-          <TabsTrigger value="tickets">Tickets</TabsTrigger>
           <TabsTrigger value="reports">Reports</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="recruitment">Recruitment</TabsTrigger>
+          <TabsTrigger value="contracts">Contracts</TabsTrigger>
         </TabsList>
 
         <TabsContent value="employees" className="space-y-6">
@@ -136,7 +135,11 @@ const Employees = () => {
                         size="sm" 
                         variant="outline" 
                         className="flex-1"
-                        onClick={() => setSelectedEmployee(employee)}
+                        onClick={() => setSelectedEmployee({
+                          ...employee,
+                          name: `${employee.first_name} ${employee.last_name}`,
+                          joinDate: employee.hire_date
+                        })}
                       >
                         View Profile
                       </Button>
@@ -168,19 +171,11 @@ const Employees = () => {
           <DocumentUpload />
         </TabsContent>
 
-        <TabsContent value="leave">
-          <LeaveBalanceManager />
-        </TabsContent>
-
-        <TabsContent value="tickets">
-          <TicketSystem />
-        </TabsContent>
-
         <TabsContent value="reports">
           <WeeklyReportsManager />
         </TabsContent>
 
-        <TabsContent value="analytics" className="space-y-6">
+        <TabsContent value="recruitment" className="space-y-6">
           <div>
             <h2 className="text-2xl font-bold text-slate-900 mb-4">Recruitment Analytics</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -243,6 +238,19 @@ const Employees = () => {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="contracts" className="space-y-6">
+          <Card>
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Contract Expiry Tracking</h3>
+              <div className="text-center py-8 text-slate-500">
+                <AlertCircle className="h-12 w-12 mx-auto mb-4" />
+                <p>Contract expiry tracking functionality coming soon...</p>
+                <p className="text-sm mt-2">This will show contracts expiring in 3, 6, and 12 months</p>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
 

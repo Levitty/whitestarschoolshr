@@ -9,6 +9,41 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      contract_reminders: {
+        Row: {
+          created_at: string | null
+          employee_id: string | null
+          id: string
+          reminder_date: string
+          reminder_type: string
+          sent_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          employee_id?: string | null
+          id?: string
+          reminder_date: string
+          reminder_type: string
+          sent_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          employee_id?: string | null
+          id?: string
+          reminder_date?: string
+          reminder_type?: string
+          sent_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_reminders_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employee_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       document_shares: {
         Row: {
           created_at: string | null
@@ -249,6 +284,10 @@ export type Database = {
         Row: {
           address: string | null
           avatar_url: string | null
+          contract_duration_months: number | null
+          contract_end_date: string | null
+          contract_reminder_sent: boolean | null
+          contract_start_date: string | null
           contract_type: string | null
           created_at: string | null
           department: string
@@ -271,6 +310,10 @@ export type Database = {
         Insert: {
           address?: string | null
           avatar_url?: string | null
+          contract_duration_months?: number | null
+          contract_end_date?: string | null
+          contract_reminder_sent?: boolean | null
+          contract_start_date?: string | null
           contract_type?: string | null
           created_at?: string | null
           department: string
@@ -293,6 +336,10 @@ export type Database = {
         Update: {
           address?: string | null
           avatar_url?: string | null
+          contract_duration_months?: number | null
+          contract_end_date?: string | null
+          contract_reminder_sent?: boolean | null
+          contract_start_date?: string | null
           contract_type?: string | null
           created_at?: string | null
           department?: string
@@ -829,7 +876,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_expiring_contracts: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          employee_id: string
+          employee_name: string
+          contract_end_date: string
+          days_until_expiry: number
+        }[]
+      }
     }
     Enums: {
       document_category:

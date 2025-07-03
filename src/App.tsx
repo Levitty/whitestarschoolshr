@@ -13,6 +13,8 @@ import Recruitment from "./pages/Recruitment";
 import Performance from "./pages/Performance";
 import Upskilling from "./pages/Upskilling";
 import Records from "./pages/Records";
+import Leave from "./pages/Leave";
+import Tickets from "./pages/Tickets";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -38,7 +40,8 @@ const App = () => (
               <Route path="performance" element={<Performance />} />
               <Route path="upskilling" element={<Upskilling />} />
               <Route path="records" element={<Records />} />
-              <Route path="analytics" element={<Dashboard />} />
+              <Route path="leave" element={<Leave />} />
+              <Route path="tickets" element={<Tickets />} />
               <Route path="settings" element={<Dashboard />} />
             </Route>
             <Route path="*" element={<NotFound />} />
