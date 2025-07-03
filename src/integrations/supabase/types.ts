@@ -9,6 +9,58 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      document_shares: {
+        Row: {
+          created_at: string | null
+          document_id: string | null
+          expires_at: string | null
+          id: string
+          permission_type: string | null
+          shared_by: string | null
+          shared_with: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          document_id?: string | null
+          expires_at?: string | null
+          id?: string
+          permission_type?: string | null
+          shared_by?: string | null
+          shared_with?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          document_id?: string | null
+          expires_at?: string | null
+          id?: string
+          permission_type?: string | null
+          shared_by?: string | null
+          shared_with?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_shares_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_shares_shared_by_fkey"
+            columns: ["shared_by"]
+            isOneToOne: false
+            referencedRelation: "employee_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_shares_shared_with_fkey"
+            columns: ["shared_with"]
+            isOneToOne: false
+            referencedRelation: "employee_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       document_signatures: {
         Row: {
           document_id: string
@@ -193,6 +245,83 @@ export type Database = {
           },
         ]
       }
+      employee_profiles: {
+        Row: {
+          address: string | null
+          avatar_url: string | null
+          contract_type: string | null
+          created_at: string | null
+          department: string
+          email: string
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          emergency_contact_relationship: string | null
+          employee_number: string
+          first_name: string
+          hire_date: string
+          id: string
+          last_name: string
+          phone: string | null
+          position: string
+          profile_id: string | null
+          salary: number | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          avatar_url?: string | null
+          contract_type?: string | null
+          created_at?: string | null
+          department: string
+          email: string
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relationship?: string | null
+          employee_number: string
+          first_name: string
+          hire_date: string
+          id?: string
+          last_name: string
+          phone?: string | null
+          position: string
+          profile_id?: string | null
+          salary?: number | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          avatar_url?: string | null
+          contract_type?: string | null
+          created_at?: string | null
+          department?: string
+          email?: string
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relationship?: string | null
+          employee_number?: string
+          first_name?: string
+          hire_date?: string
+          id?: string
+          last_name?: string
+          phone?: string | null
+          position?: string
+          profile_id?: string | null
+          salary?: number | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_profiles_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employees: {
         Row: {
           address: string | null
@@ -307,6 +436,56 @@ export type Database = {
             columns: ["interviewer_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leave_balances: {
+        Row: {
+          annual_leave_total: number | null
+          annual_leave_used: number | null
+          created_at: string | null
+          employee_id: string | null
+          id: string
+          personal_leave_total: number | null
+          personal_leave_used: number | null
+          sick_leave_total: number | null
+          sick_leave_used: number | null
+          updated_at: string | null
+          year: number
+        }
+        Insert: {
+          annual_leave_total?: number | null
+          annual_leave_used?: number | null
+          created_at?: string | null
+          employee_id?: string | null
+          id?: string
+          personal_leave_total?: number | null
+          personal_leave_used?: number | null
+          sick_leave_total?: number | null
+          sick_leave_used?: number | null
+          updated_at?: string | null
+          year: number
+        }
+        Update: {
+          annual_leave_total?: number | null
+          annual_leave_used?: number | null
+          created_at?: string | null
+          employee_id?: string | null
+          id?: string
+          personal_leave_total?: number | null
+          personal_leave_used?: number | null
+          sick_leave_total?: number | null
+          sick_leave_used?: number | null
+          updated_at?: string | null
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leave_balances_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employee_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -534,6 +713,113 @@ export type Database = {
             columns: ["evaluated_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tickets: {
+        Row: {
+          assigned_to: string | null
+          category: string
+          created_at: string | null
+          description: string
+          employee_id: string | null
+          id: string
+          priority: string | null
+          status: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          category: string
+          created_at?: string | null
+          description: string
+          employee_id?: string | null
+          id?: string
+          priority?: string | null
+          status?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          category?: string
+          created_at?: string | null
+          description?: string
+          employee_id?: string | null
+          id?: string
+          priority?: string | null
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tickets_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "employee_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tickets_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employee_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      weekly_reports: {
+        Row: {
+          accomplishments: string
+          challenges: string | null
+          created_at: string | null
+          employee_id: string | null
+          hours_worked: number | null
+          id: string
+          next_week_goals: string | null
+          status: string | null
+          submitted_at: string | null
+          updated_at: string | null
+          week_end_date: string
+          week_start_date: string
+        }
+        Insert: {
+          accomplishments: string
+          challenges?: string | null
+          created_at?: string | null
+          employee_id?: string | null
+          hours_worked?: number | null
+          id?: string
+          next_week_goals?: string | null
+          status?: string | null
+          submitted_at?: string | null
+          updated_at?: string | null
+          week_end_date: string
+          week_start_date: string
+        }
+        Update: {
+          accomplishments?: string
+          challenges?: string | null
+          created_at?: string | null
+          employee_id?: string | null
+          hours_worked?: number | null
+          id?: string
+          next_week_goals?: string | null
+          status?: string | null
+          submitted_at?: string | null
+          updated_at?: string | null
+          week_end_date?: string
+          week_start_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weekly_reports_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employee_profiles"
             referencedColumns: ["id"]
           },
         ]
