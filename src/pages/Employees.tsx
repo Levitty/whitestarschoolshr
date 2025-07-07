@@ -10,7 +10,6 @@ import RecruitmentStats from '@/components/RecruitmentStats';
 import EmptyEmployeeState from '@/components/EmptyEmployeeState';
 import DocumentUpload from '@/components/DocumentUpload';
 import DocumentsList from '@/components/DocumentsList';
-import WeeklyReportsManager from '@/components/WeeklyReportsManager';
 import ContractExpiry from '@/components/ContractExpiry';
 import AddEmployeeForm from '@/components/AddEmployeeForm';
 import { useEmployees } from '@/hooks/useEmployees';
@@ -29,7 +28,14 @@ const Employees = () => {
   );
 
   if (loading) {
-    return <div className="text-center py-8">Loading employees...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-slate-600">Loading employees...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -44,10 +50,9 @@ const Employees = () => {
       </div>
 
       <Tabs defaultValue="employees" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="employees">Employees</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
-          <TabsTrigger value="reports">Reports</TabsTrigger>
           <TabsTrigger value="recruitment">Recruitment</TabsTrigger>
           <TabsTrigger value="contracts">Contracts</TabsTrigger>
         </TabsList>
@@ -79,10 +84,6 @@ const Employees = () => {
             <DocumentUpload />
             <DocumentsList />
           </div>
-        </TabsContent>
-
-        <TabsContent value="reports">
-          <WeeklyReportsManager />
         </TabsContent>
 
         <TabsContent value="recruitment" className="space-y-6">
