@@ -9,8 +9,10 @@ import EmployeeSearch from '@/components/EmployeeSearch';
 import RecruitmentStats from '@/components/RecruitmentStats';
 import EmptyEmployeeState from '@/components/EmptyEmployeeState';
 import DocumentUpload from '@/components/DocumentUpload';
+import DocumentsList from '@/components/DocumentsList';
 import WeeklyReportsManager from '@/components/WeeklyReportsManager';
 import ContractExpiry from '@/components/ContractExpiry';
+import AddEmployeeForm from '@/components/AddEmployeeForm';
 import { useEmployees } from '@/hooks/useEmployees';
 
 const Employees = () => {
@@ -38,6 +40,7 @@ const Employees = () => {
           <h1 className="text-3xl font-bold text-slate-900">HR Management</h1>
           <p className="text-slate-600 mt-1">Comprehensive employee management system</p>
         </div>
+        <AddEmployeeForm />
       </div>
 
       <Tabs defaultValue="employees" className="space-y-6">
@@ -71,8 +74,11 @@ const Employees = () => {
           )}
         </TabsContent>
 
-        <TabsContent value="documents">
-          <DocumentUpload />
+        <TabsContent value="documents" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <DocumentUpload />
+            <DocumentsList />
+          </div>
         </TabsContent>
 
         <TabsContent value="reports">

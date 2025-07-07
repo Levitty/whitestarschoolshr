@@ -7,9 +7,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useToast } from '@/hooks/use-toast';
-import { Plus } from 'lucide-react';
+import { Plus, CalendarIcon } from 'lucide-react';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 const AddEmployeeForm = () => {
   const [formData, setFormData] = useState({
@@ -24,10 +28,13 @@ const AddEmployeeForm = () => {
     hire_date: '',
     salary: '',
     contract_type: 'full-time',
+    contract_start_date: '',
+    contract_duration_months: '12',
     emergency_contact_name: '',
     emergency_contact_phone: '',
     emergency_contact_relationship: ''
   });
+  const [contractStartDate, setContractStartDate] = useState<Date>();
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const { createEmployee } = useEmployees();
@@ -51,7 +58,9 @@ const AddEmployeeForm = () => {
     setSubmitting(true);
     const employeeData = {
       ...formData,
-      salary: formData.salary ? parseFloat(formData.salary) : null
+      salary: formData.salary ? parseFloat(formData.salary) : null,
+      contract_start_date: contractStartDate ? format(contractStartDate, 'yyyy-MM-dd') : null,
+      contract_duration_months: parseInt(formData.contract_duration_months)
     };
 
     const { error } = await createEmployee(employeeData);
@@ -79,10 +88,13 @@ const AddEmployeeForm = () => {
         hire_date: '',
         salary: '',
         contract_type: 'full-time',
+        contract_start_date: '',
+        contract_duration_months: '12',
         emergency_contact_name: '',
         emergency_contact_phone: '',
         emergency_contact_relationship: ''
       });
+      setContractStartDate(undefined);
       setOpen(false);
     }
     setSubmitting(false);
@@ -232,6 +244,44 @@ const AddEmployeeForm = () => {
                     value={formData.hire_date}
                     onChange={(e) => handleInputChange('hire_date', e.target.value)}
                     required
+                  />
+                </div>
+
+                <div>
+                  <Label>Contract Start Date</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !contractStartDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {contractStartDate ? format(contractStartDate, "PPP") : "Pick a date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={contractStartDate}
+                        onSelect={setContractStartDate}
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                <div>
+                  <Label htmlFor="contract_duration_months">Contract Duration (Months)</Label>
+                  <Input
+                    id="contract_duration_months"
+                    type="number"
+                    value={formData.contract_duration_months}
+                    onChange={(e) => handleInputChange('contract_duration_months', e.target.value)}
+                    placeholder="12"
                   />
                 </div>
 
