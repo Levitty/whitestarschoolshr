@@ -69,7 +69,7 @@ const Records = () => {
   const tabsConfig = getTabsConfig();
 
   return (
-    <div className="container mx-auto px-6 py-8">
+    <div className="container mx-auto px-4 py-6 max-w-7xl">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-slate-900">
           {isAdmin ? 'Document Management' : 'My Records'}

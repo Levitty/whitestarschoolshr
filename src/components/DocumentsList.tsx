@@ -16,14 +16,18 @@ import {
   Filter
 } from 'lucide-react';
 
-const DocumentsList = () => {
+interface DocumentsListProps {
+  employeeId?: string;
+}
+
+const DocumentsList = ({ employeeId }: DocumentsListProps) => {
   const { documents, loading } = useDocuments();
   const { employees } = useEmployees();
   const [searchTerm, setSearchTerm] = useState('');
 
-  const getEmployeeName = (employeeId: string | null) => {
-    if (!employeeId) return 'Unassigned';
-    const employee = employees.find(emp => emp.id === employeeId);
+  const getEmployeeName = (empId: string | null) => {
+    if (!empId) return 'Unassigned';
+    const employee = employees.find(emp => emp.id === empId);
     return employee ? `${employee.first_name} ${employee.last_name}` : 'Unknown Employee';
   };
 
@@ -58,7 +62,12 @@ const DocumentsList = () => {
     return labels[category as keyof typeof labels] || category;
   };
 
-  const filteredDocuments = documents.filter(doc =>
+  // Filter documents by employee if employeeId is provided
+  const employeeFilteredDocuments = employeeId 
+    ? documents.filter(doc => doc.employee_id === employeeId)
+    : documents;
+
+  const filteredDocuments = employeeFilteredDocuments.filter(doc =>
     doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     doc.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     getCategoryLabel(doc.category).toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -76,11 +85,11 @@ const DocumentsList = () => {
   }
 
   return (
-    <Card>
+    <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <FileText className="h-5 w-5" />
-          Document Library
+          {employeeId ? 'Employee Documents' : 'Document Library'}
         </CardTitle>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -97,7 +106,9 @@ const DocumentsList = () => {
           <div className="text-center py-8 text-slate-500">
             <FileText className="h-12 w-12 mx-auto mb-4" />
             <p>No documents found</p>
-            <p className="text-sm mt-2">Upload documents to get started</p>
+            <p className="text-sm mt-2">
+              {employeeId ? 'No documents uploaded for this employee' : 'Upload documents to get started'}
+            </p>
           </div>
         ) : (
           <div className="space-y-4 max-h-96 overflow-y-auto">
@@ -114,10 +125,12 @@ const DocumentsList = () => {
                         <Filter className="h-3 w-3" />
                         {getCategoryLabel(doc.category)}
                       </span>
-                      <span className="flex items-center gap-1">
-                        <User className="h-3 w-3" />
-                        {getEmployeeName(doc.employee_id)}
-                      </span>
+                      {!employeeId && (
+                        <span className="flex items-center gap-1">
+                          <User className="h-3 w-3" />
+                          {getEmployeeName(doc.employee_id)}
+                        </span>
+                      )}
                       <span className="flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
                         {new Date(doc.created_at || '').toLocaleDateString()}

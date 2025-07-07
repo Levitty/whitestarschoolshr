@@ -9,34 +9,52 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { useDocuments } from '@/hooks/useDocuments';
 import { useEmployees } from '@/hooks/useEmployees';
+import { useAuth } from '@/hooks/useAuth';
 import { Upload, FileText } from 'lucide-react';
 
 interface DocumentUploadProps {
   onSuccess?: () => void;
+  preselectedEmployeeId?: string;
 }
 
-const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
+const DocumentUpload = ({ onSuccess, preselectedEmployeeId }: DocumentUploadProps) => {
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('employment_records');
-  const [employeeId, setEmployeeId] = useState('');
+  const [employeeId, setEmployeeId] = useState(preselectedEmployeeId || '');
   const [uploading, setUploading] = useState(false);
   
   const { uploadDocument } = useDocuments();
   const { employees } = useEmployees();
+  const { user } = useAuth();
   const { toast } = useToast();
+
+  console.log('DocumentUpload component - User:', user?.id, 'Employees count:', employees.length);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
+      const selectedFile = e.target.files[0];
+      setFile(selectedFile);
+      console.log('File selected:', selectedFile.name);
     }
   };
 
   const handleUpload = async () => {
+    console.log('Upload button clicked');
+    
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to upload documents",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!file || !title) {
       toast({
-        title: "Error",
+        title: "Missing Information",
         description: "Please select a file and enter a title",
         variant: "destructive",
       });
@@ -44,8 +62,10 @@ const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
     }
 
     setUploading(true);
+    console.log('Starting upload process...');
+    
     try {
-      const { error } = await uploadDocument(
+      const result = await uploadDocument(
         file,
         title,
         description,
@@ -53,13 +73,15 @@ const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
         employeeId || undefined
       );
 
-      if (error) {
+      if (result.error) {
+        console.error('Upload failed:', result.error);
         toast({
           title: "Upload Failed",
-          description: error.message || "Failed to upload document",
+          description: result.error.message || "Failed to upload document",
           variant: "destructive",
         });
       } else {
+        console.log('Upload successful');
         toast({
           title: "Success",
           description: "Document uploaded successfully",
@@ -70,7 +92,9 @@ const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
         setTitle('');
         setDescription('');
         setCategory('employment_records');
-        setEmployeeId('');
+        if (!preselectedEmployeeId) {
+          setEmployeeId('');
+        }
         
         // Reset file input
         const fileInput = document.getElementById('file-upload') as HTMLInputElement;
@@ -93,7 +117,7 @@ const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
   };
 
   return (
-    <Card>
+    <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Upload className="h-5 w-5" />
@@ -155,22 +179,24 @@ const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
           </Select>
         </div>
 
-        <div>
-          <Label htmlFor="employee">Assign to Employee (Optional)</Label>
-          <Select value={employeeId} onValueChange={setEmployeeId}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select employee" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="unassigned">Unassigned</SelectItem>
-              {employees.map((employee) => (
-                <SelectItem key={employee.id} value={employee.id}>
-                  {employee.first_name} {employee.last_name} - {employee.position}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        {!preselectedEmployeeId && (
+          <div>
+            <Label htmlFor="employee">Assign to Employee (Optional)</Label>
+            <Select value={employeeId} onValueChange={setEmployeeId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select employee" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Unassigned</SelectItem>
+                {employees.map((employee) => (
+                  <SelectItem key={employee.id} value={employee.id}>
+                    {employee.first_name} {employee.last_name} - {employee.position}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
         <Button 
           onClick={handleUpload} 

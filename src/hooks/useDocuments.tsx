@@ -22,6 +22,7 @@ export const useDocuments = () => {
     if (!user) return;
 
     try {
+      console.log('Fetching documents for user:', user.id);
       const { data, error } = await supabase
         .from('documents')
         .select('*')
@@ -30,6 +31,7 @@ export const useDocuments = () => {
       if (error) {
         console.error('Error fetching documents:', error);
       } else {
+        console.log('Fetched documents:', data);
         setDocuments(data || []);
       }
     } catch (error) {
@@ -46,7 +48,12 @@ export const useDocuments = () => {
     category: Database['public']['Enums']['document_category'],
     employeeId?: string
   ) => {
-    if (!user) return { error: { message: 'No user found' } };
+    console.log('Starting document upload for user:', user?.id);
+    
+    if (!user) {
+      console.error('No authenticated user found');
+      return { error: { message: 'No authenticated user found. Please log in and try again.' } };
+    }
 
     try {
       // Upload file to storage
@@ -92,6 +99,7 @@ export const useDocuments = () => {
         return { error };
       }
 
+      console.log('Document uploaded successfully');
       await fetchDocuments();
       return { error: null };
     } catch (error) {

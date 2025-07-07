@@ -39,9 +39,9 @@ const Employees = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto px-4 py-6 max-w-7xl">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">HR Management</h1>
           <p className="text-slate-600 mt-1">Comprehensive employee management system</p>
@@ -64,7 +64,7 @@ const Employees = () => {
           />
 
           {/* Employee Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredEmployees.map((employee) => (
               <EmployeeCard
                 key={employee.id}
