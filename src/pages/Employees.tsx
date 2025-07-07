@@ -39,69 +39,103 @@ const Employees = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-7xl">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900">HR Management</h1>
-          <p className="text-slate-600 mt-1">Comprehensive employee management system</p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      <div className="container mx-auto px-6 py-8 max-w-7xl">
+        {/* Modern Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
+          <div className="mb-4 sm:mb-0">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-900 to-blue-700 bg-clip-text text-transparent">
+              HR Management
+            </h1>
+            <p className="text-slate-600 mt-2 text-lg">Comprehensive employee management system</p>
+          </div>
+          <AddEmployeeForm />
         </div>
-        <AddEmployeeForm />
-      </div>
 
-      <Tabs defaultValue="employees" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="employees">Employees</TabsTrigger>
-          <TabsTrigger value="documents">Documents</TabsTrigger>
-          <TabsTrigger value="recruitment">Recruitment</TabsTrigger>
-          <TabsTrigger value="contracts">Contracts</TabsTrigger>
-        </TabsList>
+        <Tabs defaultValue="employees" className="space-y-8">
+          <TabsList className="grid w-full grid-cols-4 bg-white/80 backdrop-blur-sm border border-slate-200 rounded-xl p-1 shadow-sm">
+            <TabsTrigger 
+              value="employees" 
+              className="rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200"
+            >
+              Employees
+            </TabsTrigger>
+            <TabsTrigger 
+              value="documents" 
+              className="rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200"
+            >
+              Documents
+            </TabsTrigger>
+            <TabsTrigger 
+              value="recruitment" 
+              className="rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200"
+            >
+              Recruitment
+            </TabsTrigger>
+            <TabsTrigger 
+              value="contracts" 
+              className="rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200"
+            >
+              Contracts
+            </TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="employees" className="space-y-6">
-          <EmployeeSearch 
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
-          />
-
-          {/* Employee Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredEmployees.map((employee) => (
-              <EmployeeCard
-                key={employee.id}
-                employee={employee}
-                onViewProfile={setSelectedEmployee}
+          <TabsContent value="employees" className="space-y-8">
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-slate-200 p-6 shadow-sm">
+              <EmployeeSearch 
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
               />
-            ))}
-          </div>
+            </div>
 
-          {filteredEmployees.length === 0 && !loading && (
-            <EmptyEmployeeState searchTerm={searchTerm} />
-          )}
-        </TabsContent>
+            {/* Employee Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredEmployees.map((employee) => (
+                <EmployeeCard
+                  key={employee.id}
+                  employee={employee}
+                  onViewProfile={setSelectedEmployee}
+                />
+              ))}
+            </div>
 
-        <TabsContent value="documents" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <DocumentUpload />
-            <DocumentsList />
-          </div>
-        </TabsContent>
+            {filteredEmployees.length === 0 && !loading && (
+              <EmptyEmployeeState searchTerm={searchTerm} />
+            )}
+          </TabsContent>
 
-        <TabsContent value="recruitment" className="space-y-6">
-          <RecruitmentStats employees={employees} />
-        </TabsContent>
+          <TabsContent value="documents" className="space-y-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <DocumentUpload />
+              </div>
+              <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <DocumentsList />
+              </div>
+            </div>
+          </TabsContent>
 
-        <TabsContent value="contracts" className="space-y-6">
-          <ContractExpiry />
-        </TabsContent>
-      </Tabs>
+          <TabsContent value="recruitment" className="space-y-8">
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <RecruitmentStats employees={employees} />
+            </div>
+          </TabsContent>
 
-      {/* Employee Profile Modal */}
-      {selectedEmployee && (
-        <EmployeeProfile
-          employee={selectedEmployee}
-          onClose={() => setSelectedEmployee(null)}
-        />
-      )}
+          <TabsContent value="contracts" className="space-y-8">
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <ContractExpiry />
+            </div>
+          </TabsContent>
+        </Tabs>
+
+        {/* Employee Profile Modal */}
+        {selectedEmployee && (
+          <EmployeeProfile
+            employee={selectedEmployee}
+            onClose={() => setSelectedEmployee(null)}
+          />
+        )}
+      </div>
     </div>
   );
 };

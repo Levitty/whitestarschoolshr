@@ -117,58 +117,64 @@ const DocumentUpload = ({ onSuccess, preselectedEmployeeId }: DocumentUploadProp
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Upload className="h-5 w-5" />
+    <Card className="w-full border-0 shadow-none">
+      <CardHeader className="pb-4">
+        <CardTitle className="flex items-center gap-3 text-xl">
+          <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg">
+            <Upload className="h-5 w-5 text-white" />
+          </div>
           Upload Document
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-6">
         <div>
-          <Label htmlFor="file-upload">Select File</Label>
+          <Label htmlFor="file-upload" className="text-sm font-medium text-slate-700">Select File</Label>
           <Input
             id="file-upload"
             type="file"
             onChange={handleFileChange}
             accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
+            className="mt-2 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
           />
           {file && (
-            <div className="mt-2 flex items-center gap-2 text-sm text-gray-600">
-              <FileText className="h-4 w-4" />
-              {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
+            <div className="mt-3 flex items-center gap-2 text-sm text-slate-600 p-3 bg-blue-50 rounded-lg border border-blue-200">
+              <FileText className="h-4 w-4 text-blue-600" />
+              <span className="font-medium">{file.name}</span>
+              <span className="text-slate-500">({(file.size / 1024 / 1024).toFixed(2)} MB)</span>
             </div>
           )}
         </div>
 
         <div>
-          <Label htmlFor="title">Document Title</Label>
+          <Label htmlFor="title" className="text-sm font-medium text-slate-700">Document Title</Label>
           <Input
             id="title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Enter document title"
+            className="mt-2 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
 
         <div>
-          <Label htmlFor="description">Description (Optional)</Label>
+          <Label htmlFor="description" className="text-sm font-medium text-slate-700">Description (Optional)</Label>
           <Textarea
             id="description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Enter document description"
             rows={3}
+            className="mt-2 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
 
         <div>
-          <Label htmlFor="category">Category</Label>
+          <Label htmlFor="category" className="text-sm font-medium text-slate-700">Category</Label>
           <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger>
+            <SelectTrigger className="mt-2 border-slate-200 focus:border-blue-500 focus:ring-blue-500">
               <SelectValue placeholder="Select category" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white border-slate-200 shadow-lg">
               <SelectItem value="employment_records">Employment Records</SelectItem>
               <SelectItem value="disciplinary_records">Disciplinary Records</SelectItem>
               <SelectItem value="performance_records">Performance Records</SelectItem>
@@ -181,13 +187,13 @@ const DocumentUpload = ({ onSuccess, preselectedEmployeeId }: DocumentUploadProp
 
         {!preselectedEmployeeId && (
           <div>
-            <Label htmlFor="employee">Assign to Employee (Optional)</Label>
+            <Label htmlFor="employee" className="text-sm font-medium text-slate-700">Assign to Employee (Optional)</Label>
             <Select value={employeeId} onValueChange={setEmployeeId}>
-              <SelectTrigger>
+              <SelectTrigger className="mt-2 border-slate-200 focus:border-blue-500 focus:ring-blue-500">
                 <SelectValue placeholder="Select employee" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">Unassigned</SelectItem>
+              <SelectContent className="bg-white border-slate-200 shadow-lg">
+                <SelectItem value="none">Unassigned</SelectItem>
                 {employees.map((employee) => (
                   <SelectItem key={employee.id} value={employee.id}>
                     {employee.first_name} {employee.last_name} - {employee.position}
@@ -201,9 +207,16 @@ const DocumentUpload = ({ onSuccess, preselectedEmployeeId }: DocumentUploadProp
         <Button 
           onClick={handleUpload} 
           disabled={!file || !title || uploading}
-          className="w-full"
+          className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all duration-200"
         >
-          {uploading ? 'Uploading...' : 'Upload Document'}
+          {uploading ? (
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              Uploading...
+            </div>
+          ) : (
+            'Upload Document'
+          )}
         </Button>
       </CardContent>
     </Card>
