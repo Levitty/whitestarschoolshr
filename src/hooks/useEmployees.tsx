@@ -35,9 +35,22 @@ export const useEmployees = () => {
 
   const createEmployee = async (employeeData: EmployeeProfileInsert) => {
     try {
+      // Set contract end date based on contract duration
+      let contractEndDate = null;
+      if (employeeData.contract_start_date && employeeData.contract_duration_months) {
+        const startDate = new Date(employeeData.contract_start_date);
+        startDate.setMonth(startDate.getMonth() + employeeData.contract_duration_months);
+        contractEndDate = startDate.toISOString().split('T')[0];
+      }
+
+      const finalEmployeeData = {
+        ...employeeData,
+        contract_end_date: contractEndDate
+      };
+
       const { error } = await supabase
         .from('employee_profiles')
-        .insert(employeeData);
+        .insert(finalEmployeeData);
 
       if (error) {
         return { error };
@@ -68,11 +81,29 @@ export const useEmployees = () => {
     }
   };
 
+  const getExpiringContracts = async () => {
+    try {
+      const { data, error } = await supabase
+        .rpc('check_expiring_contracts');
+
+      if (error) {
+        console.error('Error fetching expiring contracts:', error);
+        return [];
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching expiring contracts:', error);
+      return [];
+    }
+  };
+
   return {
     employees,
     loading,
     fetchEmployees,
     createEmployee,
-    updateEmployee
+    updateEmployee,
+    getExpiringContracts
   };
 };

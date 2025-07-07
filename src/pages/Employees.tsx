@@ -10,6 +10,7 @@ import RecruitmentStats from '@/components/RecruitmentStats';
 import EmptyEmployeeState from '@/components/EmptyEmployeeState';
 import DocumentUpload from '@/components/DocumentUpload';
 import WeeklyReportsManager from '@/components/WeeklyReportsManager';
+import ContractExpiry from '@/components/ContractExpiry';
 import { useEmployees } from '@/hooks/useEmployees';
 
 const Employees = () => {
@@ -83,16 +84,7 @@ const Employees = () => {
         </TabsContent>
 
         <TabsContent value="contracts" className="space-y-6">
-          <Card>
-            <CardContent className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Contract Expiry Tracking</h3>
-              <div className="text-center py-8 text-slate-500">
-                <AlertCircle className="h-12 w-12 mx-auto mb-4" />
-                <p>Contract expiry tracking functionality coming soon...</p>
-                <p className="text-sm mt-2">This will show contracts expiring in 3, 6, and 12 months</p>
-              </div>
-            </CardContent>
-          </Card>
+          <ContractExpiry />
         </TabsContent>
       </Tabs>
 

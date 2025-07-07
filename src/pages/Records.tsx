@@ -9,6 +9,8 @@ import DocumentTemplateManager from '@/components/DocumentTemplateManager';
 import RecruitmentAssessments from '@/components/RecruitmentAssessments';
 import LeaveRequestForm from '@/components/LeaveRequestForm';
 import InterviewForm from '@/components/InterviewForm';
+import DocumentUpload from '@/components/DocumentUpload';
+import ContractExpiry from '@/components/ContractExpiry';
 import { useDocuments } from '@/hooks/useDocuments';
 import { useLeaveRequests } from '@/hooks/useLeaveRequests';
 import { useInterviews } from '@/hooks/useInterviews';
@@ -21,7 +23,8 @@ import {
   Eye,
   PenTool,
   Camera,
-  Users
+  Users,
+  AlertTriangle
 } from 'lucide-react';
 
 const Records = () => {
@@ -35,7 +38,7 @@ const Records = () => {
 
   const getStatusBadge = (status: string) => {
     const variants = {
-      pending: 'default',
+      pending: 'secondary',
       approved: 'default',
       rejected: 'destructive',
       draft: 'secondary',
@@ -53,22 +56,33 @@ const Records = () => {
     return new Date(dateString).toLocaleDateString();
   };
 
+  const downloadDocument = async (filePath: string, fileName: string) => {
+    // TODO: Implement document download functionality
+    console.log('Download document:', filePath, fileName);
+  };
+
+  const viewDocument = async (filePath: string) => {
+    // TODO: Implement document view functionality
+    console.log('View document:', filePath);
+  };
+
   // Different tab configurations for admin vs regular users
   const getTabsConfig = () => {
     if (isAdmin) {
       return [
         { value: 'documents', label: 'Documents', icon: FileText },
+        { value: 'upload', label: 'Upload', icon: Camera },
+        { value: 'contracts', label: 'Contracts', icon: AlertTriangle },
         { value: 'templates', label: 'Templates', icon: FileText },
         { value: 'recruitment', label: 'Recruitment', icon: Users },
         { value: 'leave', label: 'Leave Requests', icon: Calendar },
-        { value: 'interviews', label: 'Interviews', icon: UserCheck },
-        { value: 'upload', label: 'Upload', icon: Camera }
+        { value: 'interviews', label: 'Interviews', icon: UserCheck }
       ];
     } else {
       return [
         { value: 'documents', label: 'My Documents', icon: FileText },
-        { value: 'leave', label: 'Leave Requests', icon: Calendar },
-        { value: 'upload', label: 'Upload', icon: Camera }
+        { value: 'upload', label: 'Upload', icon: Camera },
+        { value: 'leave', label: 'Leave Requests', icon: Calendar }
       ];
     }
   };
@@ -79,18 +93,18 @@ const Records = () => {
     <div className="container mx-auto px-6 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-slate-900">
-          {isAdmin ? 'Admin Dashboard' : 'My Dashboard'}
+          {isAdmin ? 'Document Management' : 'My Records'}
         </h1>
         <p className="text-slate-600 mt-2">
           {isAdmin 
-            ? 'Manage all documents, templates, recruitment, and employee records'
+            ? 'Manage all documents, templates, contracts, and employee records'
             : 'Access your documents, submit leave requests, and upload files'
           }
         </p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className={`grid w-full grid-cols-${tabsConfig.length}`}>
+        <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${tabsConfig.length}, 1fr)` }}>
           {tabsConfig.map(({ value, label, icon: Icon }) => (
             <TabsTrigger key={value} value={value} className="flex items-center gap-2">
               <Icon className="h-4 w-4" />
@@ -109,7 +123,9 @@ const Records = () => {
                 <div className="text-center py-8">Loading documents...</div>
               ) : documents.length === 0 ? (
                 <div className="text-center py-8 text-slate-500">
-                  No documents found. Upload your first document to get started.
+                  <FileText className="h-12 w-12 mx-auto mb-4" />
+                  <p>No documents found.</p>
+                  <p className="text-sm mt-2">Upload your first document to get started.</p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -117,7 +133,7 @@ const Records = () => {
                     <div key={doc.id} className="flex items-center justify-between p-4 border rounded-lg">
                       <div className="flex-1">
                         <h3 className="font-medium">{doc.title}</h3>
-                        <p className="text-sm text-slate-600">{doc.description}</p>
+                        <p className="text-sm text-slate-600">{doc.description || 'No description'}</p>
                         <div className="flex items-center gap-2 mt-2">
                           <Badge variant="outline">
                             {doc.category.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
@@ -129,13 +145,26 @@ const Records = () => {
                           {doc.is_system_generated && (
                             <Badge variant="secondary">System Generated</Badge>
                           )}
+                          {doc.file_name && (
+                            <span className="text-xs text-slate-500">
+                              {doc.file_name} ({doc.file_size ? (doc.file_size / 1024 / 1024).toFixed(2) + ' MB' : 'Unknown size'})
+                            </span>
+                          )}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => viewDocument(doc.file_path || '')}
+                        >
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => downloadDocument(doc.file_path || '', doc.file_name || '')}
+                        >
                           <Download className="h-4 w-4" />
                         </Button>
                         {doc.requires_signature && (
@@ -151,6 +180,16 @@ const Records = () => {
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="upload" className="space-y-6">
+          <DocumentUpload onSuccess={() => window.location.reload()} />
+        </TabsContent>
+
+        {isAdmin && (
+          <TabsContent value="contracts" className="space-y-6">
+            <ContractExpiry />
+          </TabsContent>
+        )}
 
         {isAdmin && (
           <TabsContent value="templates" className="space-y-6">
@@ -176,7 +215,8 @@ const Records = () => {
                   <div className="text-center py-8">Loading leave requests...</div>
                 ) : leaveRequests.length === 0 ? (
                   <div className="text-center py-8 text-slate-500">
-                    No leave requests found.
+                    <Calendar className="h-12 w-12 mx-auto mb-4" />
+                    <p>No leave requests found.</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -219,7 +259,8 @@ const Records = () => {
                     <div className="text-center py-8">Loading interviews...</div>
                   ) : interviews.length === 0 ? (
                     <div className="text-center py-8 text-slate-500">
-                      No interviews scheduled.
+                      <UserCheck className="h-12 w-12 mx-auto mb-4" />
+                      <p>No interviews scheduled.</p>
                     </div>
                   ) : (
                     <div className="space-y-4">
@@ -245,10 +286,6 @@ const Records = () => {
             </div>
           </TabsContent>
         )}
-
-        <TabsContent value="upload" className="space-y-6">
-          <CameraUpload />
-        </TabsContent>
       </Tabs>
     </div>
   );

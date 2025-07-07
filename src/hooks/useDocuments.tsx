@@ -46,7 +46,7 @@ export const useDocuments = () => {
     category: Database['public']['Enums']['document_category'],
     employeeId?: string
   ) => {
-    if (!user) return { error: 'No user found' };
+    if (!user) return { error: { message: 'No user found' } };
 
     try {
       // Upload file to storage
@@ -54,11 +54,14 @@ export const useDocuments = () => {
       const fileName = `${Date.now()}.${fileExt}`;
       const filePath = `${user.id}/${fileName}`;
 
+      console.log('Uploading file to storage:', filePath);
+      
       const { error: uploadError } = await supabase.storage
         .from('employee-documents')
         .upload(filePath, file);
 
       if (uploadError) {
+        console.error('Storage upload error:', uploadError);
         return { error: uploadError };
       }
 
@@ -72,26 +75,33 @@ export const useDocuments = () => {
         file_size: file.size,
         file_type: file.type,
         uploaded_by: user.id,
-        employee_id: employeeId || null
+        employee_id: employeeId || null,
+        status: 'draft',
+        is_shared: false,
+        requires_signature: false
       };
+
+      console.log('Creating document record:', documentData);
 
       const { error } = await supabase
         .from('documents')
         .insert(documentData);
 
       if (error) {
+        console.error('Database insert error:', error);
         return { error };
       }
 
       await fetchDocuments();
       return { error: null };
     } catch (error) {
+      console.error('Upload document error:', error);
       return { error };
     }
   };
 
   const signDocument = async (documentId: string, signatureData: string) => {
-    if (!user) return { error: 'No user found' };
+    if (!user) return { error: { message: 'No user found' } };
 
     try {
       const { error } = await supabase

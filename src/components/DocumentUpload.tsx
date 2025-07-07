@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useDocuments } from '@/hooks/useDocuments';
+import { useEmployees } from '@/hooks/useEmployees';
 import { useToast } from '@/hooks/use-toast';
 import { Upload } from 'lucide-react';
 
@@ -19,8 +20,10 @@ const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
   const [uploading, setUploading] = useState(false);
   const { uploadDocument } = useDocuments();
+  const { employees } = useEmployees();
   const { toast } = useToast();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -31,29 +34,58 @@ const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file || !title || !category) return;
-
-    setUploading(true);
-    const { error } = await uploadDocument(file, title, description, category as any);
-
-    if (error) {
+    if (!file || !title || !category) {
       toast({
-        title: "Upload Failed",
-        description: error.message,
+        title: "Missing Information",
+        description: "Please fill in all required fields and select a file.",
         variant: "destructive"
       });
-    } else {
-      toast({
-        title: "Document Uploaded",
-        description: "Your document has been uploaded successfully."
-      });
-      setFile(null);
-      setTitle('');
-      setDescription('');
-      setCategory('');
-      onSuccess?.();
+      return;
     }
-    setUploading(false);
+
+    setUploading(true);
+    
+    try {
+      const { error } = await uploadDocument(
+        file, 
+        title, 
+        description, 
+        category as any,
+        selectedEmployeeId || undefined
+      );
+
+      if (error) {
+        toast({
+          title: "Upload Failed",
+          description: error.message || "Failed to upload document",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Document Uploaded",
+          description: "Your document has been uploaded successfully."
+        });
+        // Reset form
+        setFile(null);
+        setTitle('');
+        setDescription('');
+        setCategory('');
+        setSelectedEmployeeId('');
+        // Reset file input
+        const fileInput = document.getElementById('file') as HTMLInputElement;
+        if (fileInput) fileInput.value = '';
+        
+        onSuccess?.();
+      }
+    } catch (error) {
+      toast({
+        title: "Upload Failed",
+        description: "An unexpected error occurred while uploading.",
+        variant: "destructive"
+      });
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
@@ -67,7 +99,7 @@ const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="file">File</Label>
+            <Label htmlFor="file">File *</Label>
             <Input
               id="file"
               type="file"
@@ -75,10 +107,15 @@ const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
               onChange={handleFileChange}
               required
             />
+            {file && (
+              <p className="text-sm text-gray-600">
+                Selected: {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
+              </p>
+            )}
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
+            <Label htmlFor="title">Title *</Label>
             <Input
               id="title"
               value={title}
@@ -89,7 +126,7 @@ const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="category">Category</Label>
+            <Label htmlFor="category">Category *</Label>
             <Select value={category} onValueChange={setCategory}>
               <SelectTrigger>
                 <SelectValue placeholder="Select category" />
@@ -99,6 +136,23 @@ const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
                 <SelectItem value="disciplinary_records">Disciplinary Records</SelectItem>
                 <SelectItem value="performance_records">Performance Records</SelectItem>
                 <SelectItem value="shared_documents">Shared Documents</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="employee">Assign to Employee (Optional)</Label>
+            <Select value={selectedEmployeeId} onValueChange={setSelectedEmployeeId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select employee" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">No specific employee</SelectItem>
+                {employees.map((employee) => (
+                  <SelectItem key={employee.id} value={employee.id}>
+                    {employee.first_name} {employee.last_name} - {employee.position}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -114,7 +168,11 @@ const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
             />
           </div>
 
-          <Button type="submit" disabled={uploading || !file || !title || !category}>
+          <Button 
+            type="submit" 
+            disabled={uploading || !file || !title || !category}
+            className="w-full"
+          >
             {uploading ? 'Uploading...' : 'Upload Document'}
           </Button>
         </form>
