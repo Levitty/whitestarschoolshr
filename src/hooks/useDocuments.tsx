@@ -18,6 +18,7 @@ export const useDocuments = () => {
       fetchDocuments();
     } else {
       console.log('useDocuments - No authenticated user');
+      setDocuments([]);
       setLoading(false);
     }
   }, [user, session]);
@@ -55,11 +56,24 @@ export const useDocuments = () => {
     category: Database['public']['Enums']['document_category'],
     employeeId?: string
   ) => {
-    console.log('Starting document upload - User:', user?.id, 'Session:', !!session);
+    console.log('Starting document upload - User:', user?.id, 'Session valid:', !!session?.access_token);
     
-    if (!user || !session) {
-      console.error('No authenticated user or session found');
-      return { error: { message: 'You must be logged in to upload documents. Please refresh the page and try again.' } };
+    // Enhanced authentication check
+    if (!user || !session || !session.access_token) {
+      console.error('Authentication failed - User:', !!user, 'Session:', !!session, 'Access token:', !!session?.access_token);
+      return { error: { message: 'Authentication required. Please sign out and sign back in.' } };
+    }
+
+    // Double-check current session
+    try {
+      const { data: sessionCheck } = await supabase.auth.getSession();
+      if (!sessionCheck.session || !sessionCheck.session.user) {
+        console.error('Session validation failed');
+        return { error: { message: 'Session expired. Please sign in again.' } };
+      }
+    } catch (sessionError) {
+      console.error('Session check failed:', sessionError);
+      return { error: { message: 'Authentication verification failed. Please sign in again.' } };
     }
 
     try {

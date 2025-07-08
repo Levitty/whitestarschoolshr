@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -18,7 +19,7 @@ import { useProfile } from '@/hooks/useProfile';
 const Navigation = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
-  const { signOut } = useAuth();
+  const { signOut, user, session } = useAuth();
   const { profile } = useProfile();
 
   const navigationItems = [
@@ -33,7 +34,14 @@ const Navigation = () => {
   ];
 
   const handleLogout = async () => {
-    await signOut();
+    console.log('Logout button clicked');
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Error during logout:', error);
+      // Force redirect even if there's an error
+      window.location.href = '/auth';
+    }
   };
 
   const getInitials = (firstName: string | null, lastName: string | null) => {
@@ -46,13 +54,16 @@ const Navigation = () => {
     if (profile?.first_name && profile?.last_name) {
       return `${profile.first_name} ${profile.last_name}`;
     }
-    return profile?.email || 'User';
+    return profile?.email || user?.email || 'User';
   };
 
   const getRoleDisplay = () => {
     if (!profile?.role) return 'User';
     return profile.role.charAt(0).toUpperCase() + profile.role.slice(1);
   };
+
+  // Debug auth state
+  console.log('Navigation - User:', !!user, 'Session:', !!session, 'Profile:', !!profile);
 
   return (
     <>
@@ -127,7 +138,7 @@ const Navigation = () => {
               onClick={handleLogout}
               variant="outline"
               size="sm"
-              className="w-full text-slate-300 border-slate-600 hover:bg-slate-800"
+              className="w-full text-slate-300 border-slate-600 hover:bg-slate-800 hover:text-white"
             >
               <LogOut className="mr-2 h-4 w-4" />
               Sign Out
