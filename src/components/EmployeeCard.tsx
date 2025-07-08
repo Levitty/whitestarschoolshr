@@ -27,46 +27,46 @@ const EmployeeCard = ({ employee, onViewProfile }: EmployeeCardProps) => {
   };
 
   return (
-    <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+    <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer bg-white/80 backdrop-blur-sm border border-slate-200">
       <CardContent className="p-6">
-        <div className="flex items-start space-x-4">
-          <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-medium">
+        <div className="flex items-start space-x-4 mb-4">
+          <div className="w-14 h-14 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold text-lg shadow-lg">
             {getInitials(employee.first_name, employee.last_name)}
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-slate-900 truncate">
+            <h3 className="font-semibold text-lg text-slate-900 truncate mb-1">
               {employee.first_name} {employee.last_name}
             </h3>
-            <p className="text-sm text-slate-600">{employee.position}</p>
-            <p className="text-sm text-slate-500">{employee.department}</p>
+            <p className="text-sm font-medium text-blue-600 mb-1">{employee.position}</p>
+            <p className="text-sm text-slate-600">{employee.department}</p>
           </div>
-          <UIBadge variant={employee.status === 'active' ? 'default' : 'secondary'}>
+          <UIBadge variant={employee.status === 'active' ? 'default' : 'secondary'} className="shrink-0">
             {employee.status}
           </UIBadge>
         </div>
         
-        <div className="mt-4 space-y-2">
+        <div className="space-y-3 mb-4">
           <div className="flex items-center text-sm text-slate-600">
-            <Mail className="mr-2 h-4 w-4" />
+            <Mail className="mr-3 h-4 w-4 text-slate-400" />
             <span className="truncate">{employee.email}</span>
           </div>
           {employee.phone && (
             <div className="flex items-center text-sm text-slate-600">
-              <Phone className="mr-2 h-4 w-4" />
+              <Phone className="mr-3 h-4 w-4 text-slate-400" />
               <span>{employee.phone}</span>
             </div>
           )}
         </div>
 
-        <div className="mt-4 pt-4 border-t border-slate-200">
-          <p className="text-xs text-slate-500">
+        <div className="pt-4 border-t border-slate-200">
+          <p className="text-xs text-slate-500 mb-3">
             Hired: {new Date(employee.hire_date).toLocaleDateString()}
           </p>
-          <div className="flex space-x-2 mt-2">
+          <div className="flex space-x-2">
             <Button 
               size="sm" 
               variant="outline" 
-              className="flex-1"
+              className="flex-1 hover:bg-slate-50 transition-colors"
               onClick={() => onViewProfile({
                 ...employee,
                 name: `${employee.first_name} ${employee.last_name}`,
@@ -75,7 +75,7 @@ const EmployeeCard = ({ employee, onViewProfile }: EmployeeCardProps) => {
             >
               View Profile
             </Button>
-            <Button size="sm" className="flex-1 bg-blue-600 hover:bg-blue-700">
+            <Button size="sm" className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-md">
               Edit
             </Button>
           </div>

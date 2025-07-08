@@ -8,18 +8,25 @@ type Document = Database['public']['Tables']['documents']['Row'];
 type DocumentInsert = Database['public']['Tables']['documents']['Insert'];
 
 export const useDocuments = () => {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user) {
+    if (user && session) {
+      console.log('useDocuments - User authenticated, fetching documents');
       fetchDocuments();
+    } else {
+      console.log('useDocuments - No authenticated user');
+      setLoading(false);
     }
-  }, [user]);
+  }, [user, session]);
 
   const fetchDocuments = async () => {
-    if (!user) return;
+    if (!user || !session) {
+      console.log('No authenticated user for fetching documents');
+      return;
+    }
 
     try {
       console.log('Fetching documents for user:', user.id);
@@ -31,7 +38,7 @@ export const useDocuments = () => {
       if (error) {
         console.error('Error fetching documents:', error);
       } else {
-        console.log('Fetched documents:', data);
+        console.log('Fetched documents:', data?.length || 0);
         setDocuments(data || []);
       }
     } catch (error) {
@@ -48,11 +55,11 @@ export const useDocuments = () => {
     category: Database['public']['Enums']['document_category'],
     employeeId?: string
   ) => {
-    console.log('Starting document upload for user:', user?.id);
+    console.log('Starting document upload - User:', user?.id, 'Session:', !!session);
     
-    if (!user) {
-      console.error('No authenticated user found');
-      return { error: { message: 'No authenticated user found. Please log in and try again.' } };
+    if (!user || !session) {
+      console.error('No authenticated user or session found');
+      return { error: { message: 'You must be logged in to upload documents. Please refresh the page and try again.' } };
     }
 
     try {
@@ -109,7 +116,9 @@ export const useDocuments = () => {
   };
 
   const signDocument = async (documentId: string, signatureData: string) => {
-    if (!user) return { error: { message: 'No user found' } };
+    if (!user || !session) {
+      return { error: { message: 'No user found' } };
+    }
 
     try {
       const { error } = await supabase

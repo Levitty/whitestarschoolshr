@@ -16,6 +16,7 @@ export const useEmployees = () => {
 
   const fetchEmployees = async () => {
     try {
+      console.log('Fetching employees...');
       const { data, error } = await supabase
         .from('employee_profiles')
         .select('*')
@@ -24,6 +25,7 @@ export const useEmployees = () => {
       if (error) {
         console.error('Error fetching employees:', error);
       } else {
+        console.log('Fetched employees:', data?.length || 0);
         setEmployees(data || []);
       }
     } catch (error) {
@@ -35,6 +37,8 @@ export const useEmployees = () => {
 
   const createEmployee = async (employeeData: EmployeeProfileInsert) => {
     try {
+      console.log('Creating employee with data:', employeeData);
+      
       // Set contract end date based on contract duration
       let contractEndDate = null;
       if (employeeData.contract_start_date && employeeData.contract_duration_months) {
@@ -43,22 +47,31 @@ export const useEmployees = () => {
         contractEndDate = startDate.toISOString().split('T')[0];
       }
 
+      // Set default status if not provided
       const finalEmployeeData = {
         ...employeeData,
-        contract_end_date: contractEndDate
+        contract_end_date: contractEndDate,
+        status: employeeData.status || 'active'
       };
 
-      const { error } = await supabase
+      console.log('Final employee data:', finalEmployeeData);
+
+      const { data, error } = await supabase
         .from('employee_profiles')
-        .insert(finalEmployeeData);
+        .insert(finalEmployeeData)
+        .select()
+        .single();
 
       if (error) {
+        console.error('Error creating employee:', error);
         return { error };
       }
 
+      console.log('Employee created successfully:', data);
       await fetchEmployees();
       return { error: null };
     } catch (error) {
+      console.error('Unexpected error creating employee:', error);
       return { error };
     }
   };

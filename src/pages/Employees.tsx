@@ -19,6 +19,8 @@ const Employees = () => {
   const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
   const { employees, loading } = useEmployees();
 
+  console.log('Employees page - Current employees:', employees.length);
+
   const filteredEmployees = employees.filter(employee =>
     employee.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     employee.last_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -40,19 +42,19 @@ const Employees = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      <div className="container mx-auto px-6 py-8 max-w-7xl">
-        {/* Modern Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
+      <div className="container mx-auto px-4 py-6 max-w-7xl">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
           <div className="mb-4 sm:mb-0">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-900 to-blue-700 bg-clip-text text-transparent">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-blue-700 bg-clip-text text-transparent">
               HR Management
             </h1>
-            <p className="text-slate-600 mt-2 text-lg">Comprehensive employee management system</p>
+            <p className="text-slate-600 mt-1">Comprehensive employee management system</p>
           </div>
           <AddEmployeeForm />
         </div>
 
-        <Tabs defaultValue="employees" className="space-y-8">
+        <Tabs defaultValue="employees" className="space-y-6">
           <TabsList className="grid w-full grid-cols-4 bg-white/80 backdrop-blur-sm border border-slate-200 rounded-xl p-1 shadow-sm">
             <TabsTrigger 
               value="employees" 
@@ -80,16 +82,16 @@ const Employees = () => {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="employees" className="space-y-8">
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-slate-200 p-6 shadow-sm">
+          <TabsContent value="employees" className="space-y-6">
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-slate-200 p-4 shadow-sm">
               <EmployeeSearch 
                 searchTerm={searchTerm}
                 onSearchChange={setSearchTerm}
               />
             </div>
 
-            {/* Employee Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {/* Employee Grid - Restored proper spacing */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredEmployees.map((employee) => (
                 <EmployeeCard
                   key={employee.id}
@@ -104,8 +106,8 @@ const Employees = () => {
             )}
           </TabsContent>
 
-          <TabsContent value="documents" className="space-y-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <TabsContent value="documents" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                 <DocumentUpload />
               </div>
@@ -115,13 +117,13 @@ const Employees = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="recruitment" className="space-y-8">
+          <TabsContent value="recruitment" className="space-y-6">
             <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-slate-200 shadow-sm overflow-hidden">
               <RecruitmentStats employees={employees} />
             </div>
           </TabsContent>
 
-          <TabsContent value="contracts" className="space-y-8">
+          <TabsContent value="contracts" className="space-y-6">
             <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-slate-200 shadow-sm overflow-hidden">
               <ContractExpiry />
             </div>

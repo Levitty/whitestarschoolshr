@@ -46,64 +46,97 @@ const AddEmployeeForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.employee_number || !formData.first_name || !formData.last_name || !formData.email) {
+    
+    console.log('Form submission started');
+    console.log('Form data:', formData);
+    
+    if (!formData.employee_number || !formData.first_name || !formData.last_name || !formData.email || !formData.position || !formData.department || !formData.hire_date) {
       toast({
         title: "Validation Error",
-        description: "Please fill in all required fields.",
+        description: "Please fill in all required fields (Employee Number, First Name, Last Name, Email, Position, Department, Hire Date).",
         variant: "destructive"
       });
       return;
     }
 
     setSubmitting(true);
-    const employeeData = {
-      ...formData,
-      salary: formData.salary ? parseFloat(formData.salary) : null,
-      contract_start_date: contractStartDate ? format(contractStartDate, 'yyyy-MM-dd') : null,
-      contract_duration_months: parseInt(formData.contract_duration_months)
-    };
+    
+    try {
+      const employeeData = {
+        employee_number: formData.employee_number,
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        email: formData.email,
+        phone: formData.phone || null,
+        address: formData.address || null,
+        position: formData.position,
+        department: formData.department,
+        hire_date: formData.hire_date,
+        salary: formData.salary ? parseFloat(formData.salary) : null,
+        contract_type: formData.contract_type,
+        contract_start_date: contractStartDate ? format(contractStartDate, 'yyyy-MM-dd') : null,
+        contract_duration_months: parseInt(formData.contract_duration_months),
+        emergency_contact_name: formData.emergency_contact_name || null,
+        emergency_contact_phone: formData.emergency_contact_phone || null,
+        emergency_contact_relationship: formData.emergency_contact_relationship || null,
+        status: 'active'
+      };
 
-    const { error } = await createEmployee(employeeData);
+      console.log('Processed employee data:', employeeData);
 
-    if (error) {
+      const { error } = await createEmployee(employeeData);
+
+      if (error) {
+        console.error('Employee creation error:', error);
+        toast({
+          title: "Error",
+          description: error.message || "Failed to create employee profile. Please check all fields and try again.",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: "Employee profile created successfully!"
+        });
+        
+        // Reset form
+        setFormData({
+          employee_number: '',
+          first_name: '',
+          last_name: '',
+          email: '',
+          phone: '',
+          address: '',
+          position: '',
+          department: '',
+          hire_date: '',
+          salary: '',
+          contract_type: 'full-time',
+          contract_start_date: '',
+          contract_duration_months: '12',
+          emergency_contact_name: '',
+          emergency_contact_phone: '',
+          emergency_contact_relationship: ''
+        });
+        setContractStartDate(undefined);
+        setOpen(false);
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
       toast({
         title: "Error",
-        description: "Failed to create employee profile.",
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive"
       });
-    } else {
-      toast({
-        title: "Success",
-        description: "Employee profile created successfully!"
-      });
-      setFormData({
-        employee_number: '',
-        first_name: '',
-        last_name: '',
-        email: '',
-        phone: '',
-        address: '',
-        position: '',
-        department: '',
-        hire_date: '',
-        salary: '',
-        contract_type: 'full-time',
-        contract_start_date: '',
-        contract_duration_months: '12',
-        emergency_contact_name: '',
-        emergency_contact_phone: '',
-        emergency_contact_relationship: ''
-      });
-      setContractStartDate(undefined);
-      setOpen(false);
+    } finally {
+      setSubmitting(false);
     }
-    setSubmitting(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-blue-600 hover:bg-blue-700">
+        <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg">
           <Plus className="mr-2 h-4 w-4" />
           Add Employee
         </Button>
@@ -268,7 +301,6 @@ const AddEmployeeForm = () => {
                         selected={contractStartDate}
                         onSelect={setContractStartDate}
                         initialFocus
-                        className={cn("p-3 pointer-events-auto")}
                       />
                     </PopoverContent>
                   </Popover>
@@ -339,7 +371,11 @@ const AddEmployeeForm = () => {
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={submitting}>
+            <Button 
+              type="submit" 
+              disabled={submitting}
+              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+            >
               {submitting ? 'Creating...' : 'Create Employee'}
             </Button>
           </div>
