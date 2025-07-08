@@ -56,52 +56,88 @@ export const useDocuments = () => {
     category: Database['public']['Enums']['document_category'],
     employeeId?: string
   ) => {
-    console.log('Starting document upload - User:', user?.id, 'Session valid:', !!session?.access_token);
+    console.log('uploadDocument called with:', {
+      fileName: file.name,
+      fileSize: file.size,
+      fileType: file.type,
+      title,
+      category,
+      employeeId,
+      userId: user?.id,
+      hasSession: !!session,
+      hasAccessToken: !!session?.access_token
+    });
     
-    // Enhanced authentication check
+    // Comprehensive authentication check
     if (!user || !session || !session.access_token) {
-      console.error('Authentication failed - User:', !!user, 'Session:', !!session, 'Access token:', !!session?.access_token);
-      return { error: { message: 'Authentication required. Please sign out and sign back in.' } };
+      console.error('Authentication failed - Missing:', {
+        user: !user,
+        session: !session,
+        accessToken: !session?.access_token
+      });
+      return { 
+        error: { 
+          message: 'Authentication required. Please sign out and sign back in.' 
+        } 
+      };
     }
 
-    // Double-check current session
+    // Validate session is still active
     try {
-      const { data: sessionCheck } = await supabase.auth.getSession();
-      if (!sessionCheck.session || !sessionCheck.session.user) {
-        console.error('Session validation failed');
-        return { error: { message: 'Session expired. Please sign in again.' } };
+      const { data: sessionCheck, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !sessionCheck.session || !sessionCheck.session.user) {
+        console.error('Session validation failed:', sessionError);
+        return { 
+          error: { 
+            message: 'Session expired. Please sign in again.' 
+          } 
+        };
       }
+      console.log('Session validation passed');
     } catch (sessionError) {
       console.error('Session check failed:', sessionError);
-      return { error: { message: 'Authentication verification failed. Please sign in again.' } };
+      return { 
+        error: { 
+          message: 'Authentication verification failed. Please sign in again.' 
+        } 
+      };
     }
 
     try {
-      // Upload file to storage
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}.${fileExt}`;
+      // Upload file to storage with enhanced error handling
+      const fileExt = file.name.split('.').pop() || 'unknown';
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
       const filePath = `${user.id}/${fileName}`;
 
-      console.log('Uploading file to storage:', filePath);
+      console.log('Uploading file to storage:', { filePath, bucketName: 'employee-documents' });
       
-      const { error: uploadError } = await supabase.storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('employee-documents')
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
       if (uploadError) {
         console.error('Storage upload error:', uploadError);
-        return { error: uploadError };
+        return { 
+          error: { 
+            message: `File upload failed: ${uploadError.message}` 
+          } 
+        };
       }
 
-      // Create document record
+      console.log('File uploaded successfully:', uploadData);
+
+      // Create document record with comprehensive data
       const documentData: DocumentInsert = {
-        title,
-        description,
+        title: title.trim(),
+        description: description.trim() || null,
         category,
         file_path: filePath,
         file_name: file.name,
         file_size: file.size,
-        file_type: file.type,
+        file_type: file.type || 'application/octet-stream',
         uploaded_by: user.id,
         employee_id: employeeId || null,
         status: 'draft',
@@ -111,21 +147,45 @@ export const useDocuments = () => {
 
       console.log('Creating document record:', documentData);
 
-      const { error } = await supabase
+      const { data: documentResult, error: documentError } = await supabase
         .from('documents')
-        .insert(documentData);
+        .insert(documentData)
+        .select()
+        .single();
 
-      if (error) {
-        console.error('Database insert error:', error);
-        return { error };
+      if (documentError) {
+        console.error('Database insert error:', documentError);
+        
+        // Clean up uploaded file if database insert fails
+        try {
+          await supabase.storage
+            .from('employee-documents')
+            .remove([filePath]);
+          console.log('Cleaned up uploaded file after database error');
+        } catch (cleanupError) {
+          console.error('Failed to cleanup file:', cleanupError);
+        }
+        
+        return { 
+          error: { 
+            message: `Document creation failed: ${documentError.message}` 
+          } 
+        };
       }
 
-      console.log('Document uploaded successfully');
+      console.log('Document created successfully:', documentResult);
+      
+      // Refresh documents list
       await fetchDocuments();
+      
       return { error: null };
     } catch (error) {
-      console.error('Upload document error:', error);
-      return { error };
+      console.error('Upload document unexpected error:', error);
+      return { 
+        error: { 
+          message: error instanceof Error ? error.message : 'An unexpected error occurred' 
+        } 
+      };
     }
   };
 
