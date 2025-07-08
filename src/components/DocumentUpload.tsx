@@ -38,6 +38,8 @@ const DocumentUpload = ({ onSuccess, preselectedEmployeeId }: DocumentUploadProp
     sessionValid: !!session?.access_token 
   });
 
+  console.log('DocumentUpload - Available employees:', employees.length);
+
   const acceptedFileTypes = [
     '.pdf', '.doc', '.docx', '.txt', 
     '.jpg', '.jpeg', '.png', '.gif', 
@@ -139,12 +141,17 @@ const DocumentUpload = ({ onSuccess, preselectedEmployeeId }: DocumentUploadProp
     console.log('Starting upload process for:', file.name);
     
     try {
+      // Only pass employeeId if it's actually selected and not empty
+      const selectedEmployeeId = employeeId && employeeId.trim() !== '' ? employeeId : undefined;
+      
+      console.log('Uploading with employee ID:', selectedEmployeeId);
+      
       const result = await uploadDocument(
         file,
         title.trim(),
         description.trim(),
         category as any,
-        employeeId || undefined
+        selectedEmployeeId
       );
 
       if (result.error) {
@@ -306,7 +313,7 @@ const DocumentUpload = ({ onSuccess, preselectedEmployeeId }: DocumentUploadProp
 
         {!preselectedEmployeeId && (
           <div>
-            <Label htmlFor="employee" className="text-sm font-medium text-slate-700">Assign to Employee</Label>
+            <Label htmlFor="employee" className="text-sm font-medium text-slate-700">Assign to Employee (Optional)</Label>
             <Select value={employeeId} onValueChange={setEmployeeId}>
               <SelectTrigger className="mt-2 border-slate-200 focus:border-blue-500 focus:ring-blue-500">
                 <SelectValue placeholder="Select employee (optional)" />

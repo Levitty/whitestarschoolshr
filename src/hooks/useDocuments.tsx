@@ -103,6 +103,35 @@ export const useDocuments = () => {
       };
     }
 
+    // Validate employee ID if provided
+    if (employeeId) {
+      try {
+        console.log('Validating employee ID:', employeeId);
+        const { data: employeeData, error: employeeError } = await supabase
+          .from('employee_profiles')
+          .select('id')
+          .eq('id', employeeId)
+          .single();
+
+        if (employeeError || !employeeData) {
+          console.error('Employee validation failed:', employeeError);
+          return {
+            error: {
+              message: 'Selected employee not found. Please select a valid employee.'
+            }
+          };
+        }
+        console.log('Employee validation passed for:', employeeId);
+      } catch (error) {
+        console.error('Employee validation error:', error);
+        return {
+          error: {
+            message: 'Failed to validate employee. Please try again.'
+          }
+        };
+      }
+    }
+
     try {
       // Upload file to storage with enhanced error handling
       const fileExt = file.name.split('.').pop() || 'unknown';
@@ -139,7 +168,7 @@ export const useDocuments = () => {
         file_size: file.size,
         file_type: file.type || 'application/octet-stream',
         uploaded_by: user.id,
-        employee_id: employeeId || null,
+        employee_id: employeeId || null, // This will be null if no employee is selected
         status: 'draft',
         is_shared: false,
         requires_signature: false
@@ -165,10 +194,20 @@ export const useDocuments = () => {
         } catch (cleanupError) {
           console.error('Failed to cleanup file:', cleanupError);
         }
+
+        // Provide more specific error messages
+        let errorMessage = 'Document creation failed';
+        if (documentError.message.includes('foreign key constraint')) {
+          errorMessage = 'Selected employee is invalid. Please choose a different employee or leave unassigned.';
+        } else if (documentError.message.includes('violates')) {
+          errorMessage = 'Invalid data provided. Please check your inputs and try again.';
+        } else {
+          errorMessage = `Document creation failed: ${documentError.message}`;
+        }
         
         return { 
           error: { 
-            message: `Document creation failed: ${documentError.message}` 
+            message: errorMessage
           } 
         };
       }
