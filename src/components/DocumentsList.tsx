@@ -5,58 +5,35 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useDocuments } from '@/hooks/useDocuments';
-import { useEmployees } from '@/hooks/useEmployees';
 import { useAuth } from '@/hooks/useAuth';
 import { 
   FileText, 
   Download, 
   Eye, 
   Search,
-  User,
-  Calendar,
-  Filter,
-  AlertCircle
+  Calendar
 } from 'lucide-react';
 
-interface DocumentsListProps {
-  employeeId?: string;
-}
-
-const DocumentsList = ({ employeeId }: DocumentsListProps) => {
+const DocumentsList = () => {
   const { documents, loading } = useDocuments();
-  const { employees } = useEmployees();
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
 
-  console.log('DocumentsList - State:', { 
-    documentsCount: documents.length, 
-    loading, 
-    hasUser: !!user,
-    employeeId 
-  });
-
-  const getEmployeeName = (empId: string | null) => {
-    if (!empId) return 'Unassigned';
-    const employee = employees.find(emp => emp.id === empId);
-    return employee ? `${employee.first_name} ${employee.last_name}` : 'Unknown Employee';
-  };
-
   const getStatusBadge = (status: string) => {
     const variants = {
-      draft: { variant: 'secondary' as const, label: 'Draft' },
-      pending_review: { variant: 'secondary' as const, label: 'Pending Review' },
-      approved: { variant: 'default' as const, label: 'Approved' },
-      rejected: { variant: 'destructive' as const, label: 'Rejected' },
-      signed: { variant: 'default' as const, label: 'Signed' },
-      archived: { variant: 'secondary' as const, label: 'Archived' }
-    };
+      draft: 'secondary',
+      pending_review: 'secondary',
+      approved: 'default',
+      rejected: 'destructive',
+      signed: 'default',
+      archived: 'secondary'
+    } as const;
 
-    const config = variants[status as keyof typeof variants] || { 
-      variant: 'secondary' as const, 
-      label: status 
-    };
-    
-    return <Badge variant={config.variant}>{config.label}</Badge>;
+    return (
+      <Badge variant={variants[status as keyof typeof variants] || 'default'}>
+        {status.charAt(0).toUpperCase() + status.slice(1)}
+      </Badge>
+    );
   };
 
   const getCategoryLabel = (category: string) => {
@@ -76,26 +53,16 @@ const DocumentsList = ({ employeeId }: DocumentsListProps) => {
     return (
       <Card className="w-full">
         <CardContent className="p-6">
-          <div className="text-center py-8 text-slate-500">
-            <AlertCircle className="h-12 w-12 mx-auto mb-4 text-slate-300" />
-            <p className="font-medium">Authentication Required</p>
-            <p className="text-sm mt-2">Please sign in to view documents</p>
-          </div>
+          <p className="text-center text-gray-500">Please sign in to view documents</p>
         </CardContent>
       </Card>
     );
   }
 
-  // Filter documents by employee if employeeId is provided
-  const employeeFilteredDocuments = employeeId 
-    ? documents.filter(doc => doc.employee_id === employeeId)
-    : documents;
-
-  const filteredDocuments = employeeFilteredDocuments.filter(doc =>
+  const filteredDocuments = documents.filter(doc =>
     doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     doc.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    getCategoryLabel(doc.category).toLowerCase().includes(searchTerm.toLowerCase()) ||
-    getEmployeeName(doc.employee_id).toLowerCase().includes(searchTerm.toLowerCase())
+    getCategoryLabel(doc.category).toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) {
@@ -116,7 +83,7 @@ const DocumentsList = ({ employeeId }: DocumentsListProps) => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <FileText className="h-5 w-5" />
-          {employeeId ? 'Employee Documents' : 'Document Library'}
+          Document Library
           {filteredDocuments.length > 0 && (
             <Badge variant="outline" className="ml-2">
               {filteredDocuments.length} document{filteredDocuments.length !== 1 ? 's' : ''}
@@ -140,9 +107,7 @@ const DocumentsList = ({ employeeId }: DocumentsListProps) => {
             {documents.length === 0 ? (
               <>
                 <p className="font-medium">No documents found</p>
-                <p className="text-sm mt-2">
-                  {employeeId ? 'No documents uploaded for this employee' : 'Upload documents to get started'}
-                </p>
+                <p className="text-sm mt-2">Upload documents to get started</p>
               </>
             ) : (
               <>
@@ -162,16 +127,7 @@ const DocumentsList = ({ employeeId }: DocumentsListProps) => {
                       <p className="text-sm text-gray-600 mt-1">{doc.description}</p>
                     )}
                     <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
-                      <span className="flex items-center gap-1">
-                        <Filter className="h-3 w-3" />
-                        {getCategoryLabel(doc.category)}
-                      </span>
-                      {!employeeId && (
-                        <span className="flex items-center gap-1">
-                          <User className="h-3 w-3" />
-                          {getEmployeeName(doc.employee_id)}
-                        </span>
-                      )}
+                      <span>{getCategoryLabel(doc.category)}</span>
                       <span className="flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
                         {new Date(doc.created_at || '').toLocaleDateString()}

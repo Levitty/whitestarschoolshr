@@ -9,31 +9,19 @@ interface ProtectedRouteProps {
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
 
-  console.log('ProtectedRoute - Auth state:', { 
-    hasUser: !!user, 
-    loading,
-    userEmail: user?.email 
-  });
-
-  // Show loading state
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="text-center">
-          <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-600">Loading...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
-  // If no user, redirect to auth
   if (!user) {
     window.location.href = '/auth';
     return null;
   }
 
-  // User is authenticated (all users are super admin)
   return <>{children}</>;
 };
 

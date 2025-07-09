@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,47 +8,30 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useDocuments } from '@/hooks/useDocuments';
-import { useEmployees } from '@/hooks/useEmployees';
 import { useAuth } from '@/hooks/useAuth';
-import { Upload, FileText, AlertCircle } from 'lucide-react';
+import { Upload, FileText } from 'lucide-react';
 import { Database } from '@/integrations/supabase/types';
 
 interface DocumentUploadProps {
   onSuccess?: () => void;
-  preselectedEmployeeId?: string;
 }
 
-const DocumentUpload = ({ onSuccess, preselectedEmployeeId }: DocumentUploadProps) => {
+const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
   const { user } = useAuth();
   const { uploadDocument } = useDocuments();
-  const { employees } = useEmployees();
   const { toast } = useToast();
   
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<Database['public']['Enums']['document_category']>('employment_records');
-  const [employeeId, setEmployeeId] = useState('');
   const [uploading, setUploading] = useState(false);
-
-  // Set the preselected employee ID when component mounts or when preselectedEmployeeId changes
-  useEffect(() => {
-    if (preselectedEmployeeId) {
-      setEmployeeId(preselectedEmployeeId);
-    }
-  }, [preselectedEmployeeId]);
-
-  console.log('DocumentUpload - Auth state:', { hasUser: !!user });
 
   if (!user) {
     return (
       <Card className="w-full">
         <CardContent className="p-6">
-          <div className="text-center py-8 text-slate-500">
-            <AlertCircle className="h-12 w-12 mx-auto mb-4 text-slate-300" />
-            <p className="font-medium">Authentication Required</p>
-            <p className="text-sm mt-2">Please sign in to upload documents</p>
-          </div>
+          <p className="text-center text-gray-500">Please sign in to upload documents</p>
         </CardContent>
       </Card>
     );
@@ -57,7 +40,6 @@ const DocumentUpload = ({ onSuccess, preselectedEmployeeId }: DocumentUploadProp
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
-      // Check file size (10MB limit)
       if (selectedFile.size > 10 * 1024 * 1024) {
         toast({
           title: "File too large",
@@ -84,60 +66,43 @@ const DocumentUpload = ({ onSuccess, preselectedEmployeeId }: DocumentUploadProp
 
     setUploading(true);
 
-    try {
-      console.log('Starting document upload...');
-      const { error } = await uploadDocument(
-        file,
-        title.trim(),
-        description.trim(),
-        category,
-        employeeId || undefined
-      );
+    const { error } = await uploadDocument(
+      file,
+      title.trim(),
+      description.trim(),
+      category
+    );
 
-      if (error) {
-        console.error('Upload error:', error);
-        toast({
-          title: "Upload failed",
-          description: error.message || "Failed to upload document",
-          variant: "destructive"
-        });
-      } else {
-        console.log('Upload successful');
-        toast({
-          title: "Success",
-          description: "Document uploaded successfully"
-        });
-        
-        // Reset form
-        setFile(null);
-        setTitle('');
-        setDescription('');
-        setCategory('employment_records');
-        // Only reset employeeId if it wasn't preselected
-        if (!preselectedEmployeeId) {
-          setEmployeeId('');
-        }
-        
-        // Reset file input
-        const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
-        if (fileInput) {
-          fileInput.value = '';
-        }
-        
-        if (onSuccess) {
-          onSuccess();
-        }
-      }
-    } catch (error) {
-      console.error('Unexpected upload error:', error);
+    if (error) {
       toast({
         title: "Upload failed",
-        description: "An unexpected error occurred",
+        description: error.message,
         variant: "destructive"
       });
-    } finally {
-      setUploading(false);
+    } else {
+      toast({
+        title: "Success",
+        description: "Document uploaded successfully"
+      });
+      
+      // Reset form
+      setFile(null);
+      setTitle('');
+      setDescription('');
+      setCategory('employment_records');
+      
+      // Reset file input
+      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+      if (fileInput) {
+        fileInput.value = '';
+      }
+      
+      if (onSuccess) {
+        onSuccess();
+      }
     }
+    
+    setUploading(false);
   };
 
   const categoryOptions = [
@@ -155,11 +120,6 @@ const DocumentUpload = ({ onSuccess, preselectedEmployeeId }: DocumentUploadProp
         <CardTitle className="flex items-center gap-2">
           <Upload className="h-5 w-5" />
           Upload Document
-          {preselectedEmployeeId && (
-            <span className="text-sm font-normal text-muted-foreground">
-              for {employees.find(emp => emp.id === preselectedEmployeeId)?.first_name} {employees.find(emp => emp.id === preselectedEmployeeId)?.last_name}
-            </span>
-          )}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -216,32 +176,6 @@ const DocumentUpload = ({ onSuccess, preselectedEmployeeId }: DocumentUploadProp
                 ))}
               </SelectContent>
             </Select>
-          </div>
-
-          <div>
-            <Label htmlFor="employee">Assign to Employee (Optional)</Label>
-            <Select 
-              value={employeeId} 
-              onValueChange={setEmployeeId}
-              disabled={!!preselectedEmployeeId}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select employee or leave blank" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">No specific employee</SelectItem>
-                {employees.map((employee) => (
-                  <SelectItem key={employee.id} value={employee.id}>
-                    {employee.first_name} {employee.last_name} - {employee.position}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {preselectedEmployeeId && (
-              <p className="text-xs text-muted-foreground mt-1">
-                Document will be assigned to the selected employee
-              </p>
-            )}
           </div>
 
           <Button type="submit" disabled={uploading || !file || !title.trim()} className="w-full">
