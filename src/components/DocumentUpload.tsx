@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -53,14 +54,14 @@ export const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
 
     setUploading(true);
     try {
-      // Just upload the file - the useDocuments hook should handle the file upload properly
-      await uploadDocument(selectedFile, {
-        title: formData.title,
-        description: formData.description,
-        category: formData.category,
-        employee_id: formData.employee_id,
-        requires_signature: formData.requires_signature
-      });
+      // Call uploadDocument with the correct arguments
+      await uploadDocument(
+        selectedFile,
+        formData.title,
+        formData.description,
+        formData.category,
+        formData.employee_id
+      );
       
       // Reset form
       setSelectedFile(null);
