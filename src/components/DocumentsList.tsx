@@ -14,8 +14,7 @@ import {
   Search,
   User,
   Calendar,
-  Filter,
-  LogIn
+  Filter
 } from 'lucide-react';
 
 interface DocumentsListProps {
@@ -95,30 +94,6 @@ const DocumentsList = ({ employeeId }: DocumentsListProps) => {
             <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mr-3"></div>
             <p className="text-slate-600">Loading...</p>
           </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // Show authentication warning if not properly authenticated
-  if (!user || !session) {
-    return (
-      <Card className="w-full border-orange-200 bg-orange-50">
-        <CardContent className="p-6">
-          <div className="flex items-center gap-3 text-orange-700 mb-4">
-            <LogIn className="h-5 w-5" />
-            <div>
-              <p className="font-medium">Authentication Required</p>
-              <p className="text-sm text-orange-600">Please sign in to view documents</p>
-            </div>
-          </div>
-          <Button 
-            onClick={() => window.location.href = '/auth'}
-            className="bg-orange-600 hover:bg-orange-700"
-          >
-            <LogIn className="h-4 w-4 mr-2" />
-            Sign In
-          </Button>
         </CardContent>
       </Card>
     );

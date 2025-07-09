@@ -14,13 +14,11 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
-import { useProfile } from '@/hooks/useProfile';
 
 const Navigation = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
-  const { signOut, user, session } = useAuth();
-  const { profile } = useProfile();
+  const { signOut, user } = useAuth();
 
   const navigationItems = [
     { name: 'Dashboard', href: '/', icon: Home },
@@ -29,7 +27,6 @@ const Navigation = () => {
     { name: 'Performance', href: '/performance', icon: BarChart3 },
     { name: 'Upskilling', href: '/upskilling', icon: BookOpen },
     { name: 'Records', href: '/records', icon: FileText },
-    { name: 'Analytics', href: '/analytics', icon: BarChart3 },
     { name: 'Settings', href: '/settings', icon: Settings },
   ];
 
@@ -44,26 +41,9 @@ const Navigation = () => {
     }
   };
 
-  const getInitials = (firstName: string | null, lastName: string | null) => {
-    const first = firstName ? firstName.charAt(0).toUpperCase() : '';
-    const last = lastName ? lastName.charAt(0).toUpperCase() : '';
-    return first + last || 'U';
-  };
-
   const getDisplayName = () => {
-    if (profile?.first_name && profile?.last_name) {
-      return `${profile.first_name} ${profile.last_name}`;
-    }
-    return profile?.email || user?.email || 'User';
+    return user?.email || 'Super Admin';
   };
-
-  const getRoleDisplay = () => {
-    if (!profile?.role) return 'User';
-    return profile.role.charAt(0).toUpperCase() + profile.role.slice(1);
-  };
-
-  // Debug auth state
-  console.log('Navigation - User:', !!user, 'Session:', !!session, 'Profile:', !!profile);
 
   return (
     <>
@@ -121,16 +101,14 @@ const Navigation = () => {
           <div className="p-4 border-t border-slate-700">
             <div className="flex items-center space-x-3 mb-3">
               <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                <span className="text-sm font-medium text-white">
-                  {getInitials(profile?.first_name, profile?.last_name)}
-                </span>
+                <span className="text-sm font-medium text-white">SA</span>
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-white truncate">
                   {getDisplayName()}
                 </p>
                 <p className="text-xs text-slate-400 truncate">
-                  {getRoleDisplay()}
+                  Super Admin
                 </p>
               </div>
             </div>

@@ -30,7 +30,7 @@ export const useDocuments = () => {
     }
 
     try {
-      console.log('Fetching documents for user:', user.id);
+      console.log('Fetching all documents for super admin:', user.id);
       const { data, error } = await supabase
         .from('documents')
         .select('*')
@@ -83,56 +83,6 @@ export const useDocuments = () => {
       };
     }
 
-    // Validate session is still active
-    try {
-      const { data: sessionCheck, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError || !sessionCheck.session || !sessionCheck.session.user) {
-        console.error('Session validation failed:', sessionError);
-        return { 
-          error: { 
-            message: 'Session expired. Please sign in again.' 
-          } 
-        };
-      }
-      console.log('Session validation passed');
-    } catch (sessionError) {
-      console.error('Session check failed:', sessionError);
-      return { 
-        error: { 
-          message: 'Authentication verification failed. Please sign in again.' 
-        } 
-      };
-    }
-
-    // Validate employee ID if provided - FIXED: Check against employee_profiles table
-    if (employeeId) {
-      try {
-        console.log('Validating employee ID:', employeeId);
-        const { data: employeeData, error: employeeError } = await supabase
-          .from('employee_profiles')
-          .select('id')
-          .eq('id', employeeId)
-          .single();
-
-        if (employeeError || !employeeData) {
-          console.error('Employee validation failed:', employeeError);
-          return {
-            error: {
-              message: 'Selected employee not found. Please select a valid employee.'
-            }
-          };
-        }
-        console.log('Employee validation passed for:', employeeId);
-      } catch (error) {
-        console.error('Employee validation error:', error);
-        return {
-          error: {
-            message: 'Failed to validate employee. Please try again.'
-          }
-        };
-      }
-    }
-
     try {
       // Upload file to storage
       const fileExt = file.name.split('.').pop() || 'unknown';
@@ -159,8 +109,7 @@ export const useDocuments = () => {
 
       console.log('File uploaded successfully:', uploadData);
 
-      // FIXED: Use user.id for employee_id when no specific employee is selected
-      // This matches the foreign key constraint that expects documents.employee_id to reference profiles.id
+      // Create document record - use user.id as fallback for employee_id
       const documentData: DocumentInsert = {
         title: title.trim(),
         description: description.trim() || null,
@@ -171,7 +120,7 @@ export const useDocuments = () => {
         file_type: file.type || 'application/octet-stream',
         uploaded_by: user.id,
         employee_id: employeeId || user.id, // Use user.id as fallback
-        status: 'draft',
+        status: 'approved', // Super admin documents are auto-approved
         is_shared: false,
         requires_signature: false
       };

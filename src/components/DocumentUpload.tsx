@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useDocuments } from '@/hooks/useDocuments';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useAuth } from '@/hooks/useAuth';
-import { Upload, CheckCircle, LogIn } from 'lucide-react';
+import { Upload, CheckCircle } from 'lucide-react';
 
 interface DocumentUploadProps {
   onSuccess?: () => void;
@@ -115,21 +115,11 @@ const DocumentUpload = ({ onSuccess, preselectedEmployeeId }: DocumentUploadProp
       accessToken: !!session?.access_token 
     });
     
-    if (!user) {
-      console.error('No user found during upload attempt');
+    if (!user || !session || !session.access_token) {
+      console.error('Authentication failed');
       toast({
-        title: "Please Sign In",
-        description: "You must be signed in to upload documents. Please sign in and try again.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!session || !session.access_token) {
-      console.error('No valid session during upload attempt');
-      toast({
-        title: "Session Expired",
-        description: "Your session has expired. Please sign out and sign back in.",
+        title: "Authentication Error",
+        description: "Please sign in to upload documents",
         variant: "destructive",
       });
       return;
@@ -157,7 +147,6 @@ const DocumentUpload = ({ onSuccess, preselectedEmployeeId }: DocumentUploadProp
     console.log('Starting upload process for:', file.name, 'User:', user.id);
     
     try {
-      // Only pass employeeId if it's actually selected and not empty
       const selectedEmployeeId = employeeId && employeeId.trim() !== '' ? employeeId : undefined;
       
       console.log('Uploading with params:', {
@@ -233,30 +222,6 @@ const DocumentUpload = ({ onSuccess, preselectedEmployeeId }: DocumentUploadProp
     );
   }
 
-  // Show authentication warning if not properly authenticated
-  if (!user || !session) {
-    return (
-      <Card className="w-full border-orange-200 bg-orange-50">
-        <CardContent className="p-6">
-          <div className="flex items-center gap-3 text-orange-700 mb-4">
-            <LogIn className="h-5 w-5" />
-            <div>
-              <p className="font-medium">Authentication Required</p>
-              <p className="text-sm text-orange-600">Please sign in to upload documents</p>
-            </div>
-          </div>
-          <Button 
-            onClick={() => window.location.href = '/auth'}
-            className="bg-orange-600 hover:bg-orange-700"
-          >
-            <LogIn className="h-4 w-4 mr-2" />
-            Sign In
-          </Button>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
     <Card className="w-full border-0 shadow-none">
       <CardHeader className="pb-4">
@@ -313,7 +278,7 @@ const DocumentUpload = ({ onSuccess, preselectedEmployeeId }: DocumentUploadProp
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Enter document title"
-            className="mt-2 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+            className="mt-2"
           />
         </div>
 
@@ -325,17 +290,17 @@ const DocumentUpload = ({ onSuccess, preselectedEmployeeId }: DocumentUploadProp
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Enter document description (optional)"
             rows={3}
-            className="mt-2 border-slate-200 focus:border-blue-500 focus:ring-blue-500"
+            className="mt-2"
           />
         </div>
 
         <div>
           <Label htmlFor="category" className="text-sm font-medium text-slate-700">Category</Label>
           <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger className="mt-2 border-slate-200 focus:border-blue-500 focus:ring-blue-500">
+            <SelectTrigger className="mt-2">
               <SelectValue placeholder="Select category" />
             </SelectTrigger>
-            <SelectContent className="bg-white border-slate-200 shadow-lg">
+            <SelectContent>
               <SelectItem value="employment_records">Employment Records</SelectItem>
               <SelectItem value="disciplinary_records">Disciplinary Records</SelectItem>
               <SelectItem value="performance_records">Performance Records</SelectItem>
@@ -357,10 +322,10 @@ const DocumentUpload = ({ onSuccess, preselectedEmployeeId }: DocumentUploadProp
               </div>
             ) : (
               <Select value={employeeId} onValueChange={setEmployeeId}>
-                <SelectTrigger className="mt-2 border-slate-200 focus:border-blue-500 focus:ring-blue-500">
+                <SelectTrigger className="mt-2">
                   <SelectValue placeholder="Select employee (optional)" />
                 </SelectTrigger>
-                <SelectContent className="bg-white border-slate-200 shadow-lg">
+                <SelectContent>
                   <SelectItem value="">Unassigned</SelectItem>
                   {employees.map((employee) => (
                     <SelectItem key={employee.id} value={employee.id}>
@@ -376,7 +341,7 @@ const DocumentUpload = ({ onSuccess, preselectedEmployeeId }: DocumentUploadProp
         <Button 
           onClick={handleUpload} 
           disabled={!file || !title.trim() || uploading || !user || !session}
-          className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full"
         >
           {uploading ? (
             <div className="flex items-center gap-2">
