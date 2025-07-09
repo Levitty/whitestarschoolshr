@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useDocuments } from '@/hooks/useDocuments';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useAuth } from '@/hooks/useAuth';
-import { Upload, FileText, AlertCircle, CheckCircle, LogIn } from 'lucide-react';
+import { Upload, CheckCircle, LogIn } from 'lucide-react';
 
 interface DocumentUploadProps {
   onSuccess?: () => void;
@@ -50,7 +50,6 @@ const DocumentUpload = ({ onSuccess, preselectedEmployeeId }: DocumentUploadProp
   const maxFileSize = 10 * 1024 * 1024; // 10MB
 
   const handleFileValidation = (selectedFile: File): boolean => {
-    // Check file size
     if (selectedFile.size > maxFileSize) {
       toast({
         title: "File Too Large",
@@ -60,7 +59,6 @@ const DocumentUpload = ({ onSuccess, preselectedEmployeeId }: DocumentUploadProp
       return false;
     }
 
-    // Check file type
     const fileExtension = '.' + selectedFile.name.split('.').pop()?.toLowerCase();
     if (!acceptedFileTypes.includes(fileExtension)) {
       toast({
@@ -81,7 +79,6 @@ const DocumentUpload = ({ onSuccess, preselectedEmployeeId }: DocumentUploadProp
       if (handleFileValidation(selectedFile)) {
         setFile(selectedFile);
       } else {
-        // Clear the input
         e.target.value = '';
       }
     }
@@ -118,7 +115,6 @@ const DocumentUpload = ({ onSuccess, preselectedEmployeeId }: DocumentUploadProp
       accessToken: !!session?.access_token 
     });
     
-    // Enhanced authentication validation with specific error messages
     if (!user) {
       console.error('No user found during upload attempt');
       toast({

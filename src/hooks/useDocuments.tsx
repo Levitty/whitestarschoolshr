@@ -38,12 +38,14 @@ export const useDocuments = () => {
 
       if (error) {
         console.error('Error fetching documents:', error);
+        setDocuments([]);
       } else {
         console.log('Fetched documents:', data?.length || 0);
         setDocuments(data || []);
       }
     } catch (error) {
       console.error('Error fetching documents:', error);
+      setDocuments([]);
     } finally {
       setLoading(false);
     }
@@ -68,7 +70,6 @@ export const useDocuments = () => {
       hasAccessToken: !!session?.access_token
     });
     
-    // Comprehensive authentication check
     if (!user || !session || !session.access_token) {
       console.error('Authentication failed - Missing:', {
         user: !user,
@@ -103,7 +104,7 @@ export const useDocuments = () => {
       };
     }
 
-    // Validate employee ID if provided
+    // Validate employee ID if provided - FIXED: Check against employee_profiles table
     if (employeeId) {
       try {
         console.log('Validating employee ID:', employeeId);
@@ -133,7 +134,7 @@ export const useDocuments = () => {
     }
 
     try {
-      // Upload file to storage with enhanced error handling
+      // Upload file to storage
       const fileExt = file.name.split('.').pop() || 'unknown';
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
       const filePath = `${user.id}/${fileName}`;
@@ -158,7 +159,8 @@ export const useDocuments = () => {
 
       console.log('File uploaded successfully:', uploadData);
 
-      // Create document record with comprehensive data
+      // FIXED: Use user.id for employee_id when no specific employee is selected
+      // This matches the foreign key constraint that expects documents.employee_id to reference profiles.id
       const documentData: DocumentInsert = {
         title: title.trim(),
         description: description.trim() || null,
@@ -168,7 +170,7 @@ export const useDocuments = () => {
         file_size: file.size,
         file_type: file.type || 'application/octet-stream',
         uploaded_by: user.id,
-        employee_id: employeeId || null,
+        employee_id: employeeId || user.id, // Use user.id as fallback
         status: 'draft',
         is_shared: false,
         requires_signature: false
@@ -195,19 +197,9 @@ export const useDocuments = () => {
           console.error('Failed to cleanup file:', cleanupError);
         }
 
-        // Provide more specific error messages
-        let errorMessage = 'Document creation failed';
-        if (documentError.message.includes('foreign key constraint')) {
-          errorMessage = 'Selected employee is invalid. Please choose a different employee or leave unassigned.';
-        } else if (documentError.message.includes('violates')) {
-          errorMessage = 'Invalid data provided. Please check your inputs and try again.';
-        } else {
-          errorMessage = `Document creation failed: ${documentError.message}`;
-        }
-        
         return { 
           error: { 
-            message: errorMessage
+            message: `Document creation failed: ${documentError.message}`
           } 
         };
       }

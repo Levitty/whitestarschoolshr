@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useDocuments } from '@/hooks/useDocuments';
 import { useEmployees } from '@/hooks/useEmployees';
+import { useAuth } from '@/hooks/useAuth';
 import { 
   FileText, 
   Download, 
@@ -13,7 +14,8 @@ import {
   Search,
   User,
   Calendar,
-  Filter
+  Filter,
+  LogIn
 } from 'lucide-react';
 
 interface DocumentsListProps {
@@ -23,7 +25,17 @@ interface DocumentsListProps {
 const DocumentsList = ({ employeeId }: DocumentsListProps) => {
   const { documents, loading } = useDocuments();
   const { employees } = useEmployees();
+  const { user, session, loading: authLoading } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
+
+  console.log('DocumentsList - State:', { 
+    documentsCount: documents.length, 
+    loading, 
+    authLoading, 
+    hasUser: !!user, 
+    hasSession: !!session,
+    employeeId 
+  });
 
   const getEmployeeName = (empId: string | null) => {
     if (!empId) return 'Unassigned';
@@ -74,11 +86,52 @@ const DocumentsList = ({ employeeId }: DocumentsListProps) => {
     getEmployeeName(doc.employee_id).toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Show loading state while authentication is being checked
+  if (authLoading) {
+    return (
+      <Card className="w-full">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-center py-8">
+            <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mr-3"></div>
+            <p className="text-slate-600">Loading...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Show authentication warning if not properly authenticated
+  if (!user || !session) {
+    return (
+      <Card className="w-full border-orange-200 bg-orange-50">
+        <CardContent className="p-6">
+          <div className="flex items-center gap-3 text-orange-700 mb-4">
+            <LogIn className="h-5 w-5" />
+            <div>
+              <p className="font-medium">Authentication Required</p>
+              <p className="text-sm text-orange-600">Please sign in to view documents</p>
+            </div>
+          </div>
+          <Button 
+            onClick={() => window.location.href = '/auth'}
+            className="bg-orange-600 hover:bg-orange-700"
+          >
+            <LogIn className="h-4 w-4 mr-2" />
+            Sign In
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
   if (loading) {
     return (
-      <Card>
+      <Card className="w-full">
         <CardContent className="p-6">
-          <div className="text-center">Loading documents...</div>
+          <div className="flex items-center justify-center py-8">
+            <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mr-3"></div>
+            <p className="text-slate-600">Loading documents...</p>
+          </div>
         </CardContent>
       </Card>
     );
@@ -90,6 +143,11 @@ const DocumentsList = ({ employeeId }: DocumentsListProps) => {
         <CardTitle className="flex items-center gap-2">
           <FileText className="h-5 w-5" />
           {employeeId ? 'Employee Documents' : 'Document Library'}
+          {filteredDocuments.length > 0 && (
+            <Badge variant="outline" className="ml-2">
+              {filteredDocuments.length} document{filteredDocuments.length !== 1 ? 's' : ''}
+            </Badge>
+          )}
         </CardTitle>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -104,11 +162,20 @@ const DocumentsList = ({ employeeId }: DocumentsListProps) => {
       <CardContent>
         {filteredDocuments.length === 0 ? (
           <div className="text-center py-8 text-slate-500">
-            <FileText className="h-12 w-12 mx-auto mb-4" />
-            <p>No documents found</p>
-            <p className="text-sm mt-2">
-              {employeeId ? 'No documents uploaded for this employee' : 'Upload documents to get started'}
-            </p>
+            <FileText className="h-12 w-12 mx-auto mb-4 text-slate-300" />
+            {documents.length === 0 ? (
+              <>
+                <p className="font-medium">No documents found</p>
+                <p className="text-sm mt-2">
+                  {employeeId ? 'No documents uploaded for this employee' : 'Upload documents to get started'}
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="font-medium">No matching documents</p>
+                <p className="text-sm mt-2">Try adjusting your search terms</p>
+              </>
+            )}
           </div>
         ) : (
           <div className="space-y-4 max-h-96 overflow-y-auto">
