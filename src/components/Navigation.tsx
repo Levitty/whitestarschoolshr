@@ -10,7 +10,8 @@ import {
   X,
   Home,
   FileText,
-  LogOut
+  LogOut,
+  Briefcase
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
@@ -24,6 +25,7 @@ const Navigation = () => {
     { name: 'Dashboard', href: '/', icon: Home },
     { name: 'Employees', href: '/employees', icon: Users },
     { name: 'Recruitment', href: '/recruitment', icon: Users },
+    { name: 'Applications', href: '/applications', icon: Briefcase },
     { name: 'Performance', href: '/performance', icon: BarChart3 },
     { name: 'Upskilling', href: '/upskilling', icon: BookOpen },
     { name: 'Records', href: '/records', icon: FileText },

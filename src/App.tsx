@@ -21,6 +21,12 @@ import JobDetail from "./pages/JobDetail";
 import JobApplication from "./pages/JobApplication";
 import NotFound from "./pages/NotFound";
 
+// New recruitment system pages
+import JobsBoard from "./pages/JobsBoard";
+import JobDetails from "./pages/JobDetails";
+import Apply from "./pages/Apply";
+import Applications from "./pages/Applications";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -33,7 +39,12 @@ const App = () => (
           <Routes>
             <Route path="/auth" element={<Auth />} />
             
-            {/* Public job routes */}
+            {/* Public recruitment system routes */}
+            <Route path="/jobs-board" element={<JobsBoard />} />
+            <Route path="/job-details" element={<JobDetails />} />
+            <Route path="/apply" element={<Apply />} />
+            
+            {/* Legacy public job routes */}
             <Route path="/jobs" element={<Jobs />} />
             <Route path="/jobs/:id" element={<JobDetail />} />
             <Route path="/apply/:jobId" element={<JobApplication />} />
@@ -47,6 +58,7 @@ const App = () => (
               <Route index element={<Dashboard />} />
               <Route path="employees" element={<Employees />} />
               <Route path="recruitment" element={<Recruitment />} />
+              <Route path="applications" element={<Applications />} />
               <Route path="performance" element={<Performance />} />
               <Route path="upskilling" element={<Upskilling />} />
               <Route path="records" element={<Records />} />
