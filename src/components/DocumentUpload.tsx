@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useDocuments } from '@/hooks/useDocuments';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useAuth } from '@/hooks/useAuth';
-import { Upload, FileText, AlertCircle, CheckCircle } from 'lucide-react';
+import { Upload, FileText, AlertCircle, CheckCircle, LogIn } from 'lucide-react';
 
 interface DocumentUploadProps {
   onSuccess?: () => void;
@@ -27,18 +27,19 @@ const DocumentUpload = ({ onSuccess, preselectedEmployeeId }: DocumentUploadProp
   const [dragActive, setDragActive] = useState(false);
   
   const { uploadDocument } = useDocuments();
-  const { employees } = useEmployees();
-  const { user, session } = useAuth();
+  const { employees, loading: employeesLoading } = useEmployees();
+  const { user, session, loading: authLoading } = useAuth();
   const { toast } = useToast();
 
   console.log('DocumentUpload - Auth state:', { 
     hasUser: !!user, 
     hasSession: !!session, 
     userEmail: user?.email,
-    sessionValid: !!session?.access_token 
+    sessionValid: !!session?.access_token,
+    authLoading,
+    employeesLoading,
+    employeesCount: employees.length
   });
-
-  console.log('DocumentUpload - Available employees:', employees.length);
 
   const acceptedFileTypes = [
     '.pdf', '.doc', '.docx', '.txt', 
@@ -76,9 +77,9 @@ const DocumentUpload = ({ onSuccess, preselectedEmployeeId }: DocumentUploadProp
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
+      console.log('File selected:', selectedFile.name, selectedFile.type, selectedFile.size);
       if (handleFileValidation(selectedFile)) {
         setFile(selectedFile);
-        console.log('Valid file selected:', selectedFile.name, selectedFile.type);
       } else {
         // Clear the input
         e.target.value = '';
@@ -103,48 +104,73 @@ const DocumentUpload = ({ onSuccess, preselectedEmployeeId }: DocumentUploadProp
     
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const selectedFile = e.dataTransfer.files[0];
+      console.log('File dropped:', selectedFile.name, selectedFile.type, selectedFile.size);
       if (handleFileValidation(selectedFile)) {
         setFile(selectedFile);
-        console.log('Valid file dropped:', selectedFile.name, selectedFile.type);
       }
     }
   };
 
   const handleUpload = async () => {
-    console.log('Upload initiated - Auth check:', { 
+    console.log('Upload button clicked - Auth check:', { 
       user: !!user, 
       session: !!session, 
       accessToken: !!session?.access_token 
     });
     
-    // Enhanced authentication validation
-    if (!user || !session || !session.access_token) {
-      console.error('Authentication failed during upload');
+    // Enhanced authentication validation with specific error messages
+    if (!user) {
+      console.error('No user found during upload attempt');
       toast({
-        title: "Authentication Required",
-        description: "Please sign out and sign back in to upload documents",
+        title: "Please Sign In",
+        description: "You must be signed in to upload documents. Please sign in and try again.",
         variant: "destructive",
       });
       return;
     }
 
-    if (!file || !title.trim()) {
+    if (!session || !session.access_token) {
+      console.error('No valid session during upload attempt');
       toast({
-        title: "Missing Information",
-        description: "Please select a file and enter a title",
+        title: "Session Expired",
+        description: "Your session has expired. Please sign out and sign back in.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!file) {
+      toast({
+        title: "No File Selected",
+        description: "Please select a file to upload",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!title.trim()) {
+      toast({
+        title: "Title Required",
+        description: "Please enter a title for the document",
         variant: "destructive",
       });
       return;
     }
 
     setUploading(true);
-    console.log('Starting upload process for:', file.name);
+    console.log('Starting upload process for:', file.name, 'User:', user.id);
     
     try {
       // Only pass employeeId if it's actually selected and not empty
       const selectedEmployeeId = employeeId && employeeId.trim() !== '' ? employeeId : undefined;
       
-      console.log('Uploading with employee ID:', selectedEmployeeId);
+      console.log('Uploading with params:', {
+        fileName: file.name,
+        title: title.trim(),
+        category,
+        selectedEmployeeId,
+        userId: user.id
+      });
       
       const result = await uploadDocument(
         file,
@@ -155,18 +181,10 @@ const DocumentUpload = ({ onSuccess, preselectedEmployeeId }: DocumentUploadProp
       );
 
       if (result.error) {
-        console.error('Upload failed:', result.error);
-        let errorMessage = "Failed to upload document";
-        
-        if (result.error.message) {
-          errorMessage = result.error.message;
-        } else if (typeof result.error === 'string') {
-          errorMessage = result.error;
-        }
-
+        console.error('Upload failed with error:', result.error);
         toast({
           title: "Upload Failed",
-          description: errorMessage,
+          description: result.error.message || "Failed to upload document",
           variant: "destructive",
         });
       } else {
@@ -205,18 +223,39 @@ const DocumentUpload = ({ onSuccess, preselectedEmployeeId }: DocumentUploadProp
     }
   };
 
+  // Show loading state while authentication is being checked
+  if (authLoading) {
+    return (
+      <Card className="w-full">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-center py-8">
+            <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mr-3"></div>
+            <p className="text-slate-600">Loading...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   // Show authentication warning if not properly authenticated
   if (!user || !session) {
     return (
       <Card className="w-full border-orange-200 bg-orange-50">
         <CardContent className="p-6">
-          <div className="flex items-center gap-3 text-orange-700">
-            <AlertCircle className="h-5 w-5" />
+          <div className="flex items-center gap-3 text-orange-700 mb-4">
+            <LogIn className="h-5 w-5" />
             <div>
               <p className="font-medium">Authentication Required</p>
               <p className="text-sm text-orange-600">Please sign in to upload documents</p>
             </div>
           </div>
+          <Button 
+            onClick={() => window.location.href = '/auth'}
+            className="bg-orange-600 hover:bg-orange-700"
+          >
+            <LogIn className="h-4 w-4 mr-2" />
+            Sign In
+          </Button>
         </CardContent>
       </Card>
     );
@@ -313,27 +352,35 @@ const DocumentUpload = ({ onSuccess, preselectedEmployeeId }: DocumentUploadProp
 
         {!preselectedEmployeeId && (
           <div>
-            <Label htmlFor="employee" className="text-sm font-medium text-slate-700">Assign to Employee (Optional)</Label>
-            <Select value={employeeId} onValueChange={setEmployeeId}>
-              <SelectTrigger className="mt-2 border-slate-200 focus:border-blue-500 focus:ring-blue-500">
-                <SelectValue placeholder="Select employee (optional)" />
-              </SelectTrigger>
-              <SelectContent className="bg-white border-slate-200 shadow-lg">
-                <SelectItem value="">Unassigned</SelectItem>
-                {employees.map((employee) => (
-                  <SelectItem key={employee.id} value={employee.id}>
-                    {employee.first_name} {employee.last_name} - {employee.position}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label htmlFor="employee" className="text-sm font-medium text-slate-700">
+              Assign to Employee (Optional)
+            </Label>
+            {employeesLoading ? (
+              <div className="mt-2 p-3 border rounded-lg bg-slate-50 text-slate-600">
+                Loading employees...
+              </div>
+            ) : (
+              <Select value={employeeId} onValueChange={setEmployeeId}>
+                <SelectTrigger className="mt-2 border-slate-200 focus:border-blue-500 focus:ring-blue-500">
+                  <SelectValue placeholder="Select employee (optional)" />
+                </SelectTrigger>
+                <SelectContent className="bg-white border-slate-200 shadow-lg">
+                  <SelectItem value="">Unassigned</SelectItem>
+                  {employees.map((employee) => (
+                    <SelectItem key={employee.id} value={employee.id}>
+                      {employee.first_name} {employee.last_name} - {employee.position}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
         )}
 
         <Button 
           onClick={handleUpload} 
-          disabled={!file || !title.trim() || uploading}
-          className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all duration-200"
+          disabled={!file || !title.trim() || uploading || !user || !session}
+          className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {uploading ? (
             <div className="flex items-center gap-2">

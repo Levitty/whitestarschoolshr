@@ -17,7 +17,7 @@ export const useDocuments = () => {
       console.log('useDocuments - User authenticated, fetching documents');
       fetchDocuments();
     } else {
-      console.log('useDocuments - No authenticated user');
+      console.log('useDocuments - No authenticated user, clearing documents');
       setDocuments([]);
       setLoading(false);
     }
@@ -25,7 +25,7 @@ export const useDocuments = () => {
 
   const fetchDocuments = async () => {
     if (!user || !session) {
-      console.log('No authenticated user for fetching documents');
+      console.log('fetchDocuments - No authenticated user');
       return;
     }
 
@@ -168,7 +168,7 @@ export const useDocuments = () => {
         file_size: file.size,
         file_type: file.type || 'application/octet-stream',
         uploaded_by: user.id,
-        employee_id: employeeId || null, // This will be null if no employee is selected
+        employee_id: employeeId || null,
         status: 'draft',
         is_shared: false,
         requires_signature: false
