@@ -492,6 +492,130 @@ export type Database = {
           },
         ]
       }
+      interviews: {
+        Row: {
+          application_id: string | null
+          created_at: string | null
+          feedback: string | null
+          id: string
+          interview_date: string
+          interview_type: string
+          interviewer_name: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          application_id?: string | null
+          created_at?: string | null
+          feedback?: string | null
+          id?: string
+          interview_date: string
+          interview_type: string
+          interviewer_name: string
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          application_id?: string | null
+          created_at?: string | null
+          feedback?: string | null
+          id?: string
+          interview_date?: string
+          interview_type?: string
+          interviewer_name?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interviews_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "job_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_applications: {
+        Row: {
+          applied_at: string | null
+          candidate_email: string
+          candidate_name: string
+          cv_url: string | null
+          id: string
+          job_id: string | null
+          note: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          applied_at?: string | null
+          candidate_email: string
+          candidate_name: string
+          cv_url?: string | null
+          id?: string
+          job_id?: string | null
+          note?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          applied_at?: string | null
+          candidate_email?: string
+          candidate_name?: string
+          cv_url?: string | null
+          id?: string
+          job_id?: string | null
+          note?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_applications_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "job_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_listings: {
+        Row: {
+          created_at: string | null
+          department: string
+          description: string
+          employment_type: string
+          id: string
+          location: string
+          status: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          department: string
+          description: string
+          employment_type: string
+          id?: string
+          location: string
+          status?: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          department?: string
+          description?: string
+          employment_type?: string
+          id?: string
+          location?: string
+          status?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       leave_balances: {
         Row: {
           annual_leave_total: number | null

@@ -16,6 +16,9 @@ import Records from "./pages/Records";
 import Leave from "./pages/Leave";
 import Tickets from "./pages/Tickets";
 import Auth from "./pages/Auth";
+import Jobs from "./pages/Jobs";
+import JobDetail from "./pages/JobDetail";
+import JobApplication from "./pages/JobApplication";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +32,13 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/auth" element={<Auth />} />
+            
+            {/* Public job routes */}
+            <Route path="/jobs" element={<Jobs />} />
+            <Route path="/jobs/:id" element={<JobDetail />} />
+            <Route path="/apply/:jobId" element={<JobApplication />} />
+            
+            {/* Protected admin routes */}
             <Route path="/" element={
               <ProtectedRoute>
                 <Layout />

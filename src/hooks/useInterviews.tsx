@@ -1,106 +1,138 @@
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { Database } from '@/integrations/supabase/types';
+import { useToast } from '@/hooks/use-toast';
 
-type InterviewRecord = Database['public']['Tables']['interview_records']['Row'];
-type InterviewRecordInsert = Database['public']['Tables']['interview_records']['Insert'];
+export interface Interview {
+  id: string;
+  application_id: string;
+  interview_date: string;
+  interviewer_name: string;
+  interview_type: 'Phone' | 'Physical' | 'Online';
+  status: 'Scheduled' | 'Completed';
+  feedback?: string;
+  created_at: string;
+  updated_at: string;
+  job_applications?: {
+    candidate_name: string;
+    candidate_email: string;
+    job_listings?: {
+      title: string;
+      department: string;
+    };
+  };
+}
 
 export const useInterviews = () => {
-  const { user } = useAuth();
-  const [interviews, setInterviews] = useState<InterviewRecord[]>([]);
+  const [interviews, setInterviews] = useState<Interview[]>([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (user) {
-      fetchInterviews();
-    }
-  }, [user]);
+  const { toast } = useToast();
 
   const fetchInterviews = async () => {
-    if (!user) return;
-
     try {
       const { data, error } = await supabase
-        .from('interview_records')
-        .select('*')
-        .order('interview_date', { ascending: false });
+        .from('interviews')
+        .select(`
+          *,
+          job_applications (
+            candidate_name,
+            candidate_email,
+            job_listings (
+              title,
+              department
+            )
+          )
+        `)
+        .order('interview_date', { ascending: true });
 
-      if (error) {
-        console.error('Error fetching interviews:', error);
-      } else {
-        setInterviews(data || []);
-      }
+      if (error) throw error;
+      setInterviews(data || []);
     } catch (error) {
       console.error('Error fetching interviews:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load interviews",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const createInterview = async (
-    candidateName: string,
-    candidateEmail: string,
-    position: string,
-    interviewDate: string,
-    interviewType: string
-  ) => {
-    if (!user) return { error: 'No user found' };
-
+  const createInterview = async (interviewData: {
+    application_id: string;
+    interview_date: string;
+    interviewer_name: string;
+    interview_type: 'Phone' | 'Physical' | 'Online';
+  }) => {
     try {
-      const interviewData: InterviewRecordInsert = {
-        candidate_name: candidateName,
-        candidate_email: candidateEmail,
-        position,
-        interview_date: interviewDate,
-        interviewer_id: user.id,
-        interview_type: interviewType as any
-      };
+      const { data, error } = await supabase
+        .from('interviews')
+        .insert([interviewData])
+        .select()
+        .single();
 
-      const { error } = await supabase
-        .from('interview_records')
-        .insert(interviewData);
-
-      if (error) {
-        return { error };
-      }
-
-      await fetchInterviews();
-      return { error: null };
+      if (error) throw error;
+      
+      await fetchInterviews(); // Refresh the list
+      toast({
+        title: "Success",
+        description: "Interview scheduled successfully"
+      });
+      
+      return data;
     } catch (error) {
-      return { error };
+      console.error('Error creating interview:', error);
+      toast({
+        title: "Error",
+        description: "Failed to schedule interview",
+        variant: "destructive"
+      });
+      throw error;
     }
   };
 
-  const updateInterview = async (
-    interviewId: string,
-    updates: Partial<InterviewRecord>
-  ) => {
-    if (!user) return { error: 'No user found' };
-
+  const updateInterview = async (id: string, updates: Partial<Interview>) => {
     try {
-      const { error } = await supabase
-        .from('interview_records')
+      const { data, error } = await supabase
+        .from('interviews')
         .update(updates)
-        .eq('id', interviewId);
+        .eq('id', id)
+        .select()
+        .single();
 
-      if (error) {
-        return { error };
-      }
-
-      await fetchInterviews();
-      return { error: null };
+      if (error) throw error;
+      
+      setInterviews(prev => prev.map(interview => 
+        interview.id === id ? { ...interview, ...data } : interview
+      ));
+      
+      toast({
+        title: "Success",
+        description: "Interview updated successfully"
+      });
+      
+      return data;
     } catch (error) {
-      return { error };
+      console.error('Error updating interview:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update interview",
+        variant: "destructive"
+      });
+      throw error;
     }
   };
+
+  useEffect(() => {
+    fetchInterviews();
+  }, []);
 
   return {
     interviews,
     loading,
-    fetchInterviews,
     createInterview,
-    updateInterview
+    updateInterview,
+    refetch: fetchInterviews
   };
 };
