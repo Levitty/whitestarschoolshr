@@ -7,11 +7,10 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { user, session, loading } = useAuth();
+  const { user, loading } = useAuth();
 
   console.log('ProtectedRoute - Auth state:', { 
     hasUser: !!user, 
-    hasSession: !!session, 
     loading,
     userEmail: user?.email 
   });
@@ -28,13 +27,13 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     );
   }
 
-  // If no user/session, redirect to auth
-  if (!user || !session) {
+  // If no user, redirect to auth
+  if (!user) {
     window.location.href = '/auth';
     return null;
   }
 
-  // User is authenticated, allow access (all users are super admin)
+  // User is authenticated (all users are super admin)
   return <>{children}</>;
 };
 

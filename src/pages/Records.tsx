@@ -20,11 +20,10 @@ const Records = () => {
   const [activeTab, setActiveTab] = useState('documents');
   const { documents, loading: documentsLoading } = useDocuments();
   const { leaveRequests, loading: leaveLoading } = useLeaveRequests();
-  const { user, session, loading: authLoading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
 
   console.log('Records page - Auth state:', { 
     hasUser: !!user, 
-    hasSession: !!session, 
     authLoading, 
     documentsCount: documents.length
   });
@@ -63,6 +62,12 @@ const Records = () => {
     );
   }
 
+  // Redirect if not authenticated
+  if (!user) {
+    window.location.href = '/auth';
+    return null;
+  }
+
   const tabsConfig = [
     { value: 'documents', label: 'Documents', icon: FileText },
     { value: 'upload', label: 'Upload', icon: Camera },
@@ -97,7 +102,6 @@ const Records = () => {
 
         <TabsContent value="upload" className="space-y-6">
           <DocumentUpload onSuccess={() => {
-            // Refresh the page or trigger a re-fetch
             window.location.reload();
           }} />
         </TabsContent>

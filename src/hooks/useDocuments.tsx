@@ -14,10 +14,10 @@ export const useDocuments = () => {
 
   useEffect(() => {
     if (user && session) {
-      console.log('useDocuments - User authenticated, fetching documents');
+      console.log('useDocuments - Fetching documents for authenticated user');
       fetchDocuments();
     } else {
-      console.log('useDocuments - No authenticated user, clearing documents');
+      console.log('useDocuments - No authenticated user');
       setDocuments([]);
       setLoading(false);
     }
@@ -30,7 +30,7 @@ export const useDocuments = () => {
     }
 
     try {
-      console.log('Fetching all documents for super admin:', user.id);
+      console.log('Fetching all documents...');
       const { data, error } = await supabase
         .from('documents')
         .select('*')
@@ -66,19 +66,14 @@ export const useDocuments = () => {
       category,
       employeeId,
       userId: user?.id,
-      hasSession: !!session,
-      hasAccessToken: !!session?.access_token
+      hasSession: !!session
     });
     
-    if (!user || !session || !session.access_token) {
-      console.error('Authentication failed - Missing:', {
-        user: !user,
-        session: !session,
-        accessToken: !session?.access_token
-      });
+    if (!user || !session) {
+      console.error('Authentication required');
       return { 
         error: { 
-          message: 'Authentication required. Please sign out and sign back in.' 
+          message: 'Authentication required. Please sign in.' 
         } 
       };
     }
@@ -87,9 +82,9 @@ export const useDocuments = () => {
       // Upload file to storage
       const fileExt = file.name.split('.').pop() || 'unknown';
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-      const filePath = `${user.id}/${fileName}`;
+      const filePath = `documents/${fileName}`;
 
-      console.log('Uploading file to storage:', { filePath, bucketName: 'employee-documents' });
+      console.log('Uploading file to storage:', { filePath });
       
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('employee-documents')
@@ -109,7 +104,7 @@ export const useDocuments = () => {
 
       console.log('File uploaded successfully:', uploadData);
 
-      // Create document record - use user.id as fallback for employee_id
+      // Create document record
       const documentData: DocumentInsert = {
         title: title.trim(),
         description: description.trim() || null,
@@ -119,8 +114,8 @@ export const useDocuments = () => {
         file_size: file.size,
         file_type: file.type || 'application/octet-stream',
         uploaded_by: user.id,
-        employee_id: employeeId || user.id, // Use user.id as fallback
-        status: 'approved', // Super admin documents are auto-approved
+        employee_id: employeeId || user.id,
+        status: 'approved',
         is_shared: false,
         requires_signature: false
       };
@@ -169,36 +164,10 @@ export const useDocuments = () => {
     }
   };
 
-  const signDocument = async (documentId: string, signatureData: string) => {
-    if (!user || !session) {
-      return { error: { message: 'No user found' } };
-    }
-
-    try {
-      const { error } = await supabase
-        .from('document_signatures')
-        .insert({
-          document_id: documentId,
-          signer_id: user.id,
-          signature_data: signatureData
-        });
-
-      if (error) {
-        return { error };
-      }
-
-      await fetchDocuments();
-      return { error: null };
-    } catch (error) {
-      return { error };
-    }
-  };
-
   return {
     documents,
     loading,
     fetchDocuments,
-    uploadDocument,
-    signDocument
+    uploadDocument
   };
 };

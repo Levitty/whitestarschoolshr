@@ -14,7 +14,8 @@ import {
   Search,
   User,
   Calendar,
-  Filter
+  Filter,
+  AlertCircle
 } from 'lucide-react';
 
 interface DocumentsListProps {
@@ -24,15 +25,13 @@ interface DocumentsListProps {
 const DocumentsList = ({ employeeId }: DocumentsListProps) => {
   const { documents, loading } = useDocuments();
   const { employees } = useEmployees();
-  const { user, session, loading: authLoading } = useAuth();
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
 
   console.log('DocumentsList - State:', { 
     documentsCount: documents.length, 
     loading, 
-    authLoading, 
-    hasUser: !!user, 
-    hasSession: !!session,
+    hasUser: !!user,
     employeeId 
   });
 
@@ -73,6 +72,20 @@ const DocumentsList = ({ employeeId }: DocumentsListProps) => {
     return labels[category as keyof typeof labels] || category;
   };
 
+  if (!user) {
+    return (
+      <Card className="w-full">
+        <CardContent className="p-6">
+          <div className="text-center py-8 text-slate-500">
+            <AlertCircle className="h-12 w-12 mx-auto mb-4 text-slate-300" />
+            <p className="font-medium">Authentication Required</p>
+            <p className="text-sm mt-2">Please sign in to view documents</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   // Filter documents by employee if employeeId is provided
   const employeeFilteredDocuments = employeeId 
     ? documents.filter(doc => doc.employee_id === employeeId)
@@ -84,20 +97,6 @@ const DocumentsList = ({ employeeId }: DocumentsListProps) => {
     getCategoryLabel(doc.category).toLowerCase().includes(searchTerm.toLowerCase()) ||
     getEmployeeName(doc.employee_id).toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  // Show loading state while authentication is being checked
-  if (authLoading) {
-    return (
-      <Card className="w-full">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-center py-8">
-            <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mr-3"></div>
-            <p className="text-slate-600">Loading...</p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
 
   if (loading) {
     return (
