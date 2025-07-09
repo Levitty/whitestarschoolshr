@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { DocumentUpload } from '@/components/DocumentUpload';
-import { DocumentsList } from '@/components/DocumentsList';
+import DocumentsList from '@/components/DocumentsList';
 
 interface EmployeeProfileProps {
   employee: any;

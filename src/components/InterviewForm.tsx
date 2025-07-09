@@ -41,7 +41,7 @@ const InterviewForm = ({ onSuccess }: InterviewFormProps) => {
         description: "The interview has been scheduled successfully."
       });
       
-      setCandideName('');
+      setCandidateName('');
       setCandidateEmail('');
       setPosition('');
       setInterviewDate('');
