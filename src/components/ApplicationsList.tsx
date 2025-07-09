@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -40,11 +39,45 @@ export const ApplicationsList = () => {
     );
   };
 
-  const downloadCV = (cvUrl: string, candidateName: string) => {
-    const link = document.createElement('a');
-    link.href = cvUrl;
-    link.download = `${candidateName}_CV.pdf`;
-    link.click();
+  const downloadCV = async (cvUrl: string, candidateName: string) => {
+    try {
+      // Extract the file path from the full URL
+      const urlParts = cvUrl.split('/');
+      const bucketIndex = urlParts.findIndex(part => part === 'cv-uploads');
+      if (bucketIndex === -1) {
+        throw new Error('Invalid CV URL format');
+      }
+      
+      const filePath = urlParts.slice(bucketIndex + 1).join('/');
+      
+      // Get the file from Supabase Storage
+      const { data, error } = await supabase.storage
+        .from('cv-uploads')
+        .download(filePath);
+
+      if (error) {
+        console.error('Storage download error:', error);
+        throw error;
+      }
+
+      if (!data) {
+        throw new Error('No file data received');
+      }
+
+      // Create blob URL and download
+      const blob = new Blob([data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${candidateName}_CV.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Error downloading CV:', error);
+      // Could add toast notification here if needed
+    }
   };
 
   if (loading) {

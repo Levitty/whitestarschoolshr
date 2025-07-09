@@ -119,14 +119,16 @@ export const useJobApplications = () => {
     }
   };
 
-  const uploadCV = async (file: File, applicationId: string) => {
+  const uploadCV = async (file: File, jobId: string, candidateName: string) => {
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `${applicationId}/cv.${fileExt}`;
+      const fileName = `applications/${jobId}/${candidateName}_cv.${fileExt}`;
       
       const { error: uploadError } = await supabase.storage
         .from('cv-uploads')
-        .upload(fileName, file);
+        .upload(fileName, file, {
+          upsert: true
+        });
 
       if (uploadError) throw uploadError;
 
