@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -27,8 +26,8 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import DocumentUpload from '@/components/DocumentUpload';
-import DocumentsList from '@/components/DocumentsList';
+import { DocumentUpload } from '@/components/DocumentUpload';
+import { DocumentsList } from '@/components/DocumentsList';
 
 interface EmployeeProfileProps {
   employee: any;
@@ -326,19 +325,10 @@ const EmployeeProfile = ({ employee, onClose }: EmployeeProfileProps) => {
           </TabsContent>
 
           <TabsContent value="documents" className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold">Employee Documents</h3>
-              <Button onClick={() => setShowDocumentUpload(!showDocumentUpload)}>
-                <Upload className="h-4 w-4 mr-2" />
-                {showDocumentUpload ? 'Cancel Upload' : 'Upload Document'}
-              </Button>
+            <div className="grid gap-6">
+              <DocumentUpload onSuccess={() => window.location.reload()} />
+              <DocumentsList />
             </div>
-
-            {showDocumentUpload && (
-              <DocumentUpload onSuccess={handleDocumentUploadSuccess} />
-            )}
-
-            <DocumentsList />
           </TabsContent>
 
           <TabsContent value="performance" className="space-y-6">

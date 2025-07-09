@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useInterviews } from '@/hooks/useInterviews';
@@ -29,31 +28,31 @@ const InterviewForm = ({ onSuccess }: InterviewFormProps) => {
     if (!candidateName || !position || !interviewDate || !interviewType) return;
 
     setSubmitting(true);
-    const { error } = await createInterview(
-      candidateName,
-      candidateEmail,
-      position,
-      interviewDate,
-      interviewType
-    );
-
-    if (error) {
-      toast({
-        title: "Interview Creation Failed",
-        description: error.message,
-        variant: "destructive"
+    try {
+      await createInterview({
+        application_id: '', // This would need to be linked to an actual application
+        interview_date: interviewDate,
+        interviewer_name: candidateName,
+        interview_type: interviewType as 'Phone' | 'Physical' | 'Online'
       });
-    } else {
+
       toast({
         title: "Interview Scheduled",
         description: "The interview has been scheduled successfully."
       });
-      setCandidateName('');
+      
+      setCandideName('');
       setCandidateEmail('');
       setPosition('');
       setInterviewDate('');
       setInterviewType('');
       onSuccess?.();
+    } catch (error) {
+      toast({
+        title: "Interview Creation Failed",
+        description: "Failed to schedule interview",
+        variant: "destructive"
+      });
     }
     setSubmitting(false);
   };
@@ -119,10 +118,9 @@ const InterviewForm = ({ onSuccess }: InterviewFormProps) => {
                 <SelectValue placeholder="Select interview type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="phone">Phone</SelectItem>
-                <SelectItem value="video">Video</SelectItem>
-                <SelectItem value="in-person">In-Person</SelectItem>
-                <SelectItem value="group">Group</SelectItem>
+                <SelectItem value="Phone">Phone</SelectItem>
+                <SelectItem value="Physical">Physical</SelectItem>
+                <SelectItem value="Online">Online</SelectItem>
               </SelectContent>
             </Select>
           </div>

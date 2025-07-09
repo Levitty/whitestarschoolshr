@@ -38,7 +38,7 @@ export const useJobApplications = () => {
         .order('applied_at', { ascending: false });
 
       if (error) throw error;
-      setApplications(data || []);
+      setApplications((data || []) as JobApplication[]);
     } catch (error) {
       console.error('Error fetching applications:', error);
       toast({
@@ -101,7 +101,7 @@ export const useJobApplications = () => {
 
       if (error) throw error;
       
-      setApplications(prev => prev.map(app => app.id === id ? { ...app, ...data } : app));
+      setApplications(prev => prev.map(app => app.id === id ? { ...app, ...data } as JobApplication : app));
       toast({
         title: "Success",
         description: "Application status updated successfully"

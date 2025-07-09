@@ -46,7 +46,7 @@ export const useInterviews = () => {
         .order('interview_date', { ascending: true });
 
       if (error) throw error;
-      setInterviews(data || []);
+      setInterviews((data || []) as Interview[]);
     } catch (error) {
       console.error('Error fetching interviews:', error);
       toast({
@@ -104,7 +104,7 @@ export const useInterviews = () => {
       if (error) throw error;
       
       setInterviews(prev => prev.map(interview => 
-        interview.id === id ? { ...interview, ...data } : interview
+        interview.id === id ? { ...interview, ...data } as Interview : interview
       ));
       
       toast({

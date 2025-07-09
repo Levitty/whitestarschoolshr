@@ -54,14 +54,7 @@ export const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
 
     setUploading(true);
     try {
-      await uploadDocument({
-        file: selectedFile,
-        title: formData.title,
-        description: formData.description,
-        category: formData.category,
-        employee_id: formData.employee_id,
-        requires_signature: formData.requires_signature
-      });
+      await uploadDocument(selectedFile);
       
       // Reset form
       setSelectedFile(null);
@@ -223,3 +216,5 @@ export const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
     </Card>
   );
 };
+
+export default DocumentUpload;

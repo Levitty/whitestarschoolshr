@@ -28,7 +28,7 @@ export const useJobListings = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setJobListings(data || []);
+      setJobListings((data || []) as JobListing[]);
     } catch (error) {
       console.error('Error fetching job listings:', error);
       toast({
@@ -51,7 +51,7 @@ export const useJobListings = () => {
 
       if (error) throw error;
       
-      setJobListings(prev => [data, ...prev]);
+      setJobListings(prev => [data as JobListing, ...prev]);
       toast({
         title: "Success",
         description: "Job posting created successfully"
@@ -80,7 +80,7 @@ export const useJobListings = () => {
 
       if (error) throw error;
       
-      setJobListings(prev => prev.map(job => job.id === id ? data : job));
+      setJobListings(prev => prev.map(job => job.id === id ? data as JobListing : job));
       toast({
         title: "Success",
         description: "Job posting updated successfully"
