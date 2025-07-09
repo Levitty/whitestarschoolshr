@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Download, Eye, MessageSquare } from 'lucide-react';
 import { useJobApplications } from '@/hooks/useJobApplications';
+import { supabase } from '@/integrations/supabase/client';
 
 export const ApplicationsList = () => {
   const { applications, loading, updateApplicationStatus } = useJobApplications();
