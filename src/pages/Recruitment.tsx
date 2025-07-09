@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,6 +24,24 @@ const Recruitment = () => {
   const { jobListings, loading: jobsLoading, createJobListing, updateJobListing, deleteJobListing } = useJobListings();
   const { applications, loading: appsLoading } = useJobApplications();
   const { interviews, loading: interviewsLoading } = useInterviews();
+
+  const handleCopyJobLink = async (jobId: string, jobTitle: string) => {
+    const jobUrl = `${window.location.origin}/job-details?id=${jobId}`;
+    try {
+      await navigator.clipboard.writeText(jobUrl);
+      toast({
+        title: "Link Copied!",
+        description: `Shareable link for "${jobTitle}" has been copied to clipboard.`
+      });
+    } catch (error) {
+      console.error('Failed to copy link:', error);
+      toast({
+        title: "Copy Failed",
+        description: "Unable to copy link to clipboard.",
+        variant: "destructive"
+      });
+    }
+  };
 
   const getStatusBadge = (status: string) => {
     const variants = {
@@ -164,6 +181,14 @@ const Recruitment = () => {
                         })}
                       >
                         {job.status === 'Open' ? 'Close' : 'Reopen'}
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleCopyJobLink(job.id, job.title)}
+                        className="text-blue-600 hover:text-blue-700"
+                      >
+                        Copy Link
                       </Button>
                     </div>
                   </CardContent>
