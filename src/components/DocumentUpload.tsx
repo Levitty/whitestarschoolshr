@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,9 +15,10 @@ import { Database } from '@/integrations/supabase/types';
 
 interface DocumentUploadProps {
   onSuccess?: () => void;
+  preselectedEmployeeId?: string;
 }
 
-const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
+const DocumentUpload = ({ onSuccess, preselectedEmployeeId }: DocumentUploadProps) => {
   const { user } = useAuth();
   const { uploadDocument } = useDocuments();
   const { employees } = useEmployees();
@@ -29,6 +30,13 @@ const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
   const [category, setCategory] = useState<Database['public']['Enums']['document_category']>('employment_records');
   const [employeeId, setEmployeeId] = useState('');
   const [uploading, setUploading] = useState(false);
+
+  // Set the preselected employee ID when component mounts or when preselectedEmployeeId changes
+  useEffect(() => {
+    if (preselectedEmployeeId) {
+      setEmployeeId(preselectedEmployeeId);
+    }
+  }, [preselectedEmployeeId]);
 
   console.log('DocumentUpload - Auth state:', { hasUser: !!user });
 
@@ -105,7 +113,10 @@ const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
         setTitle('');
         setDescription('');
         setCategory('employment_records');
-        setEmployeeId('');
+        // Only reset employeeId if it wasn't preselected
+        if (!preselectedEmployeeId) {
+          setEmployeeId('');
+        }
         
         // Reset file input
         const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
@@ -144,6 +155,11 @@ const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
         <CardTitle className="flex items-center gap-2">
           <Upload className="h-5 w-5" />
           Upload Document
+          {preselectedEmployeeId && (
+            <span className="text-sm font-normal text-muted-foreground">
+              for {employees.find(emp => emp.id === preselectedEmployeeId)?.first_name} {employees.find(emp => emp.id === preselectedEmployeeId)?.last_name}
+            </span>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -204,7 +220,11 @@ const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
 
           <div>
             <Label htmlFor="employee">Assign to Employee (Optional)</Label>
-            <Select value={employeeId} onValueChange={setEmployeeId}>
+            <Select 
+              value={employeeId} 
+              onValueChange={setEmployeeId}
+              disabled={!!preselectedEmployeeId}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select employee or leave blank" />
               </SelectTrigger>
@@ -217,6 +237,11 @@ const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
                 ))}
               </SelectContent>
             </Select>
+            {preselectedEmployeeId && (
+              <p className="text-xs text-muted-foreground mt-1">
+                Document will be assigned to the selected employee
+              </p>
+            )}
           </div>
 
           <Button type="submit" disabled={uploading || !file || !title.trim()} className="w-full">
