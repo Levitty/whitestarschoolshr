@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -334,13 +335,10 @@ const EmployeeProfile = ({ employee, onClose }: EmployeeProfileProps) => {
             </div>
 
             {showDocumentUpload && (
-              <DocumentUpload 
-                onSuccess={handleDocumentUploadSuccess}
-                preselectedEmployeeId={employee.id}
-              />
+              <DocumentUpload onSuccess={handleDocumentUploadSuccess} />
             )}
 
-            <DocumentsList employeeId={employee.id} />
+            <DocumentsList />
           </TabsContent>
 
           <TabsContent value="performance" className="space-y-6">
