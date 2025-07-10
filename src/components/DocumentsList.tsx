@@ -20,7 +20,7 @@ import {
 
 const DocumentsList = () => {
   const { documents, loading, fetchDocuments } = useDocuments();
-  const { profile, canAccessAdmin } = useProfile();
+  const { canAccessAdmin } = useProfile();
   const { user } = useAuth();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');

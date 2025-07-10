@@ -19,7 +19,7 @@ interface DocumentUploadProps {
 export const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
   const { uploadDocument } = useDocuments();
   const { employees } = useEmployees();
-  const { profile, canAccessAdmin } = useProfile();
+  const { canAccessAdmin } = useProfile();
   const { toast } = useToast();
   
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -132,7 +132,7 @@ export const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
                   <SelectValue placeholder="Select employee (or leave empty for yourself)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">For myself</SelectItem>
+                  <SelectItem value="self">For myself</SelectItem>
                   {employees?.map((employee) => (
                     <SelectItem key={employee.id} value={employee.id}>
                       {employee.first_name} {employee.last_name} - {employee.department}

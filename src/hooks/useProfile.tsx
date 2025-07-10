@@ -15,10 +15,6 @@ interface Profile {
   employee_id: string | null;
   avatar_url: string | null;
   is_active: boolean;
-  manager_id: string | null;
-  job_title: string | null;
-  salary_grade: string | null;
-  direct_reports: number;
   created_at?: string | null;
   updated_at?: string | null;
 }
@@ -63,10 +59,6 @@ export const useProfile = () => {
           employee_id: data.employee_id,
           avatar_url: data.avatar_url,
           is_active: data.is_active,
-          manager_id: null, // Set default value since it doesn't exist in profiles table
-          job_title: null, // Set default value since it doesn't exist in profiles table
-          salary_grade: null, // Set default value since it doesn't exist in profiles table
-          direct_reports: 0, // Set default value since it doesn't exist in profiles table
           created_at: data.created_at,
           updated_at: data.updated_at
         };

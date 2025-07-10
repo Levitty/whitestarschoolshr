@@ -18,7 +18,7 @@ const Leave = () => {
   const { user } = useAuth();
   const { employees } = useEmployees();
   const { leaveRequests, approveLeaveRequest, loading } = useLeaveRequests();
-  const { profile, hasRole, loading: profileLoading } = useProfile();
+  const { hasRole, loading: profileLoading } = useProfile();
   const { toast } = useToast();
   const [selectedEmployee, setSelectedEmployee] = useState('');
   const [processingRequest, setProcessingRequest] = useState<string | null>(null);
