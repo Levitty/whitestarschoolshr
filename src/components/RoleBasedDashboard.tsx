@@ -144,7 +144,7 @@ const RoleBasedDashboard = () => {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{profile.direct_reports || 0}</div>
+            <div className="text-2xl font-bold">0</div>
             <p className="text-xs text-muted-foreground">Direct reports</p>
           </CardContent>
         </Card>
@@ -204,7 +204,7 @@ const RoleBasedDashboard = () => {
             <CardTitle>Personal Actions</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Link to="/my-documents">
+            <Link to="/records">
               <Button variant="outline" className="w-full justify-start">
                 <FileText className="mr-2 h-4 w-4" />
                 My Documents
@@ -281,7 +281,7 @@ const RoleBasedDashboard = () => {
             <CardTitle>Quick Actions</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Link to="/document-upload">
+            <Link to="/records">
               <Button className="w-full justify-start">
                 <Upload className="mr-2 h-4 w-4" />
                 Upload Document
@@ -309,7 +309,7 @@ const RoleBasedDashboard = () => {
           <CardContent className="space-y-3">
             <div>
               <p className="text-sm font-medium">Position</p>
-              <p className="text-sm text-gray-600">{profile.job_title || 'Not specified'}</p>
+              <p className="text-sm text-gray-600">Not specified</p>
             </div>
             <div>
               <p className="text-sm font-medium">Department</p>
