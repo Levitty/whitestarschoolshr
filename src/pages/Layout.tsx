@@ -1,17 +1,22 @@
 
 import { Outlet } from 'react-router-dom';
-import Navigation from '@/components/Navigation';
+import RoleBasedNavigation from '@/components/RoleBasedNavigation';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import { Toaster } from '@/components/ui/toaster';
 
 const Layout = () => {
   return (
-    <div className="min-h-screen bg-slate-50 flex w-full">
-      <Navigation />
-      <main className="flex-1 lg:ml-64 min-h-screen">
-        <div className="p-6 lg:p-8">
-          <Outlet />
-        </div>
-      </main>
-    </div>
+    <ProtectedRoute>
+      <div className="flex h-screen bg-gray-50">
+        <RoleBasedNavigation />
+        <main className="flex-1 overflow-y-auto lg:ml-0">
+          <div className="p-6 lg:p-8">
+            <Outlet />
+          </div>
+        </main>
+        <Toaster />
+      </div>
+    </ProtectedRoute>
   );
 };
 

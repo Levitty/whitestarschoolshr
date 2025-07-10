@@ -10,11 +10,15 @@ interface Profile {
   last_name: string | null;
   phone: string | null;
   department: string | null;
-  role: 'admin' | 'teacher' | 'staff' | null;
+  role: 'admin' | 'manager' | 'staff' | null;
   hire_date: string | null;
   employee_id: string | null;
   avatar_url: string | null;
   is_active: boolean;
+  manager_id: string | null;
+  job_title: string | null;
+  salary_grade: string | null;
+  direct_reports: number;
 }
 
 export const useProfile = () => {
@@ -73,10 +77,30 @@ export const useProfile = () => {
     }
   };
 
+  const hasRole = (requiredRole: 'admin' | 'manager' | 'staff') => {
+    if (!profile?.role) return false;
+    
+    const roleHierarchy = {
+      admin: 3,
+      manager: 2,
+      staff: 1
+    };
+    
+    return roleHierarchy[profile.role] >= roleHierarchy[requiredRole];
+  };
+
+  const canAccessAdmin = () => hasRole('admin');
+  const canAccessManager = () => hasRole('manager');
+  const isStaff = () => profile?.role === 'staff';
+
   return {
     profile,
     loading,
     fetchProfile,
-    updateProfile
+    updateProfile,
+    hasRole,
+    canAccessAdmin,
+    canAccessManager,
+    isStaff
   };
 };
