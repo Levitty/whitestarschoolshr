@@ -1,349 +1,164 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
-import { 
-  Users, 
-  FileText, 
-  Calendar, 
-  BarChart3, 
-  Upload,
-  GraduationCap,
-  Clock,
-  CheckCircle
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
+import { Card, CardContent } from '@/components/ui/card';
+import { Home, Users, Calendar, Briefcase, ListChecks, BarChart, GraduationCap, FileText } from 'lucide-react';
 
 const RoleBasedDashboard = () => {
-  const { profile, canAccessAdmin, canAccessManager, isStaff } = useProfile();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { profile, hasRole, loading } = useProfile();
 
-  if (!profile) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
+  useEffect(() => {
+    if (!user) {
+      navigate('/auth');
+    }
+  }, [user, navigate]);
+
+  if (loading) {
+    return <div>Loading...</div>;
   }
 
-  const AdminDashboard = () => (
+  return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">HR Admin Dashboard</h1>
-        <p className="text-gray-600">Manage all aspects of the HR system</p>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Employees</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">42</div>
-            <p className="text-xs text-muted-foreground">+2 from last month</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Applications</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">12</div>
-            <p className="text-xs text-muted-foreground">Requires review</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Leave Requests</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">8</div>
-            <p className="text-xs text-muted-foreground">Awaiting approval</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Performance Reviews</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">15</div>
-            <p className="text-xs text-muted-foreground">Due this month</p>
-          </CardContent>
-        </Card>
+      {/* Header Section */}
+      <div className="text-center">
+        <h1 className="text-3xl font-bold text-slate-900">Welcome to Your Dashboard</h1>
+        <p className="text-slate-600 mt-2">
+          {profile
+            ? `Hello, ${profile.first_name} ${profile.last_name}! Here's a quick overview of your HR tools.`
+            : 'Loading user information...'}
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Link to="/employees">
-              <Button className="w-full justify-start">
-                <Users className="mr-2 h-4 w-4" />
-                Manage Employees
-              </Button>
-            </Link>
-            <Link to="/recruitment">
-              <Button variant="outline" className="w-full justify-start">
-                <FileText className="mr-2 h-4 w-4" />
-                View Applications
-              </Button>
-            </Link>
-            <Link to="/leave-approval">
-              <Button variant="outline" className="w-full justify-start">
-                <Calendar className="mr-2 h-4 w-4" />
-                Approve Leave Requests
-              </Button>
-            </Link>
-            <Link to="/performance">
-              <Button variant="outline" className="w-full justify-start">
-                <BarChart3 className="mr-2 h-4 w-4" />
-                Performance Reports
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Activities</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center space-x-3">
-                <CheckCircle className="h-4 w-4 text-green-500" />
-                <span className="text-sm">New employee onboarded</span>
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/employees')}>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-blue-100 rounded-lg">
+                <Users className="h-6 w-6 text-blue-600" />
               </div>
-              <div className="flex items-center space-x-3">
-                <Clock className="h-4 w-4 text-yellow-500" />
-                <span className="text-sm">Leave request submitted</span>
-              </div>
-              <div className="flex items-center space-x-3">
-                <FileText className="h-4 w-4 text-blue-500" />
-                <span className="text-sm">Document uploaded</span>
+              <div>
+                <h3 className="font-semibold">Employee Management</h3>
+                <p className="text-sm text-muted-foreground">Manage employee profiles and records</p>
               </div>
             </div>
           </CardContent>
         </Card>
-      </div>
-    </div>
-  );
 
-  const ManagerDashboard = () => (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Manager Dashboard</h1>
-        <p className="text-gray-600">Manage your team and performance evaluations</p>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Team Members</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">0</div>
-            <p className="text-xs text-muted-foreground">Direct reports</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Reviews</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">3</div>
-            <p className="text-xs text-muted-foreground">Performance evaluations</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Team Requests</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">2</div>
-            <p className="text-xs text-muted-foreground">Leave requests to approve</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Manager Actions</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Link to="/my-team">
-              <Button className="w-full justify-start">
-                <Users className="mr-2 h-4 w-4" />
-                View My Team
-              </Button>
-            </Link>
-            <Link to="/team-performance">
-              <Button variant="outline" className="w-full justify-start">
-                <BarChart3 className="mr-2 h-4 w-4" />
-                Team Performance
-              </Button>
-            </Link>
-            <Link to="/leave-approval">
-              <Button variant="outline" className="w-full justify-start">
-                <Calendar className="mr-2 h-4 w-4" />
-                Approve Leave Requests
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Personal Actions</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Link to="/leave-form">
-              <Button className="w-full justify-start">
-                <Calendar className="mr-2 h-4 w-4" />
-                Request Leave
-              </Button>
-            </Link>
-            <Link to="/records">
-              <Button variant="outline" className="w-full justify-start">
-                <FileText className="mr-2 h-4 w-4" />
-                My Documents
-              </Button>
-            </Link>
-            <Link to="/upskilling">
-              <Button variant="outline" className="w-full justify-start">
-                <GraduationCap className="mr-2 h-4 w-4" />
-                Upskilling Programs
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
-
-  const StaffDashboard = () => (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Welcome, {profile.first_name}!</h1>
-        <p className="text-gray-600">Access your documents, leave requests, and development opportunities</p>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">My Documents</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">8</div>
-            <p className="text-xs text-muted-foreground">Total documents</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Leave Balance</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">15</div>
-            <p className="text-xs text-muted-foreground">Days remaining</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Requests</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">1</div>
-            <p className="text-xs text-muted-foreground">Leave request</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Training Progress</CardTitle>
-            <GraduationCap className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">75%</div>
-            <p className="text-xs text-muted-foreground">Current course</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Link to="/leave-form">
-              <Button className="w-full justify-start">
-                <Calendar className="mr-2 h-4 w-4" />
-                Request Leave
-              </Button>
-            </Link>
-            <Link to="/records">
-              <Button variant="outline" className="w-full justify-start">
-                <Upload className="mr-2 h-4 w-4" />
-                Upload Document
-              </Button>
-            </Link>
-            <Link to="/upskilling">
-              <Button variant="outline" className="w-full justify-start">
-                <GraduationCap className="mr-2 h-4 w-4" />
-                Browse Courses
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>My Information</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div>
-              <p className="text-sm font-medium">Position</p>
-              <p className="text-sm text-gray-600">Not specified</p>
+        <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/leave')}>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-green-100 rounded-lg">
+                <Calendar className="h-6 w-6 text-green-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold">Leave Management</h3>
+                <p className="text-sm text-muted-foreground">Handle leave requests and balances</p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-medium">Department</p>
-              <p className="text-sm text-gray-600">{profile.department || 'Not specified'}</p>
+          </CardContent>
+        </Card>
+
+        {hasRole('manager') && (
+          <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/leave/calendar')}>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-purple-100 rounded-lg">
+                  <Calendar className="h-6 w-6 text-purple-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">Leave Calendar</h3>
+                  <p className="text-sm text-muted-foreground">View approved leaves in calendar</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/recruitment')}>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-orange-100 rounded-lg">
+                <Briefcase className="h-6 w-6 text-orange-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold">Recruitment</h3>
+                <p className="text-sm text-muted-foreground">Manage job postings and applications</p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-medium">Hire Date</p>
-              <p className="text-sm text-gray-600">{profile.hire_date || 'Not specified'}</p>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/tickets')}>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-red-100 rounded-lg">
+                <ListChecks className="h-6 w-6 text-red-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold">Tickets</h3>
+                <p className="text-sm text-muted-foreground">Address employee concerns and issues</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/performance')}>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-yellow-100 rounded-lg">
+                <BarChart className="h-6 w-6 text-yellow-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold">Performance</h3>
+                <p className="text-sm text-muted-foreground">Track and analyze employee performance</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/upskilling')}>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-indigo-100 rounded-lg">
+                <GraduationCap className="h-6 w-6 text-indigo-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold">Upskilling</h3>
+                <p className="text-sm text-muted-foreground">Manage employee training and development</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/records')}>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-teal-100 rounded-lg">
+                <FileText className="h-6 w-6 text-teal-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold">Records</h3>
+                <p className="text-sm text-muted-foreground">Access employee records and documents</p>
+              </div>
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Additional Information or Analytics Section */}
+      <div className="bg-white rounded-xl shadow-sm p-6 border border-slate-200">
+        <h2 className="text-xl font-semibold text-slate-900 mb-4">System Overview</h2>
+        <p className="text-slate-600">
+          This dashboard provides a centralized view of your HR management activities. Use the quick actions above to
+          navigate to specific areas of the system.
+        </p>
+      </div>
     </div>
   );
-
-  // Render the appropriate dashboard based on user role
-  if (canAccessAdmin()) {
-    return <AdminDashboard />;
-  } else if (canAccessManager()) {
-    return <ManagerDashboard />;
-  } else {
-    return <StaffDashboard />;
-  }
 };
 
 export default RoleBasedDashboard;

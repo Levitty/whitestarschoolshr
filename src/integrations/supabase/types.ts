@@ -673,6 +673,7 @@ export type Database = {
           comments: string | null
           created_at: string | null
           days_requested: number
+          decision_at: string | null
           employee_id: string
           end_date: string
           id: string
@@ -688,6 +689,7 @@ export type Database = {
           comments?: string | null
           created_at?: string | null
           days_requested: number
+          decision_at?: string | null
           employee_id: string
           end_date: string
           id?: string
@@ -703,6 +705,7 @@ export type Database = {
           comments?: string | null
           created_at?: string | null
           days_requested?: number
+          decision_at?: string | null
           employee_id?: string
           end_date?: string
           id?: string

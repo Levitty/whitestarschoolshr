@@ -1,145 +1,204 @@
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { useLeaveRequests } from '@/hooks/useLeaveRequests';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useProfile } from '@/hooks/useProfile';
-import { useToast } from '@/hooks/use-toast';
-import { CheckCircle, XCircle, Clock, User, Calendar } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Download, Filter } from 'lucide-react';
+import { toast } from 'sonner';
 
 const LeaveApprovalList = () => {
-  const { leaveRequests, approveLeaveRequest, rejectLeaveRequest, loading } = useLeaveRequests();
+  const { leaveRequests, loading, approveLeaveRequest, rejectLeaveRequest } = useLeaveRequests();
   const { employees } = useEmployees();
-  const { hasRole } = useProfile();
-  const { toast } = useToast();
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [processingRequest, setProcessingRequest] = useState<string | null>(null);
-
-  // Filter requests based on status
-  const filteredRequests = leaveRequests?.filter(request => {
-    if (statusFilter === 'all') return true;
-    return request.status === statusFilter;
-  }) || [];
-
-  const getEmployeeName = (employeeId: string) => {
-    const employee = employees?.find(emp => emp.profile_id === employeeId);
-    if (employee) {
-      return `${employee.first_name} ${employee.last_name}`;
-    }
-    return 'Unknown Employee';
-  };
-
-  const getStatusBadge = (status: string) => {
-    const variants = {
-      pending: 'secondary',
-      approved: 'default',
-      rejected: 'destructive'
-    } as const;
-
-    const colors = {
-      pending: 'text-orange-600',
-      approved: 'text-green-600', 
-      rejected: 'text-red-600'
-    } as const;
-
-    return (
-      <Badge variant={variants[status as keyof typeof variants] || 'default'} 
-             className={colors[status as keyof typeof colors] || ''}>
-        {status.charAt(0).toUpperCase() + status.slice(1)}
-      </Badge>
-    );
-  };
+  const { profile } = useProfile();
+  const [processingId, setProcessingId] = useState<string | null>(null);
+  const [comments, setComments] = useState<Record<string, string>>({});
+  
+  // Filter states
+  const [leaveTypeFilter, setLeaveTypeFilter] = useState<string>('all');
+  const [departmentFilter, setDepartmentFilter] = useState<string>('all');
+  const [startDateFilter, setStartDateFilter] = useState<string>('');
+  const [endDateFilter, setEndDateFilter] = useState<string>('');
+  const [showFilters, setShowFilters] = useState(false);
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
   };
 
-  const handleApprove = async (requestId: string) => {
-    if (!hasRole('manager')) {
-      toast({
-        title: "Access Denied",
-        description: "You don't have permission to approve leave requests.",
-        variant: "destructive"
-      });
-      return;
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'approved':
+        return 'bg-green-100 text-green-800';
+      case 'rejected':
+        return 'bg-red-100 text-red-800';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
+  };
 
-    setProcessingRequest(requestId);
-    try {
-      const { error } = await approveLeaveRequest(requestId, 'Approved by manager');
+  const getLeaveTypeColor = (type: string) => {
+    switch (type.toLowerCase()) {
+      case 'annual':
+        return 'bg-blue-100 text-blue-800';
+      case 'sick':
+        return 'bg-orange-100 text-orange-800';
+      case 'personal':
+        return 'bg-purple-100 text-purple-800';
+      case 'maternity':
+      case 'paternity':
+        return 'bg-pink-100 text-pink-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  // Enhanced filtering logic
+  const filteredRequests = useMemo(() => {
+    return leaveRequests.filter(request => {
+      const employee = employees.find(emp => emp.id === request.employee_id);
       
-      if (error) {
-        toast({
-          title: "Approval Failed",
-          description: error.message || "Failed to approve leave request",
-          variant: "destructive"
-        });
-      } else {
-        toast({
-          title: "Success",
-          description: "Leave request approved successfully."
-        });
+      // Leave type filter
+      if (leaveTypeFilter !== 'all' && request.leave_type !== leaveTypeFilter) {
+        return false;
       }
-    } catch (error) {
-      console.error('Error approving request:', error);
-      toast({
-        title: "Approval Failed",
-        description: "An unexpected error occurred.",
-        variant: "destructive"
-      });
+      
+      // Department filter
+      if (departmentFilter !== 'all' && employee?.department !== departmentFilter) {
+        return false;
+      }
+      
+      // Date range filter
+      if (startDateFilter && request.start_date < startDateFilter) {
+        return false;
+      }
+      if (endDateFilter && request.end_date > endDateFilter) {
+        return false;
+      }
+      
+      return true;
+    });
+  }, [leaveRequests, employees, leaveTypeFilter, departmentFilter, startDateFilter, endDateFilter]);
+
+  const handleApprove = async (requestId: string) => {
+    if (!profile) return;
+    
+    setProcessingId(requestId);
+    try {
+      const result = await approveLeaveRequest(requestId, comments[requestId] || '');
+      if (result.error) {
+        toast.error('Failed to approve leave request');
+      } else {
+        toast.success('Leave request approved successfully');
+        setComments(prev => ({ ...prev, [requestId]: '' }));
+      }
     } finally {
-      setProcessingRequest(null);
+      setProcessingId(null);
     }
   };
 
   const handleReject = async (requestId: string) => {
-    if (!hasRole('manager')) {
-      toast({
-        title: "Access Denied",
-        description: "You don't have permission to reject leave requests.",
-        variant: "destructive"
-      });
+    if (!profile || !comments[requestId]?.trim()) {
+      toast.error('Please provide a reason for rejection');
+      return;
+    }
+    
+    setProcessingId(requestId);
+    try {
+      const result = await rejectLeaveRequest(requestId, comments[requestId]);
+      if (result.error) {
+        toast.error('Failed to reject leave request');
+      } else {
+        toast.success('Leave request rejected');
+        setComments(prev => ({ ...prev, [requestId]: '' }));
+      }
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  // CSV Export functionality
+  const exportToCSV = () => {
+    if (filteredRequests.length === 0) {
+      toast.error('No data to export');
       return;
     }
 
-    setProcessingRequest(requestId);
-    try {
-      const { error } = await rejectLeaveRequest(requestId, 'Rejected by manager');
+    const csvData = filteredRequests.map(request => {
+      const employee = employees.find(emp => emp.id === request.employee_id);
+      const reviewer = employees.find(emp => emp.id === request.approved_by);
       
-      if (error) {
-        toast({
-          title: "Rejection Failed",
-          description: error.message || "Failed to reject leave request",
-          variant: "destructive"
-        });
-      } else {
-        toast({
-          title: "Success",
-          description: "Leave request rejected successfully."
-        });
-      }
-    } catch (error) {
-      console.error('Error rejecting request:', error);
-      toast({
-        title: "Rejection Failed",
-        description: "An unexpected error occurred.",
-        variant: "destructive"
-      });
-    } finally {
-      setProcessingRequest(null);
-    }
+      return {
+        'Employee Name': employee ? `${employee.first_name} ${employee.last_name}` : 'Unknown',
+        'Department': employee?.department || 'Unknown',
+        'Leave Type': request.leave_type,
+        'Start Date': request.start_date,
+        'End Date': request.end_date,
+        'Days Requested': request.days_requested,
+        'Status': request.status,
+        'Reason': request.reason || '',
+        'Reviewed By': reviewer ? `${reviewer.first_name} ${reviewer.last_name}` : '',
+        'Decision Date': request.decision_at ? formatDate(request.decision_at) : '',
+        'Comments': request.comments || ''
+      };
+    });
+
+    // Convert to CSV
+    const headers = Object.keys(csvData[0]);
+    const csvContent = [
+      headers.join(','),
+      ...csvData.map(row => 
+        headers.map(header => {
+          const value = row[header as keyof typeof row];
+          // Escape quotes and wrap in quotes if contains comma
+          return typeof value === 'string' && (value.includes(',') || value.includes('"')) 
+            ? `"${value.replace(/"/g, '""')}"` 
+            : value;
+        }).join(',')
+      )
+    ].join('\n');
+
+    // Download file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `leave_requests_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast.success('CSV file downloaded successfully');
   };
+
+  // Get unique values for filters
+  const uniqueLeaveTypes = [...new Set(leaveRequests.map(req => req.leave_type))];
+  const uniqueDepartments = [...new Set(employees.map(emp => emp.department))];
 
   if (loading) {
     return (
       <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center justify-center">
-            <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-            <span className="ml-2">Loading leave requests...</span>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Clock className="h-5 w-5" />
+            Leave Request Approvals
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           </div>
         </CardContent>
       </Card>
@@ -151,114 +210,204 @@ const LeaveApprovalList = () => {
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
-            <User className="h-5 w-5" />
-            Leave Requests Management
+            <Clock className="h-5 w-5" />
+            Leave Request Approvals ({filteredRequests.length})
           </CardTitle>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Requests</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="approved">Approved</SelectItem>
-              <SelectItem value="rejected">Rejected</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+            >
+              <Filter className="h-4 w-4 mr-2" />
+              Filters
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={exportToCSV}
+              disabled={filteredRequests.length === 0}
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Export CSV
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          {filteredRequests.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>No leave requests found</p>
+        {/* Filters Section */}
+        {showFilters && (
+          <div className="mb-6 p-4 border rounded-lg bg-gray-50">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div>
+                <Label>Leave Type</Label>
+                <Select value={leaveTypeFilter} onValueChange={setLeaveTypeFilter}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Types</SelectItem>
+                    {uniqueLeaveTypes.map(type => (
+                      <SelectItem key={type} value={type}>{type}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>Department</Label>
+                <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Departments</SelectItem>
+                    {uniqueDepartments.map(dept => (
+                      <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>Start Date From</Label>
+                <Input
+                  type="date"
+                  value={startDateFilter}
+                  onChange={(e) => setStartDateFilter(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <Label>End Date To</Label>
+                <Input
+                  type="date"
+                  value={endDateFilter}
+                  onChange={(e) => setEndDateFilter(e.target.value)}
+                />
+              </div>
             </div>
-          ) : (
-            filteredRequests.map((request) => (
-              <div key={request.id} className="p-4 border rounded-lg space-y-3">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-2 flex-1">
-                    <div className="flex items-center gap-3">
-                      <h3 className="font-semibold text-lg">
-                        {getEmployeeName(request.employee_id)}
-                      </h3>
-                      {getStatusBadge(request.status || 'pending')}
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <p className="font-medium text-muted-foreground">Leave Type</p>
-                        <p className="capitalize">{request.leave_type} Leave</p>
-                      </div>
-                      <div>
-                        <p className="font-medium text-muted-foreground">Duration</p>
-                        <p>{request.days_requested} day{request.days_requested !== 1 ? 's' : ''}</p>
-                      </div>
-                      <div>
-                        <p className="font-medium text-muted-foreground">Start Date</p>
-                        <p className="flex items-center gap-1">
-                          <Calendar className="h-4 w-4" />
-                          {formatDate(request.start_date)}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="font-medium text-muted-foreground">End Date</p>
-                        <p className="flex items-center gap-1">
-                          <Calendar className="h-4 w-4" />
-                          {formatDate(request.end_date)}
-                        </p>
-                      </div>
-                    </div>
+            
+            <div className="mt-4 flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setLeaveTypeFilter('all');
+                  setDepartmentFilter('all');
+                  setStartDateFilter('');
+                  setEndDateFilter('');
+                }}
+              >
+                Clear Filters
+              </Button>
+            </div>
+          </div>
+        )}
 
-                    {request.reason && (
-                      <div>
-                        <p className="font-medium text-muted-foreground">Reason</p>
-                        <p className="text-sm bg-muted p-2 rounded">{request.reason}</p>
-                      </div>
-                    )}
-
+        {filteredRequests.length === 0 ? (
+          <div className="text-center py-8">
+            <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">No leave requests found</p>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {filteredRequests.map((request) => {
+              const employee = employees.find(emp => emp.id === request.employee_id);
+              return (
+                <div key={request.id} className="border rounded-lg p-6 space-y-4">
+                  <div className="flex items-start justify-between">
                     <div>
-                      <p className="font-medium text-muted-foreground">Submitted</p>
-                      <p className="text-sm">{formatDate(request.created_at || '')}</p>
+                      <h3 className="font-semibold text-lg">
+                        {employee ? `${employee.first_name} ${employee.last_name}` : 'Unknown Employee'}
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        {employee?.department} • {employee?.position}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge className={getLeaveTypeColor(request.leave_type)}>
+                        {request.leave_type}
+                      </Badge>
+                      <Badge className={getStatusColor(request.status || 'pending')}>
+                        {request.status}
+                      </Badge>
                     </div>
                   </div>
 
-                  {request.status === 'pending' && hasRole('manager') && (
-                    <div className="flex gap-2 ml-4">
-                      <Button 
-                        size="sm" 
-                        onClick={() => handleApprove(request.id)}
-                        disabled={processingRequest === request.id}
-                        className="bg-green-600 hover:bg-green-700 text-white"
-                      >
-                        {processingRequest === request.id ? (
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        ) : (
-                          <CheckCircle className="h-4 w-4 mr-1" />
-                        )}
-                        Approve
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="destructive"
-                        onClick={() => handleReject(request.id)}
-                        disabled={processingRequest === request.id}
-                      >
-                        {processingRequest === request.id ? (
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        ) : (
-                          <XCircle className="h-4 w-4 mr-1" />
-                        )}
-                        Reject
-                      </Button>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div>
+                      <p className="font-medium text-muted-foreground">Start Date</p>
+                      <p>{formatDate(request.start_date)}</p>
+                    </div>
+                    <div>
+                      <p className="font-medium text-muted-foreground">End Date</p>
+                      <p>{formatDate(request.end_date)}</p>
+                    </div>
+                    <div>
+                      <p className="font-medium text-muted-foreground">Days</p>
+                      <p>{request.days_requested}</p>
+                    </div>
+                    <div>
+                      <p className="font-medium text-muted-foreground">Submitted</p>
+                      <p>{formatDate(request.created_at || '')}</p>
+                    </div>
+                  </div>
+
+                  {request.reason && (
+                    <div>
+                      <p className="font-medium text-muted-foreground mb-1">Reason:</p>
+                      <p className="text-sm">{request.reason}</p>
+                    </div>
+                  )}
+
+                  {request.status === 'pending' && (
+                    <div className="space-y-3">
+                      <div>
+                        <Label htmlFor={`comments-${request.id}`}>Comments (optional for approval, required for rejection)</Label>
+                        <Textarea
+                          id={`comments-${request.id}`}
+                          placeholder="Add your comments..."
+                          value={comments[request.id] || ''}
+                          onChange={(e) => setComments(prev => ({
+                            ...prev,
+                            [request.id]: e.target.value
+                          }))}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={() => handleApprove(request.id)}
+                          disabled={processingId === request.id}
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          <CheckCircle className="h-4 w-4 mr-2" />
+                          {processingId === request.id ? 'Approving...' : 'Approve'}
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          onClick={() => handleReject(request.id)}
+                          disabled={processingId === request.id}
+                        >
+                          <XCircle className="h-4 w-4 mr-2" />
+                          {processingId === request.id ? 'Rejecting...' : 'Reject'}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {request.status !== 'pending' && request.comments && (
+                    <div>
+                      <p className="font-medium text-muted-foreground mb-1">Comments:</p>
+                      <p className="text-sm">{request.comments}</p>
                     </div>
                   )}
                 </div>
-              </div>
-            ))
-          )}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

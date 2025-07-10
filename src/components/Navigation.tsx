@@ -1,140 +1,160 @@
-
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { 
-  Users, 
-  BookOpen, 
-  BarChart3, 
-  Settings, 
-  Menu, 
-  X,
-  Home,
-  FileText,
-  LogOut,
-  Briefcase
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
+import {
+  NavigationMenu,
+  NavigationMenuList,
+  NavigationMenuItem,
+  NavigationMenuContent,
+  NavigationMenuTrigger,
+  NavigationMenuLink,
+} from "@/components/ui/navigation-menu"
+import { Home, Users, Briefcase, Settings, HelpCircle, LogOut } from 'lucide-react';
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu"
 
 const Navigation = () => {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, signOut } = useAuth();
+  const { profile, hasRole } = useProfile();
   const location = useLocation();
-  const { signOut, user } = useAuth();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const navigationItems = [
-    { name: 'Dashboard', href: '/', icon: Home },
-    { name: 'Employees', href: '/employees', icon: Users },
-    { name: 'Recruitment', href: '/recruitment', icon: Users },
-    { name: 'Applications', href: '/applications', icon: Briefcase },
-    { name: 'Performance', href: '/performance', icon: BarChart3 },
-    { name: 'Upskilling', href: '/upskilling', icon: BookOpen },
-    { name: 'Records', href: '/records', icon: FileText },
-    { name: 'Settings', href: '/settings', icon: Settings },
-  ];
-
-  const handleLogout = async () => {
-    console.log('Logout button clicked');
-    try {
-      await signOut();
-    } catch (error) {
-      console.error('Error during logout:', error);
-      // Force redirect even if there's an error
-      window.location.href = '/auth';
-    }
-  };
-
-  const getDisplayName = () => {
-    return user?.email || 'Super Admin';
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
   };
 
   return (
-    <>
-      {/* Mobile menu button */}
-      <div className="lg:hidden fixed top-4 left-4 z-50">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="bg-white shadow-md"
-        >
-          {isMobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-        </Button>
-      </div>
+    <NavigationMenu className="relative">
+      <NavigationMenuList>
+        <NavigationMenuItem>
+          <Link
+            to="/dashboard"
+            className={`px-4 py-2 rounded-md transition-colors ${
+              location.pathname === '/dashboard'
+                ? 'bg-primary text-primary-foreground'
+                : 'hover:bg-accent hover:text-accent-foreground'
+            }`}
+          >
+            <Home className="w-4 h-4 mr-2 inline" />
+            Dashboard
+          </Link>
+        </NavigationMenuItem>
 
-      {/* Sidebar */}
-      <nav className={`
-        fixed inset-y-0 left-0 z-40 w-64 bg-slate-900 transform transition-transform duration-300 ease-in-out
-        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
-        lg:translate-x-0 lg:static lg:inset-0
-      `}>
-        <div className="flex flex-col h-full">
-          {/* Logo */}
-          <div className="flex items-center justify-center h-16 px-4 bg-slate-800">
-            <h1 className="text-xl font-bold text-white">School HR Portal</h1>
-          </div>
-
-          {/* Navigation items */}
-          <div className="flex-1 px-3 py-6 space-y-1">
-            {navigationItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.href;
-              
-              return (
+        <NavigationMenuItem>
+          <NavigationMenuTrigger className="hover:bg-accent">
+            <Users className="w-4 h-4 mr-2" />
+            HR Management
+          </NavigationMenuTrigger>
+          <NavigationMenuContent>
+            <div className="grid gap-3 p-4 w-[400px]">
+              <NavigationMenuLink asChild>
                 <Link
-                  key={item.name}
-                  to={item.href}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={`
-                    flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors
-                    ${isActive 
-                      ? 'bg-blue-600 text-white' 
-                      : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                    }
-                  `}
+                  to="/employees"
+                  className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                 >
-                  <Icon className="mr-3 h-5 w-5" />
-                  {item.name}
+                  <div className="text-sm font-medium leading-none">Employees</div>
+                  <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                    Manage employee profiles and information
+                  </p>
                 </Link>
-              );
-            })}
-          </div>
-
-          {/* User section */}
-          <div className="p-4 border-t border-slate-700">
-            <div className="flex items-center space-x-3 mb-3">
-              <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                <span className="text-sm font-medium text-white">SA</span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-white truncate">
-                  {getDisplayName()}
-                </p>
-                <p className="text-xs text-slate-400 truncate">
-                  Super Admin
-                </p>
-              </div>
+              </NavigationMenuLink>
+              <NavigationMenuLink asChild>
+                <Link
+                  to="/leave"
+                  className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                >
+                  <div className="text-sm font-medium leading-none">Leave Management</div>
+                  <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                    Handle leave requests and balances
+                  </p>
+                </Link>
+              </NavigationMenuLink>
+              {hasRole('manager') && (
+                <NavigationMenuLink asChild>
+                  <Link
+                    to="/leave/calendar"
+                    className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                  >
+                    <div className="text-sm font-medium leading-none">Leave Calendar</div>
+                    <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                      View approved leaves in calendar format
+                    </p>
+                  </Link>
+                </NavigationMenuLink>
+              )}
+              <NavigationMenuLink asChild>
+                <Link
+                  to="/records"
+                  className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                >
+                  <div className="text-sm font-medium leading-none">Records</div>
+                  <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                    Access employee records and documents
+                  </p>
+                </Link>
+              </NavigationMenuLink>
             </div>
-            <Button
-              onClick={handleLogout}
-              variant="outline"
-              size="sm"
-              className="w-full text-slate-300 border-slate-600 hover:bg-slate-800 hover:text-white"
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              Sign Out
-            </Button>
-          </div>
-        </div>
-      </nav>
+          </NavigationMenuContent>
+        </NavigationMenuItem>
 
-      {/* Mobile overlay */}
-      {isMobileMenuOpen && (
-        <div 
-          className="fixed inset-0 z-30 bg-black bg-opacity-50 lg:hidden"
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-      )}
-    </>
+        <NavigationMenuItem>
+          <Link
+            to="/recruitment"
+            className={`px-4 py-2 rounded-md transition-colors ${
+              location.pathname === '/recruitment'
+                ? 'bg-primary text-primary-foreground'
+                : 'hover:bg-accent hover:text-accent-foreground'
+            }`}
+          >
+            <Briefcase className="w-4 h-4 mr-2 inline" />
+            Recruitment
+          </Link>
+        </NavigationMenuItem>
+
+        <NavigationMenuItem>
+          <Link
+            to="/tickets"
+            className={`px-4 py-2 rounded-md transition-colors ${
+              location.pathname === '/tickets'
+                ? 'bg-primary text-primary-foreground'
+                : 'hover:bg-accent hover:text-accent-foreground'
+            }`}
+          >
+            <HelpCircle className="w-4 h-4 mr-2 inline" />
+            Support
+          </Link>
+        </NavigationMenuItem>
+      </NavigationMenuList>
+
+      <div className="absolute right-4 top-2">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="outline-none focus:outline-none rounded-full">
+              <Avatar className="w-8 h-8">
+                <AvatarImage src={profile?.avatar_url} />
+                <AvatarFallback>{profile?.first_name?.charAt(0)}{profile?.last_name?.charAt(0)}</AvatarFallback>
+              </Avatar>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56 mr-2">
+            <DropdownMenuLabel>{profile?.first_name} {profile?.last_name}</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>
+              <Link to="/performance" className="flex items-center">
+                <Settings className="w-4 h-4 mr-2" />
+                <span>Settings</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => signOut()} className="cursor-pointer">
+              <LogOut className="w-4 h-4 mr-2" />
+              <span>Log Out</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </NavigationMenu>
   );
 };
 

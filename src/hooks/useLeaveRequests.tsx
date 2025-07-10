@@ -85,7 +85,7 @@ export const useLeaveRequests = () => {
         .from('leave_requests')
         .update({
           status: 'approved',
-          reviewed_by: user.id,
+          approved_by: user.id,
           decision_at: new Date().toISOString(),
           comments
         })
@@ -110,7 +110,7 @@ export const useLeaveRequests = () => {
         .from('leave_requests')
         .update({
           status: 'rejected',
-          reviewed_by: user.id,
+          approved_by: user.id,
           decision_at: new Date().toISOString(),
           comments
         })
