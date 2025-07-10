@@ -105,8 +105,8 @@ const MyLeaveRequests = () => {
 
                 <p className="text-xs text-muted-foreground">
                   Submitted: {formatDate(request.created_at || '')}
-                  {request.decision_at && (
-                    <span> • Reviewed: {formatDate(request.decision_at)}</span>
+                  {request.approved_at && (
+                    <span> • Reviewed: {formatDate(request.approved_at)}</span>
                   )}
                 </p>
               </div>
