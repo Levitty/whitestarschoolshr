@@ -16,7 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 const Leave = () => {
   const { employees } = useEmployees();
   const { leaveRequests, approveLeaveRequest, loading } = useLeaveRequests();
-  const { profile } = useProfile();
+  const { profile, hasRole } = useProfile();
   const { toast } = useToast();
   const [selectedEmployee, setSelectedEmployee] = useState('');
   const [processingRequest, setProcessingRequest] = useState<string | null>(null);
@@ -60,7 +60,7 @@ const Leave = () => {
   };
 
   const handleApproveRequest = async (requestId: string) => {
-    if (!profile?.hasRole('manager')) {
+    if (!hasRole('manager')) {
       toast({
         title: "Access Denied",
         description: "You don't have permission to approve leave requests.",
@@ -98,7 +98,7 @@ const Leave = () => {
   };
 
   const handleRejectRequest = async (requestId: string) => {
-    if (!profile?.hasRole('manager')) {
+    if (!hasRole('manager')) {
       toast({
         title: "Access Denied",
         description: "You don't have permission to reject leave requests.",
@@ -237,7 +237,7 @@ const Leave = () => {
             <Card>
               <CardHeader>
                 <CardTitle>All Leave Requests</CardTitle>
-                {profile?.hasRole('manager') && (
+                {hasRole('manager') && (
                   <div className="flex gap-4">
                     <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
                       <SelectTrigger className="w-48">
@@ -274,7 +274,7 @@ const Leave = () => {
                             <p className="text-sm text-slate-500 mt-1">{request.reason}</p>
                           )}
                         </div>
-                        {request.status === 'pending' && profile?.hasRole('manager') && (
+                        {request.status === 'pending' && hasRole('manager') && (
                           <div className="flex gap-2">
                             <Button 
                               size="sm" 

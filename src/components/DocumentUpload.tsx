@@ -19,7 +19,7 @@ interface DocumentUploadProps {
 export const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
   const { uploadDocument } = useDocuments();
   const { employees } = useEmployees();
-  const { profile } = useProfile();
+  const { profile, canAccessAdmin } = useProfile();
   const { toast } = useToast();
   
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -55,7 +55,7 @@ export const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
     }
 
     // For admin users, employee_id is optional - they can upload for themselves or others
-    if (!profile?.canAccessAdmin && !formData.employee_id) {
+    if (!canAccessAdmin() && !formData.employee_id) {
       toast({
         title: "Validation Error", 
         description: "Please select an employee.",
@@ -121,7 +121,7 @@ export const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Employee Selection - Only show for admins or make optional */}
-          {profile?.hasRole('admin') && (
+          {canAccessAdmin() && (
             <div>
               <Label htmlFor="employee">Employee (Optional for Admin)</Label>
               <Select

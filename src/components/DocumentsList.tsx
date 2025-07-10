@@ -20,7 +20,7 @@ import {
 
 const DocumentsList = () => {
   const { documents, loading, fetchDocuments } = useDocuments();
-  const { profile } = useProfile();
+  const { profile, canAccessAdmin } = useProfile();
   const { user } = useAuth();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
@@ -57,7 +57,7 @@ const DocumentsList = () => {
   };
 
   const handleDelete = async (documentId: string, filePath: string | null) => {
-    if (!profile?.hasRole('admin')) {
+    if (!canAccessAdmin()) {
       toast({
         title: "Access Denied",
         description: "You don't have permission to delete documents.",
@@ -208,7 +208,7 @@ const DocumentsList = () => {
                     <Button variant="outline" size="sm">
                       <Download className="h-4 w-4" />
                     </Button>
-                    {profile?.hasRole('admin') && (
+                    {canAccessAdmin() && (
                       <Button 
                         variant="outline" 
                         size="sm"
