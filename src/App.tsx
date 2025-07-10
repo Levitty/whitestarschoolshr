@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import { QueryClient } from 'react-query';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 
 // Import pages
@@ -25,9 +26,11 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import Layout from '@/components/Layout';
 import LeaveCalendar from '@/pages/LeaveCalendar';
 
+const queryClient = new QueryClient();
+
 function App() {
   return (
-    <QueryClient>
+    <QueryClientProvider client={queryClient}>
       <Router>
         <Routes>
           <Route path="/" element={<Index />} />
@@ -137,7 +140,7 @@ function App() {
         </Routes>
         <Toaster position="top-right" />
       </Router>
-    </QueryClient>
+    </QueryClientProvider>
   );
 }
 
