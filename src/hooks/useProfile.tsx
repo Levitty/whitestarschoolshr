@@ -62,10 +62,10 @@ export const useProfile = () => {
           employee_id: data.employee_id,
           avatar_url: data.avatar_url,
           is_active: data.is_active,
-          manager_id: data.manager_id || null,
-          job_title: data.job_title || null,
-          salary_grade: data.salary_grade || null,
-          direct_reports: data.direct_reports || 0,
+          manager_id: null, // Set default value since it doesn't exist in profiles table
+          job_title: null, // Set default value since it doesn't exist in profiles table
+          salary_grade: null, // Set default value since it doesn't exist in profiles table
+          direct_reports: 0, // Set default value since it doesn't exist in profiles table
           created_at: data.created_at,
           updated_at: data.updated_at
         };
