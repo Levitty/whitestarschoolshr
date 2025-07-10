@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useLeaveRequests } from '@/hooks/useLeaveRequests';
 import { useToast } from '@/hooks/use-toast';
-import { Calendar } from 'lucide-react';
+import { Calendar, Clock } from 'lucide-react';
 
 interface LeaveRequestFormProps {
   onSuccess?: () => void;
@@ -23,9 +23,34 @@ const LeaveRequestForm = ({ onSuccess }: LeaveRequestFormProps) => {
   const { createLeaveRequest } = useLeaveRequests();
   const { toast } = useToast();
 
+  const calculateDays = () => {
+    if (!startDate || !endDate) return 0;
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const diffTime = Math.abs(end.getTime() - start.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    return diffDays;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!leaveType || !startDate || !endDate) return;
+    if (!leaveType || !startDate || !endDate) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (new Date(startDate) > new Date(endDate)) {
+      toast({
+        title: "Invalid Dates",
+        description: "End date must be after start date.",
+        variant: "destructive"
+      });
+      return;
+    }
 
     setSubmitting(true);
     const { error } = await createLeaveRequest(leaveType, startDate, endDate, reason);
@@ -33,7 +58,7 @@ const LeaveRequestForm = ({ onSuccess }: LeaveRequestFormProps) => {
     if (error) {
       toast({
         title: "Request Failed",
-        description: error.message,
+        description: error.message || "Failed to submit leave request",
         variant: "destructive"
       });
     } else {
@@ -61,7 +86,7 @@ const LeaveRequestForm = ({ onSuccess }: LeaveRequestFormProps) => {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="leaveType">Leave Type</Label>
+            <Label htmlFor="leaveType">Leave Type *</Label>
             <Select value={leaveType} onValueChange={setLeaveType}>
               <SelectTrigger>
                 <SelectValue placeholder="Select leave type" />
@@ -79,26 +104,35 @@ const LeaveRequestForm = ({ onSuccess }: LeaveRequestFormProps) => {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="startDate">Start Date</Label>
+              <Label htmlFor="startDate">Start Date *</Label>
               <Input
                 id="startDate"
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
+                min={new Date().toISOString().split('T')[0]}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="endDate">End Date</Label>
+              <Label htmlFor="endDate">End Date *</Label>
               <Input
                 id="endDate"
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
+                min={startDate || new Date().toISOString().split('T')[0]}
                 required
               />
             </div>
           </div>
+
+          {startDate && endDate && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Clock className="h-4 w-4" />
+              <span>Duration: {calculateDays()} day{calculateDays() !== 1 ? 's' : ''}</span>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="reason">Reason</Label>
@@ -106,13 +140,17 @@ const LeaveRequestForm = ({ onSuccess }: LeaveRequestFormProps) => {
               id="reason"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="Reason for leave"
+              placeholder="Please provide a brief reason for your leave request"
               rows={3}
             />
           </div>
 
-          <Button type="submit" disabled={submitting || !leaveType || !startDate || !endDate}>
-            {submitting ? 'Submitting...' : 'Submit Request'}
+          <Button 
+            type="submit" 
+            disabled={submitting || !leaveType || !startDate || !endDate}
+            className="w-full"
+          >
+            {submitting ? 'Submitting...' : 'Submit Leave Request'}
           </Button>
         </form>
       </CardContent>

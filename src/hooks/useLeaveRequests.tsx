@@ -58,7 +58,8 @@ export const useLeaveRequests = () => {
         start_date: startDate,
         end_date: endDate,
         days_requested: daysRequested,
-        reason
+        reason,
+        status: 'pending'
       };
 
       const { error } = await supabase
@@ -84,8 +85,33 @@ export const useLeaveRequests = () => {
         .from('leave_requests')
         .update({
           status: 'approved',
-          approved_by: user.id,
-          approved_at: new Date().toISOString(),
+          reviewed_by: user.id,
+          decision_at: new Date().toISOString(),
+          comments
+        })
+        .eq('id', requestId);
+
+      if (error) {
+        return { error };
+      }
+
+      await fetchLeaveRequests();
+      return { error: null };
+    } catch (error) {
+      return { error };
+    }
+  };
+
+  const rejectLeaveRequest = async (requestId: string, comments?: string) => {
+    if (!user) return { error: 'No user found' };
+
+    try {
+      const { error } = await supabase
+        .from('leave_requests')
+        .update({
+          status: 'rejected',
+          reviewed_by: user.id,
+          decision_at: new Date().toISOString(),
           comments
         })
         .eq('id', requestId);
@@ -106,6 +132,7 @@ export const useLeaveRequests = () => {
     loading,
     fetchLeaveRequests,
     createLeaveRequest,
-    approveLeaveRequest
+    approveLeaveRequest,
+    rejectLeaveRequest
   };
 };

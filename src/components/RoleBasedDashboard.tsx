@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useProfile } from '@/hooks/useProfile';
 import { 
@@ -96,6 +95,12 @@ const RoleBasedDashboard = () => {
                 View Applications
               </Button>
             </Link>
+            <Link to="/leave-approval">
+              <Button variant="outline" className="w-full justify-start">
+                <Calendar className="mr-2 h-4 w-4" />
+                Approve Leave Requests
+              </Button>
+            </Link>
             <Link to="/performance">
               <Button variant="outline" className="w-full justify-start">
                 <BarChart3 className="mr-2 h-4 w-4" />
@@ -190,7 +195,7 @@ const RoleBasedDashboard = () => {
                 Team Performance
               </Button>
             </Link>
-            <Link to="/leave">
+            <Link to="/leave-approval">
               <Button variant="outline" className="w-full justify-start">
                 <Calendar className="mr-2 h-4 w-4" />
                 Approve Leave Requests
@@ -204,6 +209,12 @@ const RoleBasedDashboard = () => {
             <CardTitle>Personal Actions</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
+            <Link to="/leave-form">
+              <Button className="w-full justify-start">
+                <Calendar className="mr-2 h-4 w-4" />
+                Request Leave
+              </Button>
+            </Link>
             <Link to="/records">
               <Button variant="outline" className="w-full justify-start">
                 <FileText className="mr-2 h-4 w-4" />
@@ -281,16 +292,16 @@ const RoleBasedDashboard = () => {
             <CardTitle>Quick Actions</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Link to="/records">
+            <Link to="/leave-form">
               <Button className="w-full justify-start">
-                <Upload className="mr-2 h-4 w-4" />
-                Upload Document
-              </Button>
-            </Link>
-            <Link to="/leave">
-              <Button variant="outline" className="w-full justify-start">
                 <Calendar className="mr-2 h-4 w-4" />
                 Request Leave
+              </Button>
+            </Link>
+            <Link to="/records">
+              <Button variant="outline" className="w-full justify-start">
+                <Upload className="mr-2 h-4 w-4" />
+                Upload Document
               </Button>
             </Link>
             <Link to="/upskilling">
