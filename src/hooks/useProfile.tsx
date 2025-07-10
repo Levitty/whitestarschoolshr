@@ -49,6 +49,7 @@ export const useProfile = () => {
 
       if (error) {
         console.error('Error fetching profile:', error);
+        setProfile(null);
       } else {
         const profileData: Profile = {
           id: data.id,
@@ -73,6 +74,7 @@ export const useProfile = () => {
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
+      setProfile(null);
     } finally {
       setLoading(false);
     }

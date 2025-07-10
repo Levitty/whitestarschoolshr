@@ -46,9 +46,8 @@ const RoleBasedNavigation = () => {
     ];
 
     const staffItems = [
-      { name: 'My Documents', href: '/my-documents', icon: FileText, roles: ['staff', 'manager', 'admin'] },
+      { name: 'Documents', href: '/records', icon: FileText, roles: ['staff', 'manager', 'admin'] },
       { name: 'Leave Requests', href: '/leave', icon: Calendar, roles: ['staff', 'manager', 'admin'] },
-      { name: 'Document Upload', href: '/document-upload', icon: Upload, roles: ['staff', 'manager', 'admin'] },
       { name: 'Upskilling', href: '/upskilling', icon: GraduationCap, roles: ['staff', 'manager', 'admin'] },
     ];
 

@@ -8,18 +8,42 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useEmployees } from '@/hooks/useEmployees';
 import { useLeaveRequests } from '@/hooks/useLeaveRequests';
 import { useProfile } from '@/hooks/useProfile';
+import { useAuth } from '@/hooks/useAuth';
 import LeaveRequestForm from '@/components/LeaveRequestForm';
 import LeaveBalanceManager from '@/components/LeaveBalanceManager';
 import { Calendar, Users, Clock, TrendingUp, CheckCircle, XCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const Leave = () => {
+  const { user } = useAuth();
   const { employees } = useEmployees();
   const { leaveRequests, approveLeaveRequest, loading } = useLeaveRequests();
-  const { profile, hasRole } = useProfile();
+  const { profile, hasRole, loading: profileLoading } = useProfile();
   const { toast } = useToast();
   const [selectedEmployee, setSelectedEmployee] = useState('');
   const [processingRequest, setProcessingRequest] = useState<string | null>(null);
+
+  // Show loading if any critical data is still loading
+  if (loading || profileLoading) {
+    return (
+      <div className="container mx-auto px-4 py-6 max-w-7xl">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error if user is not authenticated
+  if (!user) {
+    return (
+      <div className="container mx-auto px-4 py-6 max-w-7xl">
+        <div className="text-center">
+          <p className="text-gray-500">Please sign in to access leave management.</p>
+        </div>
+      </div>
+    );
+  }
 
   const getLeaveStats = () => {
     if (!leaveRequests) return { totalRequests: 0, pendingRequests: 0, approvedRequests: 0, rejectedRequests: 0 };
@@ -117,16 +141,6 @@ const Leave = () => {
   const filteredRequests = selectedEmployee 
     ? leaveRequests?.filter(req => req.employee_id === selectedEmployee) || []
     : leaveRequests || [];
-
-  if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-6 max-w-7xl">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-7xl">

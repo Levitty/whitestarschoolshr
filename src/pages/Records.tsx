@@ -26,8 +26,13 @@ const Records = () => {
   }
 
   if (!user) {
-    window.location.href = '/auth';
-    return null;
+    return (
+      <div className="container mx-auto px-4 py-6 max-w-7xl">
+        <div className="text-center">
+          <p className="text-gray-500">Please sign in to access documents.</p>
+        </div>
+      </div>
+    );
   }
 
   const tabsConfig = [
