@@ -19,6 +19,8 @@ interface Profile {
   job_title: string | null;
   salary_grade: string | null;
   direct_reports: number;
+  created_at?: string | null;
+  updated_at?: string | null;
 }
 
 export const useProfile = () => {
@@ -48,7 +50,26 @@ export const useProfile = () => {
       if (error) {
         console.error('Error fetching profile:', error);
       } else {
-        setProfile(data as Profile);
+        const profileData: Profile = {
+          id: data.id,
+          email: data.email,
+          first_name: data.first_name,
+          last_name: data.last_name,
+          phone: data.phone,
+          department: data.department,
+          role: data.role as 'admin' | 'manager' | 'staff',
+          hire_date: data.hire_date,
+          employee_id: data.employee_id,
+          avatar_url: data.avatar_url,
+          is_active: data.is_active,
+          manager_id: data.manager_id || null,
+          job_title: data.job_title || null,
+          salary_grade: data.salary_grade || null,
+          direct_reports: data.direct_reports || 0,
+          created_at: data.created_at,
+          updated_at: data.updated_at
+        };
+        setProfile(profileData);
       }
     } catch (error) {
       console.error('Error fetching profile:', error);

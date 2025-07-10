@@ -5,19 +5,26 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useDocuments } from '@/hooks/useDocuments';
+import { useProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   FileText, 
   Download, 
   Eye, 
   Search,
-  Calendar
+  Calendar,
+  Trash2
 } from 'lucide-react';
 
 const DocumentsList = () => {
-  const { documents, loading } = useDocuments();
+  const { documents, loading, fetchDocuments } = useDocuments();
+  const { profile } = useProfile();
   const { user } = useAuth();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   const getStatusBadge = (status: string) => {
     const variants = {
@@ -47,6 +54,60 @@ const DocumentsList = () => {
     };
     
     return labels[category as keyof typeof labels] || category;
+  };
+
+  const handleDelete = async (documentId: string, filePath: string | null) => {
+    if (!profile?.hasRole('admin')) {
+      toast({
+        title: "Access Denied",
+        description: "You don't have permission to delete documents.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setDeleting(documentId);
+    try {
+      // Delete the file from storage if it exists
+      if (filePath) {
+        const { error: storageError } = await supabase.storage
+          .from('employee-documents')
+          .remove([filePath]);
+        
+        if (storageError) {
+          console.error('Error deleting file from storage:', storageError);
+        }
+      }
+
+      // Delete the document record
+      const { error } = await supabase
+        .from('documents')
+        .delete()
+        .eq('id', documentId);
+
+      if (error) {
+        toast({
+          title: "Delete Failed",
+          description: error.message,
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: "Document deleted successfully."
+        });
+        await fetchDocuments();
+      }
+    } catch (error) {
+      console.error('Error deleting document:', error);
+      toast({
+        title: "Delete Failed",
+        description: "An unexpected error occurred.",
+        variant: "destructive"
+      });
+    } finally {
+      setDeleting(null);
+    }
   };
 
   if (!user) {
@@ -147,6 +208,21 @@ const DocumentsList = () => {
                     <Button variant="outline" size="sm">
                       <Download className="h-4 w-4" />
                     </Button>
+                    {profile?.hasRole('admin') && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleDelete(doc.id, doc.file_path)}
+                        disabled={deleting === doc.id}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        {deleting === doc.id ? (
+                          <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>

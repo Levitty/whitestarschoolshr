@@ -63,6 +63,7 @@ export const useDocuments = () => {
         .upload(filePath, file);
 
       if (uploadError) {
+        console.error('Storage upload error:', uploadError);
         return { error: { message: uploadError.message } };
       }
 
@@ -83,13 +84,50 @@ export const useDocuments = () => {
         });
 
       if (documentError) {
+        console.error('Document insert error:', documentError);
         return { error: { message: documentError.message } };
       }
 
       await fetchDocuments();
       return { error: null };
     } catch (error) {
+      console.error('Upload failed:', error);
       return { error: { message: 'Upload failed' } };
+    }
+  };
+
+  const deleteDocument = async (documentId: string, filePath: string | null) => {
+    if (!user) {
+      return { error: { message: 'Not authenticated' } };
+    }
+
+    try {
+      // Delete the file from storage if it exists
+      if (filePath) {
+        const { error: storageError } = await supabase.storage
+          .from('employee-documents')
+          .remove([filePath]);
+        
+        if (storageError) {
+          console.error('Error deleting file from storage:', storageError);
+        }
+      }
+
+      // Delete the document record
+      const { error } = await supabase
+        .from('documents')
+        .delete()
+        .eq('id', documentId);
+
+      if (error) {
+        return { error: { message: error.message } };
+      }
+
+      await fetchDocuments();
+      return { error: null };
+    } catch (error) {
+      console.error('Delete failed:', error);
+      return { error: { message: 'Delete failed' } };
     }
   };
 
@@ -97,6 +135,7 @@ export const useDocuments = () => {
     documents,
     loading,
     fetchDocuments,
-    uploadDocument
+    uploadDocument,
+    deleteDocument
   };
 };

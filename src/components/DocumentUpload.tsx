@@ -6,9 +6,10 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Upload, File, X } from 'lucide-react';
+import { Upload, File, X, Trash2 } from 'lucide-react';
 import { useDocuments } from '@/hooks/useDocuments';
 import { useEmployees } from '@/hooks/useEmployees';
+import { useProfile } from '@/hooks/useProfile';
 import { useToast } from '@/hooks/use-toast';
 
 interface DocumentUploadProps {
@@ -18,6 +19,7 @@ interface DocumentUploadProps {
 export const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
   const { uploadDocument } = useDocuments();
   const { employees } = useEmployees();
+  const { profile } = useProfile();
   const { toast } = useToast();
   
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -43,7 +45,7 @@ export const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedFile || !formData.title || !formData.employee_id) {
+    if (!selectedFile || !formData.title) {
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields and select a file.",
@@ -52,30 +54,57 @@ export const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
       return;
     }
 
+    // For admin users, employee_id is optional - they can upload for themselves or others
+    if (!profile?.canAccessAdmin && !formData.employee_id) {
+      toast({
+        title: "Validation Error", 
+        description: "Please select an employee.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setUploading(true);
     try {
-      // Call uploadDocument with the correct arguments
-      await uploadDocument(
+      const result = await uploadDocument(
         selectedFile,
         formData.title,
         formData.description,
         formData.category,
-        formData.employee_id
+        formData.employee_id || undefined
       );
       
-      // Reset form
-      setSelectedFile(null);
-      setFormData({
-        title: '',
-        description: '',
-        category: 'employment_records',
-        employee_id: '',
-        requires_signature: false
-      });
-      
-      onSuccess();
+      if (result?.error) {
+        toast({
+          title: "Upload Failed",
+          description: result.error.message,
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: "Document uploaded successfully!"
+        });
+        
+        // Reset form
+        setSelectedFile(null);
+        setFormData({
+          title: '',
+          description: '',
+          category: 'employment_records',
+          employee_id: '',
+          requires_signature: false
+        });
+        
+        onSuccess();
+      }
     } catch (error) {
       console.error('Upload error:', error);
+      toast({
+        title: "Upload Failed",
+        description: "An unexpected error occurred.",
+        variant: "destructive"
+      });
     } finally {
       setUploading(false);
     }
@@ -91,25 +120,28 @@ export const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Employee Selection */}
-          <div>
-            <Label htmlFor="employee">Employee *</Label>
-            <Select
-              value={formData.employee_id}
-              onValueChange={(value) => setFormData(prev => ({ ...prev, employee_id: value }))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select an employee" />
-              </SelectTrigger>
-              <SelectContent>
-                {employees?.map((employee) => (
-                  <SelectItem key={employee.id} value={employee.id}>
-                    {employee.first_name} {employee.last_name} - {employee.department}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {/* Employee Selection - Only show for admins or make optional */}
+          {profile?.hasRole('admin') && (
+            <div>
+              <Label htmlFor="employee">Employee (Optional for Admin)</Label>
+              <Select
+                value={formData.employee_id}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, employee_id: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select employee (or leave empty for yourself)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">For myself</SelectItem>
+                  {employees?.map((employee) => (
+                    <SelectItem key={employee.id} value={employee.id}>
+                      {employee.first_name} {employee.last_name} - {employee.department}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* File Upload */}
           <div>
@@ -214,7 +246,7 @@ export const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
           <Button 
             type="submit" 
             className="w-full" 
-            disabled={uploading || !selectedFile || !formData.title || !formData.employee_id}
+            disabled={uploading || !selectedFile || !formData.title}
           >
             {uploading ? 'Uploading...' : 'Upload Document'}
           </Button>
