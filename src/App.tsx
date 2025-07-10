@@ -3,6 +3,7 @@ import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
+import { AuthProvider } from '@/hooks/useAuth';
 
 // Import pages
 import Index from '@/pages/Index';
@@ -31,115 +32,117 @@ const queryClient = new QueryClient();
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Router>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/jobs" element={<Jobs />} />
-          <Route path="/jobs/:id" element={<JobDetail />} />
-          <Route path="/apply/:jobId" element={<Apply />} />
-          
-          {/* Protected routes */}
-          <Route path="/dashboard" element={
-            <ProtectedRoute>
-              <Layout>
-                <Dashboard />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/employees" element={
-            <ProtectedRoute>
-              <Layout>
-                <Employees />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/leave" element={
-            <ProtectedRoute>
-              <Layout>
-                <Leave />
-              </Layout>
-            </ProtectedRoute>
-          } />
+      <AuthProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/jobs" element={<Jobs />} />
+            <Route path="/jobs/:id" element={<JobDetail />} />
+            <Route path="/apply/:jobId" element={<Apply />} />
+            
+            {/* Protected routes */}
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <Layout>
+                  <Dashboard />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/employees" element={
+              <ProtectedRoute>
+                <Layout>
+                  <Employees />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/leave" element={
+              <ProtectedRoute>
+                <Layout>
+                  <Leave />
+                </Layout>
+              </ProtectedRoute>
+            } />
 
-          <Route path="/leave/request" element={
-            <ProtectedRoute>
-              <Layout>
-                <LeaveForm />
-              </Layout>
-            </ProtectedRoute>
-          } />
+            <Route path="/leave/request" element={
+              <ProtectedRoute>
+                <Layout>
+                  <LeaveForm />
+                </Layout>
+              </ProtectedRoute>
+            } />
 
-          <Route path="/leave/approval" element={
-            <ProtectedRoute>
-              <Layout>
-                <LeaveApproval />
-              </Layout>
-            </ProtectedRoute>
-          } />
+            <Route path="/leave/approval" element={
+              <ProtectedRoute>
+                <Layout>
+                  <LeaveApproval />
+                </Layout>
+              </ProtectedRoute>
+            } />
 
-          <Route path="/leave/calendar" element={
-            <ProtectedRoute>
-              <Layout>
-                <LeaveCalendar />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/recruitment" element={
-            <ProtectedRoute>
-              <Layout>
-                <Recruitment />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/applications" element={
-            <ProtectedRoute>
-              <Layout>
-                <Applications />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/tickets" element={
-            <ProtectedRoute>
-              <Layout>
-                <Tickets />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/records" element={
-            <ProtectedRoute>
-              <Layout>
-                <Records />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/performance" element={
-            <ProtectedRoute>
-              <Layout>
-                <Performance />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/upskilling" element={
-            <ProtectedRoute>
-              <Layout>
-                <Upskilling />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-        <Toaster position="top-right" />
-      </Router>
+            <Route path="/leave/calendar" element={
+              <ProtectedRoute>
+                <Layout>
+                  <LeaveCalendar />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/recruitment" element={
+              <ProtectedRoute>
+                <Layout>
+                  <Recruitment />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/applications" element={
+              <ProtectedRoute>
+                <Layout>
+                  <Applications />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/tickets" element={
+              <ProtectedRoute>
+                <Layout>
+                  <Tickets />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/records" element={
+              <ProtectedRoute>
+                <Layout>
+                  <Records />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/performance" element={
+              <ProtectedRoute>
+                <Layout>
+                  <Performance />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/upskilling" element={
+              <ProtectedRoute>
+                <Layout>
+                  <Upskilling />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+          <Toaster position="top-right" />
+        </Router>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
