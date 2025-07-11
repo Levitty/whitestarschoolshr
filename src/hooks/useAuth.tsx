@@ -1,4 +1,3 @@
-
 import { useState, useEffect, createContext, useContext } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -73,7 +72,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (!user) return;
     
     try {
-      console.log('Fetching profile for user:', user.id);
+      console.log('Fetching fresh profile for user:', user.id);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -84,8 +83,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         console.error('Error fetching profile:', error);
         setProfile(null);
       } else {
-        console.log('Profile fetched successfully:', data);
-        setProfile(transformProfileData(data));
+        console.log('Fresh profile fetched successfully:', data);
+        const transformedProfile = transformProfileData(data);
+        console.log('Transformed profile with role:', transformedProfile.role);
+        setProfile(transformedProfile);
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -125,7 +126,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(session?.user ?? null);
         
         if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
-          // Defer profile fetching to prevent deadlocks
+          // Force fresh profile fetch when signing in or token refreshed
           setTimeout(async () => {
             try {
               console.log('Fetching profile after auth state change...');
@@ -140,7 +141,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 setProfile(null);
               } else {
                 console.log('Profile data received:', data);
-                setProfile(transformProfileData(data));
+                const transformedProfile = transformProfileData(data);
+                console.log('Setting profile with role:', transformedProfile.role);
+                setProfile(transformedProfile);
               }
             } catch (error) {
               console.error('Error fetching profile:', error);
@@ -155,7 +158,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     );
 
-    // Get initial session
+    // Get initial session and force fresh profile fetch
     const getSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       console.log('Initial session:', session?.user?.email);
@@ -165,6 +168,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (session?.user) {
         setTimeout(async () => {
           try {
+            console.log('Fetching initial profile...');
             const { data, error } = await supabase
               .from('profiles')
               .select('*')
@@ -175,7 +179,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               console.error('Error fetching profile:', error);
               setProfile(null);
             } else {
-              setProfile(transformProfileData(data));
+              console.log('Initial profile data:', data);
+              const transformedProfile = transformProfileData(data);
+              console.log('Initial profile role:', transformedProfile.role);
+              setProfile(transformedProfile);
             }
           } catch (error) {
             console.error('Error fetching profile:', error);
