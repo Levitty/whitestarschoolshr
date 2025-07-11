@@ -8,6 +8,7 @@ interface Profile {
   email: string;
   first_name: string | null;
   last_name: string | null;
+  full_name: string | null;
   department: string | null;
   role: 'superadmin' | 'head' | 'teacher' | 'staff' | null;
   avatar_url: string | null;
@@ -15,6 +16,7 @@ interface Profile {
   employee_id: string | null;
   hire_date: string | null;
   is_active: boolean | null;
+  status: string | null;
   created_at: string | null;
   updated_at: string | null;
 }
@@ -46,6 +48,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const transformProfileData = (data: any): Profile => {
+    return {
+      id: data.id,
+      email: data.email,
+      first_name: data.first_name,
+      last_name: data.last_name,
+      full_name: data.first_name && data.last_name ? `${data.first_name} ${data.last_name}` : data.first_name || data.last_name || null,
+      department: data.department,
+      role: data.role as 'superadmin' | 'head' | 'teacher' | 'staff' | null,
+      avatar_url: data.avatar_url,
+      phone: data.phone,
+      employee_id: data.employee_id,
+      hire_date: data.hire_date,
+      is_active: data.is_active,
+      status: data.is_active ? 'active' : 'inactive',
+      created_at: data.created_at,
+      updated_at: data.updated_at
+    };
+  };
+
   const fetchProfile = async () => {
     if (!user) return;
     
@@ -59,7 +81,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (error) {
         console.error('Error fetching profile:', error);
       } else {
-        setProfile(data);
+        setProfile(transformProfileData(data));
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -87,7 +109,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               if (error) {
                 console.error('Error fetching profile:', error);
               } else {
-                setProfile(data);
+                setProfile(transformProfileData(data));
               }
             } catch (error) {
               console.error('Error fetching profile:', error);
@@ -119,7 +141,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             if (error) {
               console.error('Error fetching profile:', error);
             } else {
-              setProfile(data);
+              setProfile(transformProfileData(data));
             }
           } catch (error) {
             console.error('Error fetching profile:', error);

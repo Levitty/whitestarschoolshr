@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -31,6 +30,24 @@ const SuperAdminSetup = () => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
+  const transformProfileData = (data: any): ProfileData => {
+    return {
+      id: data.id,
+      email: data.email,
+      first_name: data.first_name,
+      last_name: data.last_name,
+      department: data.department,
+      role: data.role as 'superadmin' | 'head' | 'teacher' | 'staff' | null,
+      avatar_url: data.avatar_url,
+      phone: data.phone,
+      employee_id: data.employee_id,
+      hire_date: data.hire_date,
+      is_active: data.is_active,
+      created_at: data.created_at,
+      updated_at: data.updated_at
+    };
+  };
+
   const fetchProfiles = async () => {
     try {
       const { data, error } = await supabase
@@ -46,7 +63,8 @@ const SuperAdminSetup = () => {
           variant: "destructive"
         });
       } else {
-        setProfiles(data || []);
+        const transformedData = (data || []).map(transformProfileData);
+        setProfiles(transformedData);
       }
     } catch (error) {
       console.error('Error fetching profiles:', error);
