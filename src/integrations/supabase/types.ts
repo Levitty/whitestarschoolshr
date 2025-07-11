@@ -200,11 +200,15 @@ export type Database = {
           id: string
           is_shared: boolean | null
           is_system_generated: boolean | null
+          letter_content: string | null
+          letter_type: string | null
           recipient_id: string | null
           requires_signature: boolean | null
           signed_at: string | null
           signed_by: string | null
+          source: string | null
           status: Database["public"]["Enums"]["document_status"] | null
+          template_id: string | null
           template_type: string | null
           title: string
           updated_at: string | null
@@ -222,11 +226,15 @@ export type Database = {
           id?: string
           is_shared?: boolean | null
           is_system_generated?: boolean | null
+          letter_content?: string | null
+          letter_type?: string | null
           recipient_id?: string | null
           requires_signature?: boolean | null
           signed_at?: string | null
           signed_by?: string | null
+          source?: string | null
           status?: Database["public"]["Enums"]["document_status"] | null
+          template_id?: string | null
           template_type?: string | null
           title: string
           updated_at?: string | null
@@ -244,11 +252,15 @@ export type Database = {
           id?: string
           is_shared?: boolean | null
           is_system_generated?: boolean | null
+          letter_content?: string | null
+          letter_type?: string | null
           recipient_id?: string | null
           requires_signature?: boolean | null
           signed_at?: string | null
           signed_by?: string | null
+          source?: string | null
           status?: Database["public"]["Enums"]["document_status"] | null
+          template_id?: string | null
           template_type?: string | null
           title?: string
           updated_at?: string | null
@@ -274,6 +286,13 @@ export type Database = {
             columns: ["signed_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "letter_templates"
             referencedColumns: ["id"]
           },
           {
@@ -731,6 +750,87 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      letter_templates: {
+        Row: {
+          body: string
+          category: string
+          created_at: string | null
+          created_by: string
+          id: string
+          is_active: boolean | null
+          placeholders: Json | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          body: string
+          category: string
+          created_at?: string | null
+          created_by: string
+          id?: string
+          is_active?: boolean | null
+          placeholders?: Json | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          body?: string
+          category?: string
+          created_at?: string | null
+          created_by?: string
+          id?: string
+          is_active?: boolean | null
+          placeholders?: Json | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      letterhead_settings: {
+        Row: {
+          address: string | null
+          company_name: string | null
+          created_at: string | null
+          created_by: string
+          email: string | null
+          header_image_url: string | null
+          id: string
+          is_active: boolean | null
+          logo_url: string | null
+          phone: string | null
+          updated_at: string | null
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          company_name?: string | null
+          created_at?: string | null
+          created_by: string
+          email?: string | null
+          header_image_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          logo_url?: string | null
+          phone?: string | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          company_name?: string | null
+          created_at?: string | null
+          created_by?: string
+          email?: string | null
+          header_image_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          logo_url?: string | null
+          phone?: string | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Relationships: []
       }
       notifications: {
         Row: {

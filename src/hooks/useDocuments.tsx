@@ -96,6 +96,47 @@ export const useDocuments = () => {
     }
   };
 
+  const createLetter = async (
+    title: string,
+    content: string,
+    employeeId: string,
+    letterType: string,
+    category: Database['public']['Enums']['document_category'],
+    source: 'manual' | 'ai_generated' | 'template',
+    templateId?: string
+  ) => {
+    if (!user) {
+      return { error: { message: 'Not authenticated' } };
+    }
+
+    try {
+      const { error } = await supabase
+        .from('documents')
+        .insert({
+          title,
+          category,
+          employee_id: employeeId,
+          uploaded_by: user.id,
+          letter_type: letterType,
+          letter_content: content,
+          source,
+          template_id: templateId,
+          status: 'approved'
+        });
+
+      if (error) {
+        console.error('Letter creation error:', error);
+        return { error: { message: error.message } };
+      }
+
+      await fetchDocuments();
+      return { error: null };
+    } catch (error) {
+      console.error('Letter creation failed:', error);
+      return { error: { message: 'Letter creation failed' } };
+    }
+  };
+
   const deleteDocument = async (documentId: string, filePath: string | null) => {
     if (!user) {
       return { error: { message: 'Not authenticated' } };
@@ -136,6 +177,7 @@ export const useDocuments = () => {
     loading,
     fetchDocuments,
     uploadDocument,
+    createLetter,
     deleteDocument
   };
 };

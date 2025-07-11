@@ -29,7 +29,7 @@ const RoleBasedNavigation = () => {
   // Navigation items based on user roles
   const getNavigationItems = () => {
     const baseItems = [
-      { name: 'Dashboard', href: '/', icon: Home, roles: ['admin', 'manager', 'staff'] },
+      { name: 'Dashboard', href: '/dashboard', icon: Home, roles: ['admin', 'manager', 'staff'] },
     ];
 
     const adminItems = [

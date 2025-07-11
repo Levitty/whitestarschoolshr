@@ -4,11 +4,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DocumentUpload from '@/components/DocumentUpload';
 import DocumentsList from '@/components/DocumentsList';
 import ContractExpiry from '@/components/ContractExpiry';
+import DocumentTemplateManager from '@/components/DocumentTemplateManager';
 import { useAuth } from '@/hooks/useAuth';
 import { 
   FileText, 
   Camera,
-  AlertTriangle
+  AlertTriangle,
+  PenTool
 } from 'lucide-react';
 
 const Records = () => {
@@ -38,6 +40,7 @@ const Records = () => {
   const tabsConfig = [
     { value: 'documents', label: 'Documents', icon: FileText },
     { value: 'upload', label: 'Upload', icon: Camera },
+    { value: 'templates', label: 'Letter Templates', icon: PenTool },
     { value: 'contracts', label: 'Contracts', icon: AlertTriangle }
   ];
 
@@ -48,12 +51,12 @@ const Records = () => {
           Document Management
         </h1>
         <p className="text-slate-600 mt-2">
-          Manage all documents, contracts, and employee records
+          Manage all documents, contracts, templates, and employee records
         </p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           {tabsConfig.map(({ value, label, icon: Icon }) => (
             <TabsTrigger key={value} value={value} className="flex items-center gap-2">
               <Icon className="h-4 w-4" />
@@ -70,6 +73,10 @@ const Records = () => {
           <DocumentUpload onSuccess={() => {
             setActiveTab('documents');
           }} />
+        </TabsContent>
+
+        <TabsContent value="templates" className="space-y-6">
+          <DocumentTemplateManager />
         </TabsContent>
 
         <TabsContent value="contracts" className="space-y-6">
