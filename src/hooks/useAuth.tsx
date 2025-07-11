@@ -5,13 +5,18 @@ import { supabase } from '@/integrations/supabase/client';
 
 interface Profile {
   id: string;
-  user_id: string;
-  full_name: string;
+  email: string;
+  first_name: string | null;
+  last_name: string | null;
   department: string | null;
-  role: 'superadmin' | 'head' | 'teacher' | 'staff';
-  status: 'pending' | 'active';
-  created_at: string;
-  updated_at: string;
+  role: 'superadmin' | 'head' | 'teacher' | 'staff' | null;
+  avatar_url: string | null;
+  phone: string | null;
+  employee_id: string | null;
+  hire_date: string | null;
+  is_active: boolean | null;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 interface AuthContextType {
@@ -48,7 +53,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('id', user.id)
         .single();
 
       if (error) {
@@ -76,7 +81,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               const { data, error } = await supabase
                 .from('profiles')
                 .select('*')
-                .eq('user_id', session.user.id)
+                .eq('id', session.user.id)
                 .single();
 
               if (error) {
@@ -108,7 +113,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             const { data, error } = await supabase
               .from('profiles')
               .select('*')
-              .eq('user_id', session.user.id)
+              .eq('id', session.user.id)
               .single();
 
             if (error) {

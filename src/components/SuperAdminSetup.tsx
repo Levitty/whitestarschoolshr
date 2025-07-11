@@ -11,13 +11,18 @@ import { Search, UserCheck, UserX, Shield } from 'lucide-react';
 
 interface ProfileData {
   id: string;
-  user_id: string;
-  full_name: string;
+  email: string;
+  first_name: string | null;
+  last_name: string | null;
   department: string | null;
-  role: 'superadmin' | 'head' | 'teacher' | 'staff';
-  status: 'pending' | 'active';
-  created_at: string;
-  updated_at: string;
+  role: 'superadmin' | 'head' | 'teacher' | 'staff' | null;
+  avatar_url: string | null;
+  phone: string | null;
+  employee_id: string | null;
+  hire_date: string | null;
+  is_active: boolean | null;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 const SuperAdminSetup = () => {
@@ -54,12 +59,12 @@ const SuperAdminSetup = () => {
     fetchProfiles();
   }, []);
 
-  const updateUserStatus = async (userId: string, status: 'active' | 'pending') => {
+  const updateUserStatus = async (userId: string, isActive: boolean) => {
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ status })
-        .eq('user_id', userId);
+        .update({ is_active: isActive })
+        .eq('id', userId);
 
       if (error) {
         toast({
@@ -70,7 +75,7 @@ const SuperAdminSetup = () => {
       } else {
         toast({
           title: "Success",
-          description: `User status updated to ${status}.`,
+          description: `User status updated to ${isActive ? 'active' : 'inactive'}.`,
         });
         fetchProfiles();
       }
@@ -88,7 +93,7 @@ const SuperAdminSetup = () => {
       const { error } = await supabase
         .from('profiles')
         .update({ role })
-        .eq('user_id', userId);
+        .eq('id', userId);
 
       if (error) {
         toast({
@@ -112,21 +117,26 @@ const SuperAdminSetup = () => {
     }
   };
 
-  const filteredProfiles = profiles.filter(profile =>
-    profile.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    profile.department?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    profile.role.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredProfiles = profiles.filter(profile => {
+    const fullName = `${profile.first_name || ''} ${profile.last_name || ''}`.toLowerCase();
+    const searchLower = searchTerm.toLowerCase();
+    return fullName.includes(searchLower) ||
+           profile.email.toLowerCase().includes(searchLower) ||
+           profile.department?.toLowerCase().includes(searchLower) ||
+           profile.role?.toLowerCase().includes(searchLower);
+  });
 
-  const getStatusBadge = (status: string) => {
-    return status === 'active' ? (
+  const getStatusBadge = (isActive: boolean | null) => {
+    return isActive ? (
       <Badge className="bg-green-100 text-green-800">Active</Badge>
     ) : (
-      <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>
+      <Badge className="bg-red-100 text-red-800">Inactive</Badge>
     );
   };
 
-  const getRoleBadge = (role: string) => {
+  const getRoleBadge = (role: string | null) => {
+    if (!role) return <Badge className="bg-gray-100 text-gray-800">No Role</Badge>;
+    
     const roleColors = {
       superadmin: 'bg-purple-100 text-purple-800',
       head: 'bg-blue-100 text-blue-800',
@@ -172,20 +182,23 @@ const SuperAdminSetup = () => {
               <div className="flex items-center justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    <h3 className="font-semibold text-lg">{profile.full_name}</h3>
-                    {getStatusBadge(profile.status)}
+                    <h3 className="font-semibold text-lg">
+                      {profile.first_name} {profile.last_name}
+                    </h3>
+                    {getStatusBadge(profile.is_active)}
                     {getRoleBadge(profile.role)}
                   </div>
+                  <p className="text-gray-600">{profile.email}</p>
                   <p className="text-gray-600">{profile.department || 'No Department'}</p>
                   <p className="text-sm text-gray-500">
-                    Joined: {new Date(profile.created_at).toLocaleDateString()}
+                    Joined: {profile.created_at ? new Date(profile.created_at).toLocaleDateString() : 'Unknown'}
                   </p>
                 </div>
 
                 <div className="flex items-center gap-3">
                   <Select
-                    value={profile.role}
-                    onValueChange={(value) => updateUserRole(profile.user_id, value as any)}
+                    value={profile.role || 'staff'}
+                    onValueChange={(value) => updateUserRole(profile.id, value as any)}
                   >
                     <SelectTrigger className="w-32">
                       <SelectValue />
@@ -198,23 +211,23 @@ const SuperAdminSetup = () => {
                     </SelectContent>
                   </Select>
 
-                  {profile.status === 'pending' ? (
+                  {!profile.is_active ? (
                     <Button
-                      onClick={() => updateUserStatus(profile.user_id, 'active')}
+                      onClick={() => updateUserStatus(profile.id, true)}
                       size="sm"
                       className="bg-green-600 hover:bg-green-700"
                     >
                       <UserCheck className="w-4 h-4 mr-1" />
-                      Approve
+                      Activate
                     </Button>
                   ) : (
                     <Button
-                      onClick={() => updateUserStatus(profile.user_id, 'pending')}
+                      onClick={() => updateUserStatus(profile.id, false)}
                       size="sm"
                       variant="outline"
                     >
                       <UserX className="w-4 h-4 mr-1" />
-                      Suspend
+                      Deactivate
                     </Button>
                   )}
                 </div>
