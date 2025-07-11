@@ -22,6 +22,7 @@ import Tickets from '@/pages/Tickets';
 import Records from '@/pages/Records';
 import Performance from '@/pages/Performance';
 import Upskilling from '@/pages/Upskilling';
+import Settings from '@/pages/Settings';
 import NotFound from '@/pages/NotFound';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import Layout from '@/pages/Layout';
@@ -88,6 +89,10 @@ function App() {
             
             <Route path="/upskilling" element={<Layout />}>
               <Route index element={<Upskilling />} />
+            </Route>
+            
+            <Route path="/settings" element={<Layout />}>
+              <Route index element={<Settings />} />
             </Route>
             
             <Route path="*" element={<NotFound />} />
