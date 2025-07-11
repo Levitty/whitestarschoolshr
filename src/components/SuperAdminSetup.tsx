@@ -14,12 +14,13 @@ interface ProfileData {
   first_name: string | null;
   last_name: string | null;
   department: string | null;
-  role: 'superadmin' | 'head' | 'teacher' | 'staff' | null;
+  role: 'superadmin' | 'admin' | 'head' | 'teacher' | 'staff' | 'secretary' | 'driver' | 'support_staff' | null;
   avatar_url: string | null;
   phone: string | null;
   employee_id: string | null;
   hire_date: string | null;
   is_active: boolean | null;
+  status: 'pending' | 'active' | 'inactive' | 'suspended' | null;
   created_at: string | null;
   updated_at: string | null;
 }
@@ -37,12 +38,13 @@ const SuperAdminSetup = () => {
       first_name: data.first_name,
       last_name: data.last_name,
       department: data.department,
-      role: data.role as 'superadmin' | 'head' | 'teacher' | 'staff' | null,
+      role: data.role as 'superadmin' | 'admin' | 'head' | 'teacher' | 'staff' | 'secretary' | 'driver' | 'support_staff' | null,
       avatar_url: data.avatar_url,
       phone: data.phone,
       employee_id: data.employee_id,
       hire_date: data.hire_date,
       is_active: data.is_active,
+      status: data.status as 'pending' | 'active' | 'inactive' | 'suspended' | null,
       created_at: data.created_at,
       updated_at: data.updated_at
     };
@@ -109,7 +111,7 @@ const SuperAdminSetup = () => {
     }
   };
 
-  const updateUserRole = async (userId: string, role: 'superadmin' | 'head' | 'teacher' | 'staff') => {
+  const updateUserRole = async (userId: string, role: 'superadmin' | 'admin' | 'head' | 'teacher' | 'staff' | 'secretary' | 'driver' | 'support_staff') => {
     try {
       const { error } = await supabase
         .from('profiles')
@@ -166,6 +168,7 @@ const SuperAdminSetup = () => {
     
     const roleColors = {
       superadmin: 'bg-purple-100 text-purple-800',
+      admin: 'bg-blue-100 text-blue-800',
       head: 'bg-blue-100 text-blue-800',
       teacher: 'bg-green-100 text-green-800',
       staff: 'bg-gray-100 text-gray-800'
