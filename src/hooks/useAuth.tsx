@@ -30,6 +30,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   fetchProfile: () => Promise<void>;
+  refreshSession: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -72,6 +73,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (!user) return;
     
     try {
+      console.log('Fetching profile for user:', user.id);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -80,11 +82,37 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (error) {
         console.error('Error fetching profile:', error);
+        setProfile(null);
       } else {
+        console.log('Profile fetched successfully:', data);
         setProfile(transformProfileData(data));
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
+      setProfile(null);
+    }
+  };
+
+  const refreshSession = async () => {
+    try {
+      console.log('Refreshing session...');
+      const { data: { session }, error } = await supabase.auth.refreshSession();
+      
+      if (error) {
+        console.error('Error refreshing session:', error);
+      } else {
+        console.log('Session refreshed successfully');
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          setTimeout(async () => {
+            await fetchProfile();
+          }, 0);
+        }
+      }
+    } catch (error) {
+      console.error('Error refreshing session:', error);
     }
   };
 
@@ -96,10 +124,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setSession(session);
         setUser(session?.user ?? null);
         
-        if (session?.user && event === 'SIGNED_IN') {
+        if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
           // Defer profile fetching to prevent deadlocks
           setTimeout(async () => {
             try {
+              console.log('Fetching profile after auth state change...');
               const { data, error } = await supabase
                 .from('profiles')
                 .select('*')
@@ -108,11 +137,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
               if (error) {
                 console.error('Error fetching profile:', error);
+                setProfile(null);
               } else {
+                console.log('Profile data received:', data);
                 setProfile(transformProfileData(data));
               }
             } catch (error) {
               console.error('Error fetching profile:', error);
+              setProfile(null);
             }
           }, 0);
         } else if (!session?.user) {
@@ -126,6 +158,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Get initial session
     const getSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
+      console.log('Initial session:', session?.user?.email);
       setSession(session);
       setUser(session?.user ?? null);
       
@@ -140,11 +173,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
             if (error) {
               console.error('Error fetching profile:', error);
+              setProfile(null);
             } else {
               setProfile(transformProfileData(data));
             }
           } catch (error) {
             console.error('Error fetching profile:', error);
+            setProfile(null);
           }
         }, 0);
       }
@@ -203,7 +238,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       signUp,
       signIn,
       signOut,
-      fetchProfile
+      fetchProfile,
+      refreshSession
     }}>
       {children}
     </AuthContext.Provider>

@@ -24,7 +24,13 @@ const RoleGuard = ({ children, allowedRoles, fallbackMessage }: RoleGuardProps) 
     );
   }
 
-  if (!profile || !allowedRoles.includes(profile.role!)) {
+  // Debug logging
+  console.log('RoleGuard - Profile:', profile);
+  console.log('RoleGuard - User role:', profile?.role);
+  console.log('RoleGuard - Allowed roles:', allowedRoles);
+  console.log('RoleGuard - Has access:', profile?.role && allowedRoles.includes(profile.role));
+
+  if (!profile || !profile.role || !allowedRoles.includes(profile.role)) {
     return (
       <div className="min-h-[400px] flex items-center justify-center p-6">
         <Card className="border-red-200 max-w-md">
