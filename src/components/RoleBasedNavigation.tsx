@@ -1,5 +1,5 @@
 
-import { Home, Calendar, Users, FileText, UserPlus, MessageSquare, Settings } from "lucide-react";
+import { Home, Calendar, Users, FileText, UserPlus, MessageSquare, Settings, GraduationCap, BarChart, Briefcase } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -20,9 +20,12 @@ const RoleBasedNavigation = () => {
   const adminNavItems = [
     { path: "/", label: "Dashboard", icon: Home },
     { path: "/employees", label: "Employees", icon: Users },
-    { path: "/records", label: "Records", icon: FileText },
-    { path: "/leave-approval", label: "Leave Approval", icon: Calendar },
     { path: "/recruitment", label: "Recruitment", icon: UserPlus },
+    { path: "/leave-approval", label: "Leave Management", icon: Calendar },
+    { path: "/performance", label: "Performance", icon: BarChart },
+    { path: "/upskilling", label: "Upskilling", icon: GraduationCap },
+    { path: "/records", label: "Records", icon: FileText },
+    { path: "/applications", label: "Applications", icon: Briefcase },
     { path: "/tickets", label: "Support", icon: MessageSquare },
     { path: "/settings", label: "Settings", icon: Settings },
   ];
@@ -30,15 +33,20 @@ const RoleBasedNavigation = () => {
   const hrNavItems = [
     { path: "/", label: "Dashboard", icon: Home },
     { path: "/employees", label: "Employees", icon: Users },
-    { path: "/records", label: "Records", icon: FileText },
-    { path: "/leave-approval", label: "Leave Approval", icon: Calendar },
     { path: "/recruitment", label: "Recruitment", icon: UserPlus },
+    { path: "/leave-approval", label: "Leave Management", icon: Calendar },
+    { path: "/performance", label: "Performance", icon: BarChart },
+    { path: "/upskilling", label: "Upskilling", icon: GraduationCap },
+    { path: "/records", label: "Records", icon: FileText },
+    { path: "/applications", label: "Applications", icon: Briefcase },
     { path: "/tickets", label: "Support", icon: MessageSquare },
   ];
 
   const employeeNavItems = [
     { path: "/", label: "Dashboard", icon: Home },
     { path: "/leave", label: "Leave Requests", icon: Calendar },
+    { path: "/performance", label: "My Performance", icon: BarChart },
+    { path: "/upskilling", label: "Training", icon: GraduationCap },
     { path: "/records", label: "My Documents", icon: FileText },
     { path: "/tickets", label: "Support", icon: MessageSquare },
   ];
