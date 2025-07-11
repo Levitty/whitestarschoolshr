@@ -3,10 +3,12 @@ import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent } from '@/components/ui/card';
 import { Shield, AlertTriangle } from 'lucide-react';
+import { UserRole } from '@/types/auth';
+import { hasRoleAccess, getRoleDisplayName } from '@/utils/roleUtils';
 
 interface RoleGuardProps {
   children: React.ReactNode;
-  allowedRoles: ('superadmin' | 'head' | 'teacher' | 'staff')[];
+  allowedRoles: UserRole[];
   fallbackMessage?: string;
 }
 
@@ -24,13 +26,12 @@ const RoleGuard = ({ children, allowedRoles, fallbackMessage }: RoleGuardProps) 
     );
   }
 
-  // Debug logging
   console.log('RoleGuard - Profile:', profile);
   console.log('RoleGuard - User role:', profile?.role);
   console.log('RoleGuard - Allowed roles:', allowedRoles);
-  console.log('RoleGuard - Has access:', profile?.role && allowedRoles.includes(profile.role));
+  console.log('RoleGuard - Has access:', hasRoleAccess(profile?.role, allowedRoles));
 
-  if (!profile || !profile.role || !allowedRoles.includes(profile.role)) {
+  if (!profile || !hasRoleAccess(profile.role, allowedRoles)) {
     return (
       <div className="min-h-[400px] flex items-center justify-center p-6">
         <Card className="border-red-200 max-w-md">
@@ -41,8 +42,8 @@ const RoleGuard = ({ children, allowedRoles, fallbackMessage }: RoleGuardProps) 
               {fallbackMessage || "You don't have permission to access this section."}
             </p>
             <div className="text-sm text-gray-600">
-              <p>Your role: <span className="font-medium">{profile?.role || 'Unknown'}</span></p>
-              <p>Required roles: <span className="font-medium">{allowedRoles.join(', ')}</span></p>
+              <p>Your role: <span className="font-medium">{getRoleDisplayName(profile?.role)}</span></p>
+              <p>Required roles: <span className="font-medium">{allowedRoles.map(getRoleDisplayName).join(', ')}</span></p>
             </div>
           </CardContent>
         </Card>

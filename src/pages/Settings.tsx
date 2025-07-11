@@ -8,7 +8,7 @@ import SuperAdminSetup from '@/components/SuperAdminSetup';
 const Settings = () => {
   return (
     <RoleGuard 
-      allowedRoles={['superadmin']} 
+      allowedRoles={['superadmin', 'admin']} 
       fallbackMessage="System settings are only accessible to super administrators."
     >
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-50">

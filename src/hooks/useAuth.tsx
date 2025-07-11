@@ -1,36 +1,8 @@
 import { useState, useEffect, createContext, useContext } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-
-interface Profile {
-  id: string;
-  email: string;
-  first_name: string | null;
-  last_name: string | null;
-  full_name: string | null;
-  department: string | null;
-  role: 'superadmin' | 'head' | 'teacher' | 'staff' | null;
-  avatar_url: string | null;
-  phone: string | null;
-  employee_id: string | null;
-  hire_date: string | null;
-  is_active: boolean | null;
-  status: string | null;
-  created_at: string | null;
-  updated_at: string | null;
-}
-
-interface AuthContextType {
-  user: User | null;
-  session: Session | null;
-  profile: Profile | null;
-  loading: boolean;
-  signUp: (email: string, password: string, fullName: string, department: string) => Promise<{ error: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signOut: () => Promise<void>;
-  fetchProfile: () => Promise<void>;
-  refreshSession: () => Promise<void>;
-}
+import { Profile, AuthContextType, UserRole } from '@/types/auth';
+import { normalizeRole } from '@/utils/roleUtils';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -49,6 +21,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   const transformProfileData = (data: any): Profile => {
+    const normalizedRole = normalizeRole(data.role);
+    console.log('Raw role from DB:', data.role, '-> Normalized role:', normalizedRole);
+    
     return {
       id: data.id,
       email: data.email,
@@ -56,7 +31,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       last_name: data.last_name,
       full_name: data.first_name && data.last_name ? `${data.first_name} ${data.last_name}` : data.first_name || data.last_name || null,
       department: data.department,
-      role: data.role as 'superadmin' | 'head' | 'teacher' | 'staff' | null,
+      role: normalizedRole,
       avatar_url: data.avatar_url,
       phone: data.phone,
       employee_id: data.employee_id,
@@ -94,6 +69,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const hasRole = (requiredRole: UserRole): boolean => {
+    if (!profile?.role) return false;
+    const normalizedUserRole = normalizeRole(profile.role);
+    const normalizedRequiredRole = normalizeRole(requiredRole);
+    return normalizedUserRole === normalizedRequiredRole;
+  };
+
+  const isSuperAdmin = (): boolean => {
+    return hasRole('superadmin');
+  };
+
   const refreshSession = async () => {
     try {
       console.log('Refreshing session...');
@@ -116,88 +102,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.error('Error refreshing session:', error);
     }
   };
-
-  useEffect(() => {
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state change:', event, session?.user?.email);
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
-          // Force fresh profile fetch when signing in or token refreshed
-          setTimeout(async () => {
-            try {
-              console.log('Fetching profile after auth state change...');
-              const { data, error } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', session.user.id)
-                .single();
-
-              if (error) {
-                console.error('Error fetching profile:', error);
-                setProfile(null);
-              } else {
-                console.log('Profile data received:', data);
-                const transformedProfile = transformProfileData(data);
-                console.log('Setting profile with role:', transformedProfile.role);
-                setProfile(transformedProfile);
-              }
-            } catch (error) {
-              console.error('Error fetching profile:', error);
-              setProfile(null);
-            }
-          }, 0);
-        } else if (!session?.user) {
-          setProfile(null);
-        }
-        
-        setLoading(false);
-      }
-    );
-
-    // Get initial session and force fresh profile fetch
-    const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      console.log('Initial session:', session?.user?.email);
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        setTimeout(async () => {
-          try {
-            console.log('Fetching initial profile...');
-            const { data, error } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', session.user.id)
-              .single();
-
-            if (error) {
-              console.error('Error fetching profile:', error);
-              setProfile(null);
-            } else {
-              console.log('Initial profile data:', data);
-              const transformedProfile = transformProfileData(data);
-              console.log('Initial profile role:', transformedProfile.role);
-              setProfile(transformedProfile);
-            }
-          } catch (error) {
-            console.error('Error fetching profile:', error);
-            setProfile(null);
-          }
-        }, 0);
-      }
-      
-      setLoading(false);
-    };
-
-    getSession();
-
-    return () => subscription.unsubscribe();
-  }, []);
 
   const signUp = async (email: string, password: string, fullName: string, department: string) => {
     setLoading(true);
@@ -236,6 +140,84 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     window.location.href = '/auth';
   };
 
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state change:', event, session?.user?.email);
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
+          setTimeout(async () => {
+            try {
+              console.log('Fetching profile after auth state change...');
+              const { data, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', session.user.id)
+                .single();
+
+              if (error) {
+                console.error('Error fetching profile:', error);
+                setProfile(null);
+              } else {
+                console.log('Profile data received:', data);
+                const transformedProfile = transformProfileData(data);
+                console.log('Setting profile with role:', transformedProfile.role);
+                setProfile(transformedProfile);
+              }
+            } catch (error) {
+              console.error('Error fetching profile:', error);
+              setProfile(null);
+            }
+          }, 0);
+        } else if (!session?.user) {
+          setProfile(null);
+        }
+        
+        setLoading(false);
+      }
+    );
+
+    const getSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log('Initial session:', session?.user?.email);
+      setSession(session);
+      setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        setTimeout(async () => {
+          try {
+            console.log('Fetching initial profile...');
+            const { data, error } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', session.user.id)
+              .single();
+
+            if (error) {
+              console.error('Error fetching profile:', error);
+              setProfile(null);
+            } else {
+              console.log('Initial profile data:', data);
+              const transformedProfile = transformProfileData(data);
+              console.log('Initial profile role:', transformedProfile.role);
+              setProfile(transformedProfile);
+            }
+          } catch (error) {
+            console.error('Error fetching profile:', error);
+            setProfile(null);
+          }
+        }, 0);
+      }
+      
+      setLoading(false);
+    };
+
+    getSession();
+    return () => subscription.unsubscribe();
+  }, []);
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -246,7 +228,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       signIn,
       signOut,
       fetchProfile,
-      refreshSession
+      refreshSession,
+      hasRole,
+      isSuperAdmin
     }}>
       {children}
     </AuthContext.Provider>

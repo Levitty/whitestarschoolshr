@@ -2,6 +2,8 @@
 import { Home, Users, UserPlus, Briefcase, BarChart, FolderOpen, Calendar, GraduationCap, Settings, LogOut } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { UserRole } from "@/types/auth";
+import { getRoleDisplayName, getRoleColor } from "@/utils/roleUtils";
 
 interface NavItem {
   path: string;
@@ -14,7 +16,7 @@ const RoleBasedNavigation = () => {
   const navigate = useNavigate();
   const { signOut, profile } = useAuth();
 
-  console.log('Current profile:', profile); // Debug log to check profile data
+  console.log('Current profile:', profile);
 
   const isActive = (path: string) => {
     return location.pathname === path;
@@ -24,7 +26,6 @@ const RoleBasedNavigation = () => {
     await signOut();
   };
 
-  // Navigation items for different roles
   const superAdminNavItems: NavItem[] = [
     { path: "/dashboard", label: "Dashboard", icon: Home },
     { path: "/employees", label: "Employees", icon: Users },
@@ -61,14 +62,14 @@ const RoleBasedNavigation = () => {
 
   let navItems: NavItem[] = [];
 
-  // Enhanced role checking with better logging
   const userRole = profile?.role;
-  console.log('User role:', userRole); // Debug log
+  console.log('User role:', userRole);
 
   switch (userRole) {
     case "superadmin":
+    case "admin": // Handle both for backward compatibility
       navItems = superAdminNavItems;
-      console.log('Assigned superadmin navigation items'); // Debug log
+      console.log('Assigned superadmin navigation items');
       break;
     case "head":
       navItems = headNavItems;
@@ -80,37 +81,6 @@ const RoleBasedNavigation = () => {
       break;
   }
 
-  const getRoleDisplayName = (role: string | undefined) => {
-    switch (role) {
-      case "superadmin":
-        return "Super Administrator";
-      case "head":
-        return "Department Head";
-      case "teacher":
-        return "Teacher";
-      case "staff":
-        return "Staff Member";
-      default:
-        return "User";
-    }
-  };
-
-  const getRoleColor = (role: string | undefined) => {
-    switch (role) {
-      case "superadmin":
-        return "bg-red-900 border-red-800";
-      case "head":
-        return "bg-purple-900 border-purple-800";
-      case "teacher":
-        return "bg-green-900 border-green-800";
-      case "staff":
-        return "bg-blue-900 border-blue-800";
-      default:
-        return "bg-blue-900 border-blue-800";
-    }
-  };
-
-  // Show loading state if profile is not loaded yet
   if (!profile) {
     return (
       <aside className="w-64 bg-gray-900 text-white min-h-screen shadow-xl flex flex-col">
