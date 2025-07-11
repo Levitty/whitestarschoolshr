@@ -61,8 +61,8 @@ const Leave = () => {
           </div>
         </div>
 
-        {/* Stats Cards - Only show to managers and admins */}
-        {hasRole('manager') && (
+        {/* Stats Cards - Only show to heads and superadmins */}
+        {hasRole('head') && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <Card>
               <CardContent className="p-6">
@@ -117,7 +117,7 @@ const Leave = () => {
         <Tabs defaultValue="my-requests" className="space-y-6">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="my-requests">My Requests</TabsTrigger>
-            {hasRole('manager') && <TabsTrigger value="approvals">Approvals</TabsTrigger>}
+            {hasRole('head') && <TabsTrigger value="approvals">Approvals</TabsTrigger>}
             <TabsTrigger value="balances">Leave Balances</TabsTrigger>
           </TabsList>
 
@@ -128,7 +128,7 @@ const Leave = () => {
             </div>
           </TabsContent>
 
-          {hasRole('manager') && (
+          {hasRole('head') && (
             <TabsContent value="approvals">
               <LeaveApprovalList />
             </TabsContent>

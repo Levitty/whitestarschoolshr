@@ -21,7 +21,7 @@ interface EmployeeLetterArchiveProps {
 
 const EmployeeLetterArchive = ({ employeeId }: EmployeeLetterArchiveProps) => {
   const { user } = useAuth();
-  const { canAccessAdmin } = useProfile();
+  const { canAccessSuperAdmin } = useProfile();
   const [letters, setLetters] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -49,7 +49,7 @@ const EmployeeLetterArchive = ({ employeeId }: EmployeeLetterArchiveProps) => {
         query = query.eq('employee_id', employeeId);
       }
       // If not admin and no specific employee, show only user's letters
-      else if (!canAccessAdmin()) {
+      else if (!canAccessSuperAdmin()) {
         query = query.eq('employee_id', user?.id);
       }
 

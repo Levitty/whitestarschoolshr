@@ -70,7 +70,7 @@ const Navigation = () => {
                   </p>
                 </Link>
               </NavigationMenuLink>
-              {hasRole('manager') && (
+              {hasRole('head') && (
                 <NavigationMenuLink asChild>
                   <Link
                     to="/leave/calendar"

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,7 +18,7 @@ interface DocumentUploadProps {
 export const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
   const { uploadDocument } = useDocuments();
   const { employees } = useEmployees();
-  const { canAccessAdmin } = useProfile();
+  const { canAccessSuperAdmin } = useProfile();
   const { toast } = useToast();
   
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -55,7 +54,7 @@ export const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
     }
 
     // For admin users, employee_id is optional - they can upload for themselves or others
-    if (!canAccessAdmin() && !formData.employee_id) {
+    if (!canAccessSuperAdmin() && !formData.employee_id) {
       toast({
         title: "Validation Error", 
         description: "Please select an employee.",
@@ -121,7 +120,7 @@ export const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Employee Selection - Only show for admins or make optional */}
-          {canAccessAdmin() && (
+          {canAccessSuperAdmin() && (
             <div>
               <Label htmlFor="employee">Employee (Optional for Admin)</Label>
               <Select

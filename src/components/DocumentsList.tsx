@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -20,7 +19,7 @@ import {
 
 const DocumentsList = () => {
   const { documents, loading, fetchDocuments } = useDocuments();
-  const { canAccessAdmin } = useProfile();
+  const { canAccessSuperAdmin } = useProfile();
   const { user } = useAuth();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
@@ -57,7 +56,7 @@ const DocumentsList = () => {
   };
 
   const handleDelete = async (documentId: string, filePath: string | null) => {
-    if (!canAccessAdmin()) {
+    if (!canAccessSuperAdmin()) {
       toast({
         title: "Access Denied",
         description: "You don't have permission to delete documents.",
@@ -208,7 +207,7 @@ const DocumentsList = () => {
                     <Button variant="outline" size="sm">
                       <Download className="h-4 w-4" />
                     </Button>
-                    {canAccessAdmin() && (
+                    {canAccessSuperAdmin() && (
                       <Button 
                         variant="outline" 
                         size="sm"
