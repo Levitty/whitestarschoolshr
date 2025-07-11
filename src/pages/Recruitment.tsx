@@ -1,14 +1,11 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Search, Filter, Users, Calendar, FileText, TrendingUp } from 'lucide-react';
+import { Plus, FileText, Users, Calendar, TrendingUp } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useJobListings } from '@/hooks/useJobListings';
 import { useJobApplications } from '@/hooks/useJobApplications';
@@ -17,13 +14,14 @@ import { JobPostingForm } from '@/components/JobPostingForm';
 import { ApplicationsList } from '@/components/ApplicationsList';
 import { InterviewsList } from '@/components/InterviewsList';
 import { RecruitmentReports } from '@/components/RecruitmentReports';
+import RecruitmentAssessments from '@/components/RecruitmentAssessments';
 
 const Recruitment = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('postings');
-  const { jobListings, loading: jobsLoading, createJobListing, updateJobListing, deleteJobListing } = useJobListings();
-  const { applications, loading: appsLoading } = useJobApplications();
-  const { interviews, loading: interviewsLoading } = useInterviews();
+  const { jobListings, loading: jobsLoading, updateJobListing } = useJobListings();
+  const { applications } = useJobApplications();
+  const { interviews } = useInterviews();
 
   const handleCopyJobLink = async (jobId: string, jobTitle: string) => {
     const jobUrl = `${window.location.origin}/job-details?id=${jobId}`;
@@ -127,10 +125,11 @@ const Recruitment = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="postings">Job Postings</TabsTrigger>
           <TabsTrigger value="applications">Applications</TabsTrigger>
           <TabsTrigger value="interviews">Interviews</TabsTrigger>
+          <TabsTrigger value="assessments">Assessments</TabsTrigger>
           <TabsTrigger value="reports">Reports</TabsTrigger>
         </TabsList>
 
@@ -204,6 +203,10 @@ const Recruitment = () => {
 
         <TabsContent value="interviews" className="space-y-6">
           <InterviewsList />
+        </TabsContent>
+
+        <TabsContent value="assessments" className="space-y-6">
+          <RecruitmentAssessments />
         </TabsContent>
 
         <TabsContent value="reports" className="space-y-6">

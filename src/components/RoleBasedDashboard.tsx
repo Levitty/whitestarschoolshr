@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { Card, CardContent } from '@/components/ui/card';
-import { Home, Users, Calendar, Briefcase, ListChecks, BarChart, GraduationCap, FileText } from 'lucide-react';
+import { Home, Users, Calendar, Briefcase, ListChecks, BarChart, GraduationCap, FileText, Settings, UserPlus } from 'lucide-react';
 import HRAnalyticsCards from '@/components/HRAnalyticsCards';
 
 const RoleBasedDashboard = () => {
@@ -87,7 +87,7 @@ const RoleBasedDashboard = () => {
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-orange-100 rounded-lg">
-                <Briefcase className="h-6 w-6 text-orange-600" />
+                <UserPlus className="h-6 w-6 text-orange-600" />
               </div>
               <div>
                 <h3 className="font-semibold">Recruitment</h3>
@@ -148,6 +148,20 @@ const RoleBasedDashboard = () => {
               <div>
                 <h3 className="font-semibold">Records</h3>
                 <p className="text-sm text-muted-foreground">Access employee records and documents</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/applications')}>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-pink-100 rounded-lg">
+                <Briefcase className="h-6 w-6 text-pink-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold">Applications</h3>
+                <p className="text-sm text-muted-foreground">View and manage job applications</p>
               </div>
             </div>
           </CardContent>
