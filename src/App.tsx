@@ -41,7 +41,7 @@ function App() {
             <Route path="/jobs/:id" element={<JobDetail />} />
             <Route path="/apply/:jobId" element={<Apply />} />
             
-            {/* Protected routes */}
+            {/* Protected routes with Layout */}
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Layout>
