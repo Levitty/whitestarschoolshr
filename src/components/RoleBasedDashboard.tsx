@@ -1,9 +1,11 @@
+
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { Card, CardContent } from '@/components/ui/card';
 import { Home, Users, Calendar, Briefcase, ListChecks, BarChart, GraduationCap, FileText } from 'lucide-react';
+import HRAnalyticsCards from '@/components/HRAnalyticsCards';
 
 const RoleBasedDashboard = () => {
   const navigate = useNavigate();
@@ -31,6 +33,9 @@ const RoleBasedDashboard = () => {
             : 'Loading user information...'}
         </p>
       </div>
+
+      {/* HR Analytics Cards */}
+      <HRAnalyticsCards />
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -147,15 +152,6 @@ const RoleBasedDashboard = () => {
             </div>
           </CardContent>
         </Card>
-      </div>
-
-      {/* Additional Information or Analytics Section */}
-      <div className="bg-white rounded-xl shadow-sm p-6 border border-slate-200">
-        <h2 className="text-xl font-semibold text-slate-900 mb-4">System Overview</h2>
-        <p className="text-slate-600">
-          This dashboard provides a centralized view of your HR management activities. Use the quick actions above to
-          navigate to specific areas of the system.
-        </p>
       </div>
     </div>
   );
