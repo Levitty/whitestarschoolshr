@@ -10,7 +10,7 @@ interface Profile {
   last_name: string | null;
   phone: string | null;
   department: string | null;
-  role: 'admin' | 'manager' | 'staff' | null;
+  role: 'superadmin' | 'head' | 'teacher' | 'staff' | null;
   hire_date: string | null;
   employee_id: string | null;
   avatar_url: string | null;
@@ -54,7 +54,7 @@ export const useProfile = () => {
           last_name: data.last_name,
           phone: data.phone,
           department: data.department,
-          role: data.role as 'admin' | 'manager' | 'staff',
+          role: data.role as 'superadmin' | 'head' | 'teacher' | 'staff',
           hire_date: data.hire_date,
           employee_id: data.employee_id,
           avatar_url: data.avatar_url,
@@ -92,20 +92,22 @@ export const useProfile = () => {
     }
   };
 
-  const hasRole = (requiredRole: 'admin' | 'manager' | 'staff') => {
+  const hasRole = (requiredRole: 'superadmin' | 'head' | 'teacher' | 'staff') => {
     if (!profile?.role) return false;
     
     const roleHierarchy = {
-      admin: 3,
-      manager: 2,
+      superadmin: 4,
+      head: 3,
+      teacher: 2,
       staff: 1
     };
     
     return roleHierarchy[profile.role] >= roleHierarchy[requiredRole];
   };
 
-  const canAccessAdmin = () => hasRole('admin');
-  const canAccessManager = () => hasRole('manager');
+  const canAccessSuperAdmin = () => hasRole('superadmin');
+  const canAccessHead = () => hasRole('head');
+  const isTeacher = () => profile?.role === 'teacher';
   const isStaff = () => profile?.role === 'staff';
 
   return {
@@ -114,8 +116,9 @@ export const useProfile = () => {
     fetchProfile,
     updateProfile,
     hasRole,
-    canAccessAdmin,
-    canAccessManager,
+    canAccessSuperAdmin,
+    canAccessHead,
+    isTeacher,
     isStaff
   };
 };
