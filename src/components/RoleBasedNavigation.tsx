@@ -1,5 +1,7 @@
+
 import { Home, Calendar, Users, FileText, UserPlus, MessageSquare, Settings } from "lucide-react";
 import { useLocation } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 interface NavItem {
   path: string;
@@ -7,12 +9,9 @@ interface NavItem {
   icon: any;
 }
 
-interface RoleBasedNavigationProps {
-  userRole: string | undefined;
-}
-
-export const RoleBasedNavigation = ({ userRole }: RoleBasedNavigationProps) => {
+const RoleBasedNavigation = () => {
   const location = useLocation();
+  const { user } = useAuth();
 
   const isActive = (path: string) => {
     return location.pathname === path;
@@ -45,6 +44,7 @@ export const RoleBasedNavigation = ({ userRole }: RoleBasedNavigationProps) => {
   ];
 
   let navItems: NavItem[] = [];
+  const userRole = user?.role;
 
   if (userRole === "admin") {
     navItems = adminNavItems;
@@ -71,3 +71,5 @@ export const RoleBasedNavigation = ({ userRole }: RoleBasedNavigationProps) => {
     </div>
   );
 };
+
+export default RoleBasedNavigation;
