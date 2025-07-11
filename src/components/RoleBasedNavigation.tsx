@@ -2,7 +2,6 @@
 import { Home, Users, UserPlus, Briefcase, BarChart, FolderOpen, Calendar, GraduationCap, Settings, LogOut } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { useProfile } from "@/hooks/useProfile";
 
 interface NavItem {
   path: string;
@@ -13,8 +12,7 @@ interface NavItem {
 const RoleBasedNavigation = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { signOut } = useAuth();
-  const { profile } = useProfile();
+  const { signOut, profile } = useAuth();
 
   const isActive = (path: string) => {
     return location.pathname === path;
@@ -24,7 +22,8 @@ const RoleBasedNavigation = () => {
     await signOut();
   };
 
-  const adminNavItems: NavItem[] = [
+  // Navigation items for different roles
+  const superAdminNavItems: NavItem[] = [
     { path: "/dashboard", label: "Dashboard", icon: Home },
     { path: "/employees", label: "Employees", icon: Users },
     { path: "/recruitment", label: "Recruitment", icon: UserPlus },
@@ -36,7 +35,7 @@ const RoleBasedNavigation = () => {
     { path: "/settings", label: "Settings", icon: Settings },
   ];
 
-  const hrNavItems: NavItem[] = [
+  const headNavItems: NavItem[] = [
     { path: "/dashboard", label: "Dashboard", icon: Home },
     { path: "/employees", label: "Employees", icon: Users },
     { path: "/recruitment", label: "Recruitment", icon: UserPlus },
@@ -47,7 +46,7 @@ const RoleBasedNavigation = () => {
     { path: "/upskilling", label: "Upskilling", icon: GraduationCap },
   ];
 
-  const employeeNavItems: NavItem[] = [
+  const teacherStaffNavItems: NavItem[] = [
     { path: "/dashboard", label: "Dashboard", icon: Home },
     { path: "/leave", label: "My Leave Requests", icon: Calendar },
     { path: "/performance", label: "My Performance", icon: BarChart },
@@ -56,26 +55,27 @@ const RoleBasedNavigation = () => {
   ];
 
   let navItems: NavItem[] = [];
-  const userRole = profile?.role;
 
-  if (userRole === "admin") {
-    navItems = adminNavItems;
-  } else if (userRole === "manager") {
-    navItems = hrNavItems;
+  if (profile?.role === "superadmin") {
+    navItems = superAdminNavItems;
+  } else if (profile?.role === "head") {
+    navItems = headNavItems;
   } else {
-    navItems = employeeNavItems;
+    navItems = teacherStaffNavItems;
   }
 
-  const getRoleDisplayName = (role: string | null) => {
+  const getRoleDisplayName = (role: string | undefined) => {
     switch (role) {
-      case "admin":
-        return "HR Admin";
-      case "manager":
-        return "HR Manager";
+      case "superadmin":
+        return "Super Admin";
+      case "head":
+        return "Department Head";
+      case "teacher":
+        return "Teacher";
       case "staff":
         return "Staff";
       default:
-        return "Employee";
+        return "User";
     }
   };
 
@@ -105,17 +105,14 @@ const RoleBasedNavigation = () => {
       <div className="p-4 bg-blue-950 border-t border-blue-800">
         <div className="flex items-center space-x-3 mb-3">
           <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-medium text-sm">
-            {profile?.first_name?.charAt(0).toUpperCase() || profile?.email?.charAt(0).toUpperCase() || 'U'}
+            {profile?.full_name?.charAt(0).toUpperCase() || 'U'}
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-white truncate">
-              {profile?.first_name && profile?.last_name 
-                ? `${profile.first_name} ${profile.last_name}`
-                : profile?.email || 'User'
-              }
+              {profile?.full_name || 'User'}
             </p>
             <p className="text-xs text-blue-300">
-              {getRoleDisplayName(userRole)}
+              {getRoleDisplayName(profile?.role)}
             </p>
           </div>
         </div>

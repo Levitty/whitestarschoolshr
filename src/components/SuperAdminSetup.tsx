@@ -1,178 +1,237 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Shield, CheckCircle } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
-import { useProfile } from '@/hooks/useProfile';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { Search, UserCheck, UserX, Shield } from 'lucide-react';
+
+interface ProfileData {
+  id: string;
+  user_id: string;
+  full_name: string;
+  department: string | null;
+  role: 'superadmin' | 'head' | 'teacher' | 'staff';
+  status: 'pending' | 'active';
+  created_at: string;
+  updated_at: string;
+}
 
 const SuperAdminSetup = () => {
-  const { user, signUp } = useAuth();
-  const { profile, updateProfile } = useProfile();
+  const [profiles, setProfiles] = useState<ProfileData[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    firstName: 'Super',
-    lastName: 'Admin'
-  });
-  const [isCreating, setIsCreating] = useState(false);
 
-  const handleCreateSuperAdmin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsCreating(true);
-
+  const fetchProfiles = async () => {
     try {
-      // First create the user account
-      const { error: signUpError } = await signUp(
-        formData.email,
-        formData.password,
-        formData.firstName,
-        formData.lastName
-      );
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-      if (signUpError) {
+      if (error) {
+        console.error('Error fetching profiles:', error);
         toast({
           title: "Error",
-          description: signUpError.message,
+          description: "Failed to fetch user profiles.",
           variant: "destructive"
         });
-        return;
+      } else {
+        setProfiles(data || []);
       }
-
-      toast({
-        title: "Success",
-        description: "Super admin account created! Please check your email to verify your account, then sign in to complete the setup.",
-      });
-
-      setFormData({ email: '', password: '', firstName: 'Super', lastName: 'Admin' });
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to create super admin account.",
-        variant: "destructive"
-      });
+      console.error('Error fetching profiles:', error);
     } finally {
-      setIsCreating(false);
+      setLoading(false);
     }
   };
 
-  const handleMakeSuperAdmin = async () => {
-    if (!user || !profile) return;
+  useEffect(() => {
+    fetchProfiles();
+  }, []);
 
+  const updateUserStatus = async (userId: string, status: 'active' | 'pending') => {
     try {
-      const { error } = await updateProfile({ role: 'admin' });
-      
+      const { error } = await supabase
+        .from('profiles')
+        .update({ status })
+        .eq('user_id', userId);
+
       if (error) {
         toast({
           title: "Error",
-          description: "Failed to update role.",
+          description: "Failed to update user status.",
           variant: "destructive"
         });
-        return;
+      } else {
+        toast({
+          title: "Success",
+          description: `User status updated to ${status}.`,
+        });
+        fetchProfiles();
       }
-
-      toast({
-        title: "Success",
-        description: "You are now a super admin!",
-      });
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to update role.",
+        description: "Failed to update user status.",
         variant: "destructive"
       });
     }
   };
 
-  // If user is already an admin, show success message
-  if (profile?.role === 'admin') {
+  const updateUserRole = async (userId: string, role: 'superadmin' | 'head' | 'teacher' | 'staff') => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ role })
+        .eq('user_id', userId);
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to update user role.",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: `User role updated to ${role}.`,
+        });
+        fetchProfiles();
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update user role.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const filteredProfiles = profiles.filter(profile =>
+    profile.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    profile.department?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    profile.role.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const getStatusBadge = (status: string) => {
+    return status === 'active' ? (
+      <Badge className="bg-green-100 text-green-800">Active</Badge>
+    ) : (
+      <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>
+    );
+  };
+
+  const getRoleBadge = (role: string) => {
+    const roleColors = {
+      superadmin: 'bg-purple-100 text-purple-800',
+      head: 'bg-blue-100 text-blue-800',
+      teacher: 'bg-green-100 text-green-800',
+      staff: 'bg-gray-100 text-gray-800'
+    };
+    
     return (
-      <Card className="max-w-md mx-auto">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-green-600">
-            <CheckCircle className="h-5 w-5" />
-            Super Admin Active
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-gray-600">
-            You have super admin privileges and can access all administrative features.
-          </p>
-        </CardContent>
-      </Card>
+      <Badge className={roleColors[role as keyof typeof roleColors]}>
+        {role === 'superadmin' && <Shield className="w-3 h-3 mr-1" />}
+        {role.charAt(0).toUpperCase() + role.slice(1)}
+      </Badge>
+    );
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
     );
   }
 
-  // If user is logged in but not admin, allow them to become admin
-  if (user && profile) {
-    return (
-      <Card className="max-w-md mx-auto">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Shield className="h-5 w-5" />
-            Become Super Admin
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-gray-600">
-            Click below to grant yourself super admin privileges.
-          </p>
-          <Button onClick={handleMakeSuperAdmin} className="w-full">
-            <Shield className="h-4 w-4 mr-2" />
-            Grant Super Admin Access
-          </Button>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // If no user is logged in, show registration form
   return (
-    <Card className="max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Shield className="h-5 w-5" />
-          Create Super Admin
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleCreateSuperAdmin} className="space-y-4">
-          <div>
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-              placeholder="admin@school.com"
-              required
-            />
-          </div>
-          <div>
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              value={formData.password}
-              onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-              placeholder="Enter a strong password"
-              required
-              minLength={6}
-            />
-          </div>
-          <Button type="submit" className="w-full" disabled={isCreating}>
-            {isCreating ? 'Creating...' : 'Create Super Admin Account'}
-          </Button>
-        </form>
-        <p className="text-sm text-gray-600 mt-4">
-          This will create the first admin account for your school's HR system.
-        </p>
-      </CardContent>
-    </Card>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-gray-900">User Management</h2>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Input
+            placeholder="Search users..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 w-64"
+          />
+        </div>
+      </div>
+
+      <div className="grid gap-4">
+        {filteredProfiles.map((profile) => (
+          <Card key={profile.id}>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h3 className="font-semibold text-lg">{profile.full_name}</h3>
+                    {getStatusBadge(profile.status)}
+                    {getRoleBadge(profile.role)}
+                  </div>
+                  <p className="text-gray-600">{profile.department || 'No Department'}</p>
+                  <p className="text-sm text-gray-500">
+                    Joined: {new Date(profile.created_at).toLocaleDateString()}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <Select
+                    value={profile.role}
+                    onValueChange={(value) => updateUserRole(profile.user_id, value as any)}
+                  >
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="staff">Staff</SelectItem>
+                      <SelectItem value="teacher">Teacher</SelectItem>
+                      <SelectItem value="head">Head</SelectItem>
+                      <SelectItem value="superadmin">Super Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  {profile.status === 'pending' ? (
+                    <Button
+                      onClick={() => updateUserStatus(profile.user_id, 'active')}
+                      size="sm"
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      <UserCheck className="w-4 h-4 mr-1" />
+                      Approve
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={() => updateUserStatus(profile.user_id, 'pending')}
+                      size="sm"
+                      variant="outline"
+                    >
+                      <UserX className="w-4 h-4 mr-1" />
+                      Suspend
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {filteredProfiles.length === 0 && (
+        <Card>
+          <CardContent className="p-8 text-center">
+            <p className="text-gray-500">No users found matching your search.</p>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 };
 

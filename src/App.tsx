@@ -24,7 +24,6 @@ import Performance from '@/pages/Performance';
 import Upskilling from '@/pages/Upskilling';
 import Settings from '@/pages/Settings';
 import NotFound from '@/pages/NotFound';
-import ProtectedRoute from '@/components/ProtectedRoute';
 import Layout from '@/pages/Layout';
 import LeaveCalendar from '@/pages/LeaveCalendar';
 

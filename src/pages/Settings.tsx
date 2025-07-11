@@ -1,14 +1,16 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Settings as SettingsIcon, FileText, Users, Shield, Bell } from 'lucide-react';
-import { useProfile } from '@/hooks/useProfile';
+import { useAuth } from '@/hooks/useAuth';
+import SuperAdminSetup from '@/components/SuperAdminSetup';
 
 const Settings = () => {
-  const { profile } = useProfile();
+  const { profile } = useAuth();
 
-  // Only allow admin users to access settings
-  if (profile?.role !== 'admin') {
+  // Only allow superadmin users to access settings
+  if (profile?.role !== 'superadmin') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-50 p-6">
         <div className="max-w-2xl mx-auto">
@@ -37,105 +39,100 @@ const Settings = () => {
           </p>
         </div>
 
-        {/* Settings Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Card className="bg-white/90 backdrop-blur-sm border-blue-200 hover:shadow-lg transition-all duration-200 cursor-pointer hover:scale-105">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-3 text-blue-900">
-                <FileText className="h-6 w-6 text-blue-600" />
-                Letter Templates
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-slate-600 text-sm">
-                Manage document templates for letters, certificates, and other official documents
-              </p>
-            </CardContent>
-          </Card>
+        <Tabs defaultValue="users" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="users">User Management</TabsTrigger>
+            <TabsTrigger value="templates">Templates</TabsTrigger>
+            <TabsTrigger value="notifications">Notifications</TabsTrigger>
+            <TabsTrigger value="security">Security</TabsTrigger>
+            <TabsTrigger value="system">System</TabsTrigger>
+          </TabsList>
 
-          <Card className="bg-white/90 backdrop-blur-sm border-blue-200 hover:shadow-lg transition-all duration-200 cursor-pointer hover:scale-105">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-3 text-blue-900">
-                <Users className="h-6 w-6 text-green-600" />
-                User Management
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-slate-600 text-sm">
-                Configure user roles, permissions, and access levels for different departments
-              </p>
-            </CardContent>
-          </Card>
+          <TabsContent value="users">
+            <SuperAdminSetup />
+          </TabsContent>
 
-          <Card className="bg-white/90 backdrop-blur-sm border-blue-200 hover:shadow-lg transition-all duration-200 cursor-pointer hover:scale-105">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-3 text-blue-900">
-                <Bell className="h-6 w-6 text-orange-600" />
-                Notifications
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-slate-600 text-sm">
-                Set up email notifications, reminders, and system alerts for various events
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/90 backdrop-blur-sm border-blue-200 hover:shadow-lg transition-all duration-200 cursor-pointer hover:scale-105">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-3 text-blue-900">
-                <SettingsIcon className="h-6 w-6 text-purple-600" />
-                System Configuration
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-slate-600 text-sm">
-                Configure general system settings, backup schedules, and maintenance options
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/90 backdrop-blur-sm border-blue-200 hover:shadow-lg transition-all duration-200 cursor-pointer hover:scale-105">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-3 text-blue-900">
-                <Shield className="h-6 w-6 text-red-600" />
-                Security Settings
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-slate-600 text-sm">
-                Manage security policies, password requirements, and access controls
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Current Settings Summary */}
-        <Card className="bg-white/90 backdrop-blur-sm border-blue-200">
-          <CardHeader>
-            <CardTitle className="text-blue-900">Current Configuration</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <h4 className="font-semibold text-slate-700">System Status</h4>
-                <p className="text-sm text-slate-600">All systems operational</p>
-              </div>
-              <div className="space-y-2">
-                <h4 className="font-semibold text-slate-700">Last Backup</h4>
-                <p className="text-sm text-slate-600">Today at 03:00 AM</p>
-              </div>
-              <div className="space-y-2">
-                <h4 className="font-semibold text-slate-700">Active Users</h4>
-                <p className="text-sm text-slate-600">24 users online</p>
-              </div>
-              <div className="space-y-2">
-                <h4 className="font-semibold text-slate-700">Storage Usage</h4>
-                <p className="text-sm text-slate-600">2.3 GB of 10 GB used</p>
-              </div>
+          <TabsContent value="templates">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <Card className="bg-white/90 backdrop-blur-sm border-blue-200 hover:shadow-lg transition-all duration-200 cursor-pointer hover:scale-105">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-3 text-blue-900">
+                    <FileText className="h-6 w-6 text-blue-600" />
+                    Letter Templates
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-slate-600 text-sm">
+                    Manage document templates for letters, certificates, and other official documents
+                  </p>
+                </CardContent>
+              </Card>
             </div>
-          </CardContent>
-        </Card>
+          </TabsContent>
+
+          <TabsContent value="notifications">
+            <Card className="bg-white/90 backdrop-blur-sm border-blue-200">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3 text-blue-900">
+                  <Bell className="h-6 w-6 text-orange-600" />
+                  Notification Settings
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-slate-600 text-sm">
+                  Configure email notifications, reminders, and system alerts for various events
+                </p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="security">
+            <Card className="bg-white/90 backdrop-blur-sm border-blue-200">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3 text-blue-900">
+                  <Shield className="h-6 w-6 text-red-600" />
+                  Security Settings
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-slate-600 text-sm">
+                  Manage security policies, password requirements, and access controls
+                </p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="system">
+            <Card className="bg-white/90 backdrop-blur-sm border-blue-200">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3 text-blue-900">
+                  <SettingsIcon className="h-6 w-6 text-purple-600" />
+                  System Configuration
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-slate-700">System Status</h4>
+                    <p className="text-sm text-slate-600">All systems operational</p>
+                  </div>
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-slate-700">Last Backup</h4>
+                    <p className="text-sm text-slate-600">Today at 03:00 AM</p>
+                  </div>
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-slate-700">Active Users</h4>
+                    <p className="text-sm text-slate-600">24 users online</p>
+                  </div>
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-slate-700">Storage Usage</h4>
+                    <p className="text-sm text-slate-600">2.3 GB of 10 GB used</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
