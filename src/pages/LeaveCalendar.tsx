@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -28,7 +27,7 @@ const LeaveCalendar = () => {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
 
   // Check if user has permission to view this page
-  if (!hasRole('manager')) {
+  if (!hasRole('head')) {
     return (
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         <div className="text-center">
