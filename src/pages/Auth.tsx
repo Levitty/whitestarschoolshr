@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { School, Mail, Lock, User, Building } from 'lucide-react';
+import { School, Mail, Lock, User, Building, Shield } from 'lucide-react';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -47,13 +46,7 @@ const Auth = () => {
       }
       
       // Redirect based on role
-      if (profile.role === 'superadmin') {
-        navigate('/dashboard');
-      } else if (profile.role === 'head') {
-        navigate('/dashboard');
-      } else {
-        navigate('/dashboard');
-      }
+      navigate('/dashboard');
     }
   }, [user, profile, navigate]);
 
@@ -257,6 +250,24 @@ const Auth = () => {
                 </form>
               </TabsContent>
             </Tabs>
+          </CardContent>
+        </Card>
+
+        {/* Super Admin Access */}
+        <Card className="border-red-200 bg-red-50/50">
+          <CardContent className="p-4 text-center">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <Shield className="h-4 w-4 text-red-600" />
+              <span className="text-sm font-medium text-red-700">Administrator Access</span>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/admin-auth')}
+              className="text-red-700 border-red-300 hover:bg-red-100"
+            >
+              Super Admin Portal
+            </Button>
           </CardContent>
         </Card>
 

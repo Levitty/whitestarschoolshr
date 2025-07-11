@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -8,6 +7,7 @@ import { AuthProvider } from '@/hooks/useAuth';
 // Import pages
 import Index from '@/pages/Index';
 import Auth from '@/pages/Auth';
+import SuperAdminAuth from '@/pages/SuperAdminAuth';
 import Jobs from '@/pages/Jobs';
 import JobDetail from '@/pages/JobDetail';
 import Apply from '@/pages/Apply';
@@ -37,6 +37,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/admin-auth" element={<SuperAdminAuth />} />
             <Route path="/jobs" element={<Jobs />} />
             <Route path="/jobs/:id" element={<JobDetail />} />
             <Route path="/apply/:jobId" element={<Apply />} />
