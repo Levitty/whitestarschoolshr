@@ -1,5 +1,7 @@
 
-export type UserRole = 'superadmin' | 'admin' | 'head' | 'teacher' | 'staff';
+export type UserRole = 'superadmin' | 'admin' | 'head' | 'teacher' | 'staff' | 'secretary' | 'driver' | 'support_staff';
+
+export type UserStatus = 'pending' | 'active' | 'inactive' | 'suspended';
 
 export interface Profile {
   id: string;
@@ -14,7 +16,7 @@ export interface Profile {
   employee_id: string | null;
   hire_date: string | null;
   is_active: boolean | null;
-  status: string | null;
+  status: UserStatus | null;
   created_at: string | null;
   updated_at: string | null;
 }
@@ -24,7 +26,7 @@ export interface AuthContextType {
   session: any | null;
   profile: Profile | null;
   loading: boolean;
-  signUp: (email: string, password: string, fullName: string, department: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, fullName: string, department: string, role: UserRole) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   fetchProfile: () => Promise<void>;

@@ -81,7 +81,10 @@ const SuperAdminSetup = () => {
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ is_active: isActive })
+        .update({ 
+          is_active: isActive,
+          status: isActive ? 'active' : 'inactive'
+        })
         .eq('id', userId);
 
       if (error) {
@@ -144,11 +147,17 @@ const SuperAdminSetup = () => {
            profile.role?.toLowerCase().includes(searchLower);
   });
 
-  const getStatusBadge = (isActive: boolean | null) => {
+  const getStatusBadge = (status: string | null, isActive: boolean | null) => {
+    if (status === 'pending') {
+      return <Badge className="bg-yellow-100 text-yellow-800">Pending Approval</Badge>;
+    }
+    if (status === 'suspended') {
+      return <Badge className="bg-red-100 text-red-800">Suspended</Badge>;
+    }
     return isActive ? (
       <Badge className="bg-green-100 text-green-800">Active</Badge>
     ) : (
-      <Badge className="bg-red-100 text-red-800">Inactive</Badge>
+      <Badge className="bg-gray-100 text-gray-800">Inactive</Badge>
     );
   };
 
@@ -203,7 +212,7 @@ const SuperAdminSetup = () => {
                     <h3 className="font-semibold text-lg">
                       {profile.first_name} {profile.last_name}
                     </h3>
-                    {getStatusBadge(profile.is_active)}
+                    {getStatusBadge(profile.status, profile.is_active)}
                     {getRoleBadge(profile.role)}
                   </div>
                   <p className="text-gray-600">{profile.email}</p>
@@ -218,25 +227,28 @@ const SuperAdminSetup = () => {
                     value={profile.role || 'staff'}
                     onValueChange={(value) => updateUserRole(profile.id, value as any)}
                   >
-                    <SelectTrigger className="w-32">
+                    <SelectTrigger className="w-40">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="staff">Staff</SelectItem>
                       <SelectItem value="teacher">Teacher</SelectItem>
-                      <SelectItem value="head">Head</SelectItem>
+                      <SelectItem value="head">Head Teacher</SelectItem>
+                      <SelectItem value="secretary">Secretary</SelectItem>
+                      <SelectItem value="driver">Driver</SelectItem>
+                      <SelectItem value="support_staff">Support Staff</SelectItem>
                       <SelectItem value="superadmin">Super Admin</SelectItem>
                     </SelectContent>
                   </Select>
 
-                  {!profile.is_active ? (
+                  {!profile.is_active || profile.status === 'pending' ? (
                     <Button
                       onClick={() => updateUserStatus(profile.id, true)}
                       size="sm"
                       className="bg-green-600 hover:bg-green-700"
                     >
                       <UserCheck className="w-4 h-4 mr-1" />
-                      Activate
+                      {profile.status === 'pending' ? 'Approve' : 'Activate'}
                     </Button>
                   ) : (
                     <Button

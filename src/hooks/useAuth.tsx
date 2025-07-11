@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       employee_id: data.employee_id,
       hire_date: data.hire_date,
       is_active: data.is_active,
-      status: data.is_active ? 'active' : 'inactive',
+      status: data.status || 'pending',
       created_at: data.created_at,
       updated_at: data.updated_at
     };
@@ -103,7 +103,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const signUp = async (email: string, password: string, fullName: string, department: string) => {
+  const signUp = async (email: string, password: string, fullName: string, department: string, role: UserRole) => {
     setLoading(true);
     const { error } = await supabase.auth.signUp({
       email,
@@ -112,7 +112,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         emailRedirectTo: `${window.location.origin}/`,
         data: {
           full_name: fullName,
-          department: department
+          department: department,
+          role: role
         }
       }
     });
