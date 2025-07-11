@@ -5,72 +5,18 @@ import { supabase } from '@/integrations/supabase/client';
 
 interface Profile {
   id: string;
-  email: string;
-  first_name: string | null;
-  last_name: string | null;
-  phone: string | null;
+  user_id: string;
+  full_name: string;
   department: string | null;
-  role: 'admin' | 'manager' | 'staff' | null;
-  hire_date: string | null;
-  employee_id: string | null;
-  avatar_url: string | null;
-  is_active: boolean;
-  created_at?: string | null;
-  updated_at?: string | null;
+  role: 'superadmin' | 'head' | 'teacher' | 'staff';
+  status: 'pending' | 'active';
+  created_at: string;
+  updated_at: string;
 }
 
 export const useProfile = () => {
-  const { user } = useAuth();
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (user) {
-      fetchProfile();
-    } else {
-      setProfile(null);
-      setLoading(false);
-    }
-  }, [user]);
-
-  const fetchProfile = async () => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-
-      if (error) {
-        console.error('Error fetching profile:', error);
-        setProfile(null);
-      } else {
-        const profileData: Profile = {
-          id: data.id,
-          email: data.email,
-          first_name: data.first_name,
-          last_name: data.last_name,
-          phone: data.phone,
-          department: data.department,
-          role: data.role as 'admin' | 'manager' | 'staff',
-          hire_date: data.hire_date,
-          employee_id: data.employee_id,
-          avatar_url: data.avatar_url,
-          is_active: data.is_active,
-          created_at: data.created_at,
-          updated_at: data.updated_at
-        };
-        setProfile(profileData);
-      }
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-      setProfile(null);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { user, profile } = useAuth();
+  const [loading, setLoading] = useState(false);
 
   const updateProfile = async (updates: Partial<Profile>) => {
     if (!user) return { error: 'No user found' };
@@ -79,43 +25,44 @@ export const useProfile = () => {
       const { error } = await supabase
         .from('profiles')
         .update(updates)
-        .eq('id', user.id);
+        .eq('user_id', user.id);
 
       if (error) {
         return { error };
       }
 
-      await fetchProfile();
       return { error: null };
     } catch (error) {
       return { error };
     }
   };
 
-  const hasRole = (requiredRole: 'admin' | 'manager' | 'staff') => {
+  const hasRole = (requiredRole: 'superadmin' | 'head' | 'teacher' | 'staff') => {
     if (!profile?.role) return false;
     
     const roleHierarchy = {
-      admin: 3,
-      manager: 2,
+      superadmin: 4,
+      head: 3,
+      teacher: 2,
       staff: 1
     };
     
     return roleHierarchy[profile.role] >= roleHierarchy[requiredRole];
   };
 
-  const canAccessAdmin = () => hasRole('admin');
-  const canAccessManager = () => hasRole('manager');
+  const canAccessAdmin = () => hasRole('superadmin');
+  const canAccessDepartment = () => hasRole('head');
+  const isTeacher = () => profile?.role === 'teacher';
   const isStaff = () => profile?.role === 'staff';
 
   return {
     profile,
     loading,
-    fetchProfile,
     updateProfile,
     hasRole,
     canAccessAdmin,
-    canAccessManager,
+    canAccessDepartment,
+    isTeacher,
     isStaff
   };
 };
