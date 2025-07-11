@@ -43,7 +43,7 @@ const RecruitmentAssessments = () => {
 
   const [showQuestionDialog, setShowQuestionDialog] = useState(false);
 
-  const isAdmin = profile?.role === 'admin';
+  const isAdmin = profile?.role === 'superadmin';
 
   if (!isAdmin) {
     return null;
