@@ -41,13 +41,13 @@ const Employees = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-50">
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
           <div className="mb-4 sm:mb-0">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-blue-700 bg-clip-text text-transparent">
-              HR Management
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-900 to-blue-700 bg-clip-text text-transparent">
+              Employee Management
             </h1>
             <p className="text-slate-600 mt-1">Comprehensive employee management system</p>
           </div>
@@ -55,7 +55,7 @@ const Employees = () => {
         </div>
 
         <Tabs defaultValue="employees" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 bg-white/80 backdrop-blur-sm border border-slate-200 rounded-xl p-1 shadow-sm">
+          <TabsList className="grid w-full grid-cols-4 bg-white/90 backdrop-blur-sm border border-blue-200 rounded-xl p-1 shadow-sm">
             <TabsTrigger 
               value="employees" 
               className="rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200"
@@ -72,7 +72,7 @@ const Employees = () => {
               value="recruitment" 
               className="rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200"
             >
-              Recruitment
+              Analytics
             </TabsTrigger>
             <TabsTrigger 
               value="contracts" 
@@ -83,14 +83,14 @@ const Employees = () => {
           </TabsList>
 
           <TabsContent value="employees" className="space-y-6">
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-slate-200 p-4 shadow-sm">
+            <div className="bg-white/90 backdrop-blur-sm rounded-xl border border-blue-200 p-4 shadow-sm">
               <EmployeeSearch 
                 searchTerm={searchTerm}
                 onSearchChange={setSearchTerm}
               />
             </div>
 
-            {/* Employee Grid - Restored proper spacing */}
+            {/* Employee Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredEmployees.map((employee) => (
                 <EmployeeCard
@@ -108,23 +108,23 @@ const Employees = () => {
 
           <TabsContent value="documents" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="bg-white/90 backdrop-blur-sm rounded-xl border border-blue-200 shadow-sm overflow-hidden">
                 <DocumentUpload onSuccess={() => window.location.reload()} />
               </div>
-              <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="bg-white/90 backdrop-blur-sm rounded-xl border border-blue-200 shadow-sm overflow-hidden">
                 <DocumentsList />
               </div>
             </div>
           </TabsContent>
 
           <TabsContent value="recruitment" className="space-y-6">
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="bg-white/90 backdrop-blur-sm rounded-xl border border-blue-200 shadow-sm overflow-hidden">
               <RecruitmentStats employees={employees} />
             </div>
           </TabsContent>
 
           <TabsContent value="contracts" className="space-y-6">
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="bg-white/90 backdrop-blur-sm rounded-xl border border-blue-200 shadow-sm overflow-hidden">
               <ContractExpiry />
             </div>
           </TabsContent>

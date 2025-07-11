@@ -24,7 +24,7 @@ import Performance from '@/pages/Performance';
 import Upskilling from '@/pages/Upskilling';
 import NotFound from '@/pages/NotFound';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import Layout from '@/components/Layout';
+import Layout from '@/pages/Layout';
 import LeaveCalendar from '@/pages/LeaveCalendar';
 
 const queryClient = new QueryClient();
@@ -42,101 +42,53 @@ function App() {
             <Route path="/apply/:jobId" element={<Apply />} />
             
             {/* Protected routes with Layout */}
-            <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <Layout>
-                  <Dashboard />
-                </Layout>
-              </ProtectedRoute>
-            } />
+            <Route path="/dashboard" element={<Layout />}>
+              <Route index element={<Dashboard />} />
+            </Route>
             
-            <Route path="/employees" element={
-              <ProtectedRoute>
-                <Layout>
-                  <Employees />
-                </Layout>
-              </ProtectedRoute>
-            } />
+            <Route path="/employees" element={<Layout />}>
+              <Route index element={<Employees />} />
+            </Route>
             
-            <Route path="/leave" element={
-              <ProtectedRoute>
-                <Layout>
-                  <Leave />
-                </Layout>
-              </ProtectedRoute>
-            } />
+            <Route path="/leave" element={<Layout />}>
+              <Route index element={<Leave />} />
+            </Route>
 
-            <Route path="/leave/request" element={
-              <ProtectedRoute>
-                <Layout>
-                  <LeaveForm />
-                </Layout>
-              </ProtectedRoute>
-            } />
+            <Route path="/leave/request" element={<Layout />}>
+              <Route index element={<LeaveForm />} />
+            </Route>
 
-            <Route path="/leave/approval" element={
-              <ProtectedRoute>
-                <Layout>
-                  <LeaveApproval />
-                </Layout>
-              </ProtectedRoute>
-            } />
+            <Route path="/leave-approval" element={<Layout />}>
+              <Route index element={<LeaveApproval />} />
+            </Route>
 
-            <Route path="/leave/calendar" element={
-              <ProtectedRoute>
-                <Layout>
-                  <LeaveCalendar />
-                </Layout>
-              </ProtectedRoute>
-            } />
+            <Route path="/leave/calendar" element={<Layout />}>
+              <Route index element={<LeaveCalendar />} />
+            </Route>
             
-            <Route path="/recruitment" element={
-              <ProtectedRoute>
-                <Layout>
-                  <Recruitment />
-                </Layout>
-              </ProtectedRoute>
-            } />
+            <Route path="/recruitment" element={<Layout />}>
+              <Route index element={<Recruitment />} />
+            </Route>
             
-            <Route path="/applications" element={
-              <ProtectedRoute>
-                <Layout>
-                  <Applications />
-                </Layout>
-              </ProtectedRoute>
-            } />
+            <Route path="/applications" element={<Layout />}>
+              <Route index element={<Applications />} />
+            </Route>
             
-            <Route path="/tickets" element={
-              <ProtectedRoute>
-                <Layout>
-                  <Tickets />
-                </Layout>
-              </ProtectedRoute>
-            } />
+            <Route path="/tickets" element={<Layout />}>
+              <Route index element={<Tickets />} />
+            </Route>
             
-            <Route path="/records" element={
-              <ProtectedRoute>
-                <Layout>
-                  <Records />
-                </Layout>
-              </ProtectedRoute>
-            } />
+            <Route path="/records" element={<Layout />}>
+              <Route index element={<Records />} />
+            </Route>
             
-            <Route path="/performance" element={
-              <ProtectedRoute>
-                <Layout>
-                  <Performance />
-                </Layout>
-              </ProtectedRoute>
-            } />
+            <Route path="/performance" element={<Layout />}>
+              <Route index element={<Performance />} />
+            </Route>
             
-            <Route path="/upskilling" element={
-              <ProtectedRoute>
-                <Layout>
-                  <Upskilling />
-                </Layout>
-              </ProtectedRoute>
-            } />
+            <Route path="/upskilling" element={<Layout />}>
+              <Route index element={<Upskilling />} />
+            </Route>
             
             <Route path="*" element={<NotFound />} />
           </Routes>
