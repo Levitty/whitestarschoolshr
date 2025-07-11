@@ -128,7 +128,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     getSession();
 
     return () => subscription.unsubscribe();
-  }, [user]);
+  }, []);
 
   const signUp = async (email: string, password: string, fullName: string, department: string) => {
     setLoading(true);

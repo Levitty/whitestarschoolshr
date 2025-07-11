@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -39,7 +38,7 @@ const RoleBasedDashboard = () => {
           </h1>
           <p className="text-slate-600 mt-2">
             {profile
-              ? `Hello, ${profile.first_name} ${profile.last_name}! Here's a quick overview of your HR tools.`
+              ? `Hello, ${profile.full_name}! Here's a quick overview of your HR tools.`
               : 'Loading user information...'}
           </p>
         </div>

@@ -16,14 +16,14 @@ const LeaveApproval = () => {
     );
   }
 
-  if (!hasRole('manager')) {
+  if (!hasRole('head')) {
     return (
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         <div className="text-center py-12">
           <Shield className="h-16 w-16 mx-auto mb-4 text-red-500" />
           <h1 className="text-2xl font-bold text-slate-900 mb-2">Access Denied</h1>
           <p className="text-slate-600">You don't have permission to access this page.</p>
-          <p className="text-sm text-slate-500 mt-1">Only HR administrators and managers can approve leave requests.</p>
+          <p className="text-sm text-slate-500 mt-1">Only HR administrators and department heads can approve leave requests.</p>
         </div>
       </div>
     );

@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -70,7 +71,7 @@ const Navigation = () => {
                   </p>
                 </Link>
               </NavigationMenuLink>
-              {hasRole('manager') && (
+              {hasRole('head') && (
                 <NavigationMenuLink asChild>
                   <Link
                     to="/leave/calendar"
@@ -132,13 +133,13 @@ const Navigation = () => {
           <DropdownMenuTrigger asChild>
             <button className="outline-none focus:outline-none rounded-full">
               <Avatar className="w-8 h-8">
-                <AvatarImage src={profile?.avatar_url} />
-                <AvatarFallback>{profile?.first_name?.charAt(0)}{profile?.last_name?.charAt(0)}</AvatarFallback>
+                <AvatarImage src="" />
+                <AvatarFallback>{profile?.full_name?.charAt(0) || 'U'}</AvatarFallback>
               </Avatar>
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56 mr-2">
-            <DropdownMenuLabel>{profile?.first_name} {profile?.last_name}</DropdownMenuLabel>
+            <DropdownMenuLabel>{profile?.full_name || 'User'}</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
               <Link to="/performance" className="flex items-center">
