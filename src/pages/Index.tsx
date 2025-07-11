@@ -2,6 +2,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import Layout from '@/components/Layout';
 import RoleBasedDashboard from '@/components/RoleBasedDashboard';
 
 const Index = () => {
@@ -43,13 +44,9 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="flex">
-        <div className="flex-1 p-6 lg:p-8">
-          <RoleBasedDashboard />
-        </div>
-      </div>
-    </div>
+    <Layout>
+      <RoleBasedDashboard />
+    </Layout>
   );
 };
 
