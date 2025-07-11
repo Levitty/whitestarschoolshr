@@ -14,6 +14,8 @@ const RoleBasedNavigation = () => {
   const navigate = useNavigate();
   const { signOut, profile } = useAuth();
 
+  console.log('Current profile:', profile); // Debug log to check profile data
+
   const isActive = (path: string) => {
     return location.pathname === path;
   };
@@ -32,6 +34,7 @@ const RoleBasedNavigation = () => {
     { path: "/records", label: "Documents", icon: FolderOpen },
     { path: "/leave", label: "Leave Management", icon: Calendar },
     { path: "/upskilling", label: "Training", icon: GraduationCap },
+    { path: "/tickets", label: "Support Tickets", icon: Settings },
     { path: "/settings", label: "System Settings", icon: Settings },
   ];
 
@@ -44,6 +47,7 @@ const RoleBasedNavigation = () => {
     { path: "/records", label: "Team Documents", icon: FolderOpen },
     { path: "/leave", label: "Leave Approvals", icon: Calendar },
     { path: "/upskilling", label: "Team Training", icon: GraduationCap },
+    { path: "/tickets", label: "Support", icon: Settings },
   ];
 
   const teacherStaffNavItems: NavItem[] = [
@@ -52,13 +56,19 @@ const RoleBasedNavigation = () => {
     { path: "/performance", label: "My Performance", icon: BarChart },
     { path: "/upskilling", label: "My Training", icon: GraduationCap },
     { path: "/records", label: "My Documents", icon: FolderOpen },
+    { path: "/tickets", label: "Support", icon: Settings },
   ];
 
   let navItems: NavItem[] = [];
 
-  switch (profile?.role) {
+  // Enhanced role checking with better logging
+  const userRole = profile?.role;
+  console.log('User role:', userRole); // Debug log
+
+  switch (userRole) {
     case "superadmin":
       navItems = superAdminNavItems;
+      console.log('Assigned superadmin navigation items'); // Debug log
       break;
     case "head":
       navItems = headNavItems;
@@ -100,11 +110,33 @@ const RoleBasedNavigation = () => {
     }
   };
 
+  // Show loading state if profile is not loaded yet
+  if (!profile) {
+    return (
+      <aside className="w-64 bg-gray-900 text-white min-h-screen shadow-xl flex flex-col">
+        <div className="p-6 border-b border-gray-700">
+          <div className="animate-pulse">
+            <div className="h-6 bg-gray-700 rounded mb-2"></div>
+            <div className="h-4 bg-gray-800 rounded w-3/4"></div>
+          </div>
+        </div>
+        <div className="p-4">
+          <div className="animate-pulse space-y-3">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="h-10 bg-gray-800 rounded"></div>
+            ))}
+          </div>
+        </div>
+      </aside>
+    );
+  }
+
   return (
     <aside className={`w-64 text-white min-h-screen shadow-xl flex flex-col ${getRoleColor(profile?.role)}`}>
       <div className="p-6 border-b border-opacity-20 border-white">
         <h1 className="text-xl font-bold text-white">HR Portal</h1>
         <p className="text-xs text-white/70 mt-1">{getRoleDisplayName(profile?.role)}</p>
+        <p className="text-xs text-white/50 mt-1">Role: {profile?.role}</p>
       </div>
       
       <nav className="px-4 py-6 space-y-1 flex-1">
