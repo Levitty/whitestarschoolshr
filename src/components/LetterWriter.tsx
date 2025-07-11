@@ -1,0 +1,351 @@
+
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
+import { useEmployees } from '@/hooks/useEmployees';
+import { useDocumentTemplates } from '@/hooks/useDocumentTemplates';
+import { useDocuments } from '@/hooks/useDocuments';
+import { supabase } from '@/integrations/supabase/client';
+import { 
+  PenTool, 
+  Sparkles, 
+  Send, 
+  Download, 
+  Loader,
+  FileText
+} from 'lucide-react';
+
+const LetterWriter = () => {
+  const { employees } = useEmployees();
+  const { templates } = useDocumentTemplates();
+  const { createLetter } = useDocuments();
+  const { toast } = useToast();
+  
+  const [selectedEmployee, setSelectedEmployee] = useState('');
+  const [selectedTemplate, setSelectedTemplate] = useState('');
+  const [letterType, setLetterType] = useState('');
+  const [situationDescription, setSituationDescription] = useState('');
+  const [letterContent, setLetterContent] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [letterTitle, setLetterTitle] = useState('');
+
+  const employee = employees?.find(emp => emp.id === selectedEmployee);
+  const template = templates?.find(temp => temp.id === selectedTemplate);
+
+  useEffect(() => {
+    if (template) {
+      let content = template.content;
+      if (employee) {
+        content = content.replace(/{{employee_name}}/g, `${employee.first_name} ${employee.last_name}`);
+        content = content.replace(/{{employee_email}}/g, employee.email);
+        content = content.replace(/{{employee_position}}/g, employee.position);
+        content = content.replace(/{{employee_department}}/g, employee.department);
+        content = content.replace(/{{date}}/g, new Date().toLocaleDateString());
+      }
+      setLetterContent(content);
+      setLetterTitle(template.name);
+      setLetterType(template.template_type);
+    }
+  }, [template, employee]);
+
+  const generateWithAI = async () => {
+    if (!employee || !letterType || !situationDescription) {
+      toast({
+        title: "Missing Information",
+        description: "Please select an employee, letter type, and describe the situation.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      // Get company name from letterhead settings
+      const { data: letterheadData } = await supabase
+        .from('letterhead_settings')
+        .select('company_name')
+        .eq('is_active', true)
+        .single();
+
+      const response = await supabase.functions.invoke('generate-letter', {
+        body: {
+          letterType,
+          employeeName: `${employee.first_name} ${employee.last_name}`,
+          situationDescription,
+          companyName: letterheadData?.company_name || 'Our Organization'
+        }
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+
+      setLetterContent(response.data.generatedLetter);
+      setLetterTitle(`${letterType} - ${employee.first_name} ${employee.last_name}`);
+      
+      toast({
+        title: "Letter Generated",
+        description: "AI has generated your letter. You can now edit it as needed."
+      });
+    } catch (error) {
+      console.error('AI generation error:', error);
+      toast({
+        title: "Generation Failed",
+        description: "Failed to generate letter with AI. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const saveLetter = async () => {
+    if (!selectedEmployee || !letterContent || !letterTitle) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const source = selectedTemplate ? 'template' : (situationDescription ? 'ai_generated' : 'manual');
+      const category = template?.template_type || letterType || 'administrative';
+      
+      const result = await createLetter(
+        letterTitle,
+        letterContent,
+        selectedEmployee,
+        letterType || 'General Letter',
+        category as any,
+        source as any,
+        selectedTemplate || undefined
+      );
+
+      if (result?.error) {
+        throw new Error(result.error.message);
+      }
+
+      toast({
+        title: "Letter Saved",
+        description: "The letter has been saved to the employee's documents."
+      });
+
+      // Reset form
+      setSelectedEmployee('');
+      setSelectedTemplate('');
+      setLetterType('');
+      setSituationDescription('');
+      setLetterContent('');
+      setLetterTitle('');
+    } catch (error) {
+      console.error('Save error:', error);
+      toast({
+        title: "Save Failed",
+        description: "Failed to save the letter. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const downloadLetter = () => {
+    if (!letterContent) {
+      toast({
+        title: "No Content",
+        description: "Please write or generate a letter first.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const blob = new Blob([letterContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${letterTitle || 'Letter'}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-slate-900">Write Letter</h2>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Letter Setup */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <PenTool className="h-5 w-5" />
+              Letter Setup
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="employee">Select Employee *</Label>
+              <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose employee" />
+                </SelectTrigger>
+                <SelectContent>
+                  {employees?.map((emp) => (
+                    <SelectItem key={emp.id} value={emp.id}>
+                      {emp.first_name} {emp.last_name} - {emp.position}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="template">Template (Optional)</Label>
+              <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose template" />
+                </SelectTrigger>
+                <SelectContent>
+                  {templates?.map((template) => (
+                    <SelectItem key={template.id} value={template.id}>
+                      {template.name} ({template.template_type})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="letterType">Letter Type</Label>
+              <Input
+                id="letterType"
+                value={letterType}
+                onChange={(e) => setLetterType(e.target.value)}
+                placeholder="e.g., Show Cause, Promotion, Warning"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="title">Letter Title *</Label>
+              <Input
+                id="title"
+                value={letterTitle}
+                onChange={(e) => setLetterTitle(e.target.value)}
+                placeholder="Enter letter title"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* AI Generation */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5" />
+              AI Generation
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="situation">Describe the Situation</Label>
+              <Textarea
+                id="situation"
+                value={situationDescription}
+                onChange={(e) => setSituationDescription(e.target.value)}
+                placeholder="Describe the situation that requires this letter..."
+                rows={4}
+              />
+            </div>
+
+            <Button 
+              onClick={generateWithAI}
+              disabled={isGenerating || !selectedEmployee}
+              className="w-full"
+            >
+              {isGenerating ? (
+                <>
+                  <Loader className="h-4 w-4 mr-2 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Generate with AI
+                </>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Actions */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Actions
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Button 
+              onClick={saveLetter}
+              disabled={isSaving || !letterContent || !selectedEmployee}
+              className="w-full"
+            >
+              {isSaving ? (
+                <>
+                  <Loader className="h-4 w-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Send className="h-4 w-4 mr-2" />
+                  Save Letter
+                </>
+              )}
+            </Button>
+
+            <Button 
+              onClick={downloadLetter}
+              disabled={!letterContent}
+              variant="outline"
+              className="w-full"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Download
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Letter Content */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Letter Content</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Textarea
+            value={letterContent}
+            onChange={(e) => setLetterContent(e.target.value)}
+            placeholder="Write your letter here or use AI generation..."
+            rows={20}
+            className="font-mono text-sm"
+          />
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default LetterWriter;

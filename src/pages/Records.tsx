@@ -5,12 +5,18 @@ import DocumentUpload from '@/components/DocumentUpload';
 import DocumentsList from '@/components/DocumentsList';
 import ContractExpiry from '@/components/ContractExpiry';
 import DocumentTemplateManager from '@/components/DocumentTemplateManager';
+import LetterWriter from '@/components/LetterWriter';
+import LetterheadSettings from '@/components/LetterheadSettings';
+import EmployeeLetterArchive from '@/components/EmployeeLetterArchive';
 import { useAuth } from '@/hooks/useAuth';
 import { 
   FileText, 
   Camera,
   AlertTriangle,
-  PenTool
+  PenTool,
+  Sparkles,
+  Building,
+  Archive
 } from 'lucide-react';
 
 const Records = () => {
@@ -41,6 +47,9 @@ const Records = () => {
     { value: 'documents', label: 'Documents', icon: FileText },
     { value: 'upload', label: 'Upload', icon: Camera },
     { value: 'templates', label: 'Letter Templates', icon: PenTool },
+    { value: 'write-letter', label: 'Write Letter', icon: Sparkles },
+    { value: 'letterhead', label: 'Letterhead', icon: Building },
+    { value: 'letter-archive', label: 'Letter Archive', icon: Archive },
     { value: 'contracts', label: 'Contracts', icon: AlertTriangle }
   ];
 
@@ -56,7 +65,7 @@ const Records = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-7">
           {tabsConfig.map(({ value, label, icon: Icon }) => (
             <TabsTrigger key={value} value={value} className="flex items-center gap-2">
               <Icon className="h-4 w-4" />
@@ -77,6 +86,18 @@ const Records = () => {
 
         <TabsContent value="templates" className="space-y-6">
           <DocumentTemplateManager />
+        </TabsContent>
+
+        <TabsContent value="write-letter" className="space-y-6">
+          <LetterWriter />
+        </TabsContent>
+
+        <TabsContent value="letterhead" className="space-y-6">
+          <LetterheadSettings />
+        </TabsContent>
+
+        <TabsContent value="letter-archive" className="space-y-6">
+          <EmployeeLetterArchive />
         </TabsContent>
 
         <TabsContent value="contracts" className="space-y-6">
