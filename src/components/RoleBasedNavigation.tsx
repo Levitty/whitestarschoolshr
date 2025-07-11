@@ -1,5 +1,5 @@
 
-import { Home, Calendar, Users, FileText, UserPlus, MessageSquare, Settings, GraduationCap, BarChart, Briefcase } from "lucide-react";
+import { Home, Calendar, Users, FileText, UserPlus, MessageSquare, Settings, GraduationCap, BarChart, Briefcase, FolderOpen } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -21,24 +21,23 @@ const RoleBasedNavigation = () => {
     { path: "/", label: "Dashboard", icon: Home },
     { path: "/employees", label: "Employees", icon: Users },
     { path: "/recruitment", label: "Recruitment", icon: UserPlus },
-    { path: "/leave-approval", label: "Leave Management", icon: Calendar },
-    { path: "/performance", label: "Performance", icon: BarChart },
-    { path: "/upskilling", label: "Upskilling", icon: GraduationCap },
-    { path: "/records", label: "Records", icon: FileText },
     { path: "/applications", label: "Applications", icon: Briefcase },
-    { path: "/tickets", label: "Support", icon: MessageSquare },
+    { path: "/performance", label: "Performance", icon: BarChart },
     { path: "/settings", label: "Settings", icon: Settings },
+    { path: "/records", label: "Documents", icon: FolderOpen },
+    { path: "/leave-approval", label: "Leave Requests", icon: Calendar },
+    { path: "/upskilling", label: "Upskilling", icon: GraduationCap },
   ];
 
   const hrNavItems = [
     { path: "/", label: "Dashboard", icon: Home },
     { path: "/employees", label: "Employees", icon: Users },
     { path: "/recruitment", label: "Recruitment", icon: UserPlus },
-    { path: "/leave-approval", label: "Leave Management", icon: Calendar },
-    { path: "/performance", label: "Performance", icon: BarChart },
-    { path: "/upskilling", label: "Upskilling", icon: GraduationCap },
-    { path: "/records", label: "Records", icon: FileText },
     { path: "/applications", label: "Applications", icon: Briefcase },
+    { path: "/performance", label: "Performance", icon: BarChart },
+    { path: "/records", label: "Documents", icon: FolderOpen },
+    { path: "/leave-approval", label: "Leave Requests", icon: Calendar },
+    { path: "/upskilling", label: "Upskilling", icon: GraduationCap },
     { path: "/tickets", label: "Support", icon: MessageSquare },
   ];
 
@@ -63,19 +62,19 @@ const RoleBasedNavigation = () => {
   }
 
   return (
-    <aside className="w-64 bg-white border-r border-gray-200 min-h-screen">
-      <div className="p-6">
-        <h1 className="text-xl font-bold text-gray-900">School HR Portal</h1>
+    <aside className="w-64 bg-slate-800 text-white min-h-screen">
+      <div className="p-6 border-b border-slate-700">
+        <h1 className="text-xl font-bold text-white">School HR Portal</h1>
       </div>
-      <nav className="px-4 space-y-1">
+      <nav className="px-4 py-6 space-y-1">
         {navItems.map((item) => (
           <a
             key={item.path}
             href={item.path}
-            className={`flex items-center space-x-2 rounded-md p-3 text-sm font-medium transition-colors ${
+            className={`flex items-center space-x-3 rounded-md p-3 text-sm font-medium transition-colors ${
               isActive(item.path) 
-                ? "bg-blue-50 text-blue-700 border-r-2 border-blue-700" 
-                : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                ? "bg-blue-600 text-white" 
+                : "text-slate-300 hover:bg-slate-700 hover:text-white"
             }`}
           >
             <item.icon className="h-5 w-5" />
@@ -84,16 +83,16 @@ const RoleBasedNavigation = () => {
         ))}
       </nav>
       
-      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gray-50 border-t">
+      <div className="absolute bottom-0 left-0 right-0 p-4 bg-slate-900 border-t border-slate-700">
         <div className="flex items-center space-x-3">
           <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-medium text-sm">
             {user?.email?.charAt(0).toUpperCase() || 'U'}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 truncate">
+            <p className="text-sm font-medium text-white truncate">
               {user?.email || 'User'}
             </p>
-            <p className="text-xs text-gray-500 capitalize">
+            <p className="text-xs text-slate-400 capitalize">
               {userRole || 'Employee'}
             </p>
           </div>

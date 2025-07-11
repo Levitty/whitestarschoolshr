@@ -17,8 +17,10 @@ import {
   Send, 
   Download, 
   Loader,
-  FileText
+  FileText,
+  AlertCircle
 } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const LetterWriter = () => {
   const { employees } = useEmployees();
@@ -34,6 +36,7 @@ const LetterWriter = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [letterTitle, setLetterTitle] = useState('');
+  const [generationError, setGenerationError] = useState('');
 
   const employee = employees?.find(emp => emp.id === selectedEmployee);
   const template = templates?.find(temp => temp.id === selectedTemplate);
@@ -65,7 +68,15 @@ const LetterWriter = () => {
     }
 
     setIsGenerating(true);
+    setGenerationError('');
+    
     try {
+      console.log('Starting AI generation with:', {
+        letterType,
+        employeeName: `${employee.first_name} ${employee.last_name}`,
+        situationDescription
+      });
+
       // Get company name from letterhead settings
       const { data: letterheadData } = await supabase
         .from('letterhead_settings')
@@ -82,22 +93,32 @@ const LetterWriter = () => {
         }
       });
 
+      console.log('Supabase function response:', response);
+
       if (response.error) {
-        throw new Error(response.error.message);
+        console.error('Supabase function error:', response.error);
+        throw new Error(response.error.message || 'Failed to generate letter');
+      }
+
+      if (!response.data || !response.data.generatedLetter) {
+        console.error('Invalid response data:', response.data);
+        throw new Error('No letter content received from AI');
       }
 
       setLetterContent(response.data.generatedLetter);
       setLetterTitle(`${letterType} - ${employee.first_name} ${employee.last_name}`);
       
       toast({
-        title: "Letter Generated",
-        description: "AI has generated your letter. You can now edit it as needed."
+        title: "Letter Generated Successfully",
+        description: "AI has generated your letter. You can now review and edit it as needed."
       });
     } catch (error) {
       console.error('AI generation error:', error);
+      const errorMessage = error.message || 'Failed to generate letter with AI. Please try again.';
+      setGenerationError(errorMessage);
       toast({
         title: "Generation Failed",
-        description: "Failed to generate letter with AI. Please try again.",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
@@ -268,6 +289,13 @@ const LetterWriter = () => {
                 rows={4}
               />
             </div>
+
+            {generationError && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{generationError}</AlertDescription>
+              </Alert>
+            )}
 
             <Button 
               onClick={generateWithAI}
