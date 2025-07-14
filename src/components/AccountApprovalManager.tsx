@@ -46,7 +46,19 @@ const AccountApprovalManager = () => {
           variant: "destructive"
         });
       } else {
-        setPendingUsers(data || []);
+        // Transform the data to match our PendingUser interface
+        const transformedData: PendingUser[] = (data || []).map(user => ({
+          id: user.id,
+          email: user.email,
+          first_name: user.first_name,
+          last_name: user.last_name,
+          department: user.department,
+          role: user.role as UserRole | null,
+          phone: user.phone,
+          status: user.status as UserStatus | null,
+          created_at: user.created_at,
+        }));
+        setPendingUsers(transformedData);
       }
     } catch (error) {
       console.error('Error fetching pending users:', error);
