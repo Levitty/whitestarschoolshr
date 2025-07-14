@@ -1,9 +1,12 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Settings as SettingsIcon, FileText, Users, Shield, Bell } from 'lucide-react';
+import { Settings as SettingsIcon, FileText, Users, Shield, Bell, UserCheck } from 'lucide-react';
 import RoleGuard from '@/components/RoleGuard';
 import SuperAdminSetup from '@/components/SuperAdminSetup';
+import RolePermissionsManager from '@/components/RolePermissionsManager';
+import AccountApprovalManager from '@/components/AccountApprovalManager';
 
 const Settings = () => {
   return (
@@ -19,18 +22,27 @@ const Settings = () => {
               System Settings
             </h1>
             <p className="text-slate-600 mt-2">
-              Configure system preferences, templates, and permissions
+              Configure system preferences, user permissions, and account approvals
             </p>
           </div>
 
-          <Tabs defaultValue="users" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-5">
+          <Tabs defaultValue="approvals" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-6">
+              <TabsTrigger value="approvals">Account Approvals</TabsTrigger>
+              <TabsTrigger value="permissions">Role Permissions</TabsTrigger>
               <TabsTrigger value="users">User Management</TabsTrigger>
               <TabsTrigger value="templates">Templates</TabsTrigger>
               <TabsTrigger value="notifications">Notifications</TabsTrigger>
-              <TabsTrigger value="security">Security</TabsTrigger>
               <TabsTrigger value="system">System</TabsTrigger>
             </TabsList>
+
+            <TabsContent value="approvals">
+              <AccountApprovalManager />
+            </TabsContent>
+
+            <TabsContent value="permissions">
+              <RolePermissionsManager />
+            </TabsContent>
 
             <TabsContent value="users">
               <SuperAdminSetup />
@@ -65,22 +77,6 @@ const Settings = () => {
                 <CardContent>
                   <p className="text-slate-600 text-sm">
                     Configure email notifications, reminders, and system alerts for various events
-                  </p>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="security">
-              <Card className="bg-white/90 backdrop-blur-sm border-blue-200">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-3 text-blue-900">
-                    <Shield className="h-6 w-6 text-red-600" />
-                    Security Settings
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-slate-600 text-sm">
-                    Manage security policies, password requirements, and access controls
                   </p>
                 </CardContent>
               </Card>
