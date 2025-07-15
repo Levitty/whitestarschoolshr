@@ -1,3 +1,4 @@
+
 import { useState, useEffect, createContext, useContext } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -105,42 +106,79 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signUp = async (email: string, password: string, fullName: string, department: string, role: UserRole) => {
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/`,
-        data: {
-          full_name: fullName,
-          department: department,
-          role: role
-        }
-      }
-    });
-
-    // If signup was successful and role is superadmin, activate the account immediately
-    if (!error && role === 'superadmin') {
-      // Wait a moment for the profile to be created by the trigger
-      setTimeout(async () => {
-        try {
-          const { data: { user } } = await supabase.auth.getUser();
-          if (user) {
-            await supabase
-              .from('profiles')
-              .update({ 
-                is_active: true, 
-                status: 'active' 
-              })
-              .eq('id', user.id);
+    
+    try {
+      // For superadmin accounts, use the service role to create and confirm the user
+      if (role === 'superadmin') {
+        console.log('Creating superadmin account...');
+        
+        // First create the user with admin API (this bypasses email confirmation)
+        const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+          email,
+          password,
+          email_confirm: true, // This automatically confirms the email
+          user_metadata: {
+            full_name: fullName,
+            first_name: fullName.split(' ')[0],
+            last_name: fullName.split(' ').slice(1).join(' ') || '',
+            department: department,
+            role: role
           }
-        } catch (updateError) {
-          console.error('Error activating superadmin account:', updateError);
-        }
-      }, 1000);
-    }
+        });
 
-    setLoading(false);
-    return { error };
+        if (authError) {
+          console.error('Error creating superadmin:', authError);
+          setLoading(false);
+          return { error: authError };
+        }
+
+        console.log('Superadmin user created successfully:', authData.user?.email);
+        
+        // Wait for the trigger to create the profile, then update it
+        setTimeout(async () => {
+          try {
+            if (authData.user) {
+              await supabase
+                .from('profiles')
+                .update({ 
+                  is_active: true, 
+                  status: 'active' 
+                })
+                .eq('id', authData.user.id);
+              console.log('Superadmin profile activated');
+            }
+          } catch (updateError) {
+            console.error('Error activating superadmin profile:', updateError);
+          }
+        }, 1000);
+
+        setLoading(false);
+        return { error: null };
+      } else {
+        // Regular user signup (requires email confirmation)
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/`,
+            data: {
+              full_name: fullName,
+              first_name: fullName.split(' ')[0],
+              last_name: fullName.split(' ').slice(1).join(' ') || '',
+              department: department,
+              role: role
+            }
+          }
+        });
+
+        setLoading(false);
+        return { error };
+      }
+    } catch (error) {
+      console.error('Signup error:', error);
+      setLoading(false);
+      return { error };
+    }
   };
 
   const signIn = async (email: string, password: string) => {
