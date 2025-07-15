@@ -73,7 +73,6 @@ export const useJobApplications = () => {
       
       console.log('Uploading to storage path:', fileName);
       
-      // Try to upload to storage
       const { data, error: uploadError } = await supabase.storage
         .from('cv-uploads')
         .upload(fileName, file, {
@@ -82,13 +81,12 @@ export const useJobApplications = () => {
         });
 
       if (uploadError) {
-        console.error('Storage upload error details:', uploadError);
+        console.error('Storage upload error:', uploadError);
         throw new Error(`CV upload failed: ${uploadError.message}`);
       }
 
       console.log('Upload successful, data:', data);
 
-      // Get the public URL
       const { data: { publicUrl } } = supabase.storage
         .from('cv-uploads')
         .getPublicUrl(fileName);
@@ -115,20 +113,6 @@ export const useJobApplications = () => {
       console.log('=== APPLICATION CREATION START ===');
       console.log('Application data:', applicationData);
       
-      // Test database connection first
-      const { error: testError } = await supabase
-        .from('job_applications')
-        .select('count')
-        .limit(1);
-        
-      if (testError) {
-        console.error('Database connection test failed:', testError);
-        throw new Error(`Database connection failed: ${testError.message}`);
-      }
-      
-      console.log('Database connection test passed');
-      
-      // Create the application record
       const insertData = {
         job_id: applicationData.job_id,
         candidate_name: applicationData.candidate_name,
@@ -166,7 +150,7 @@ export const useJobApplications = () => {
       return data;
     } catch (error) {
       console.error('=== APPLICATION CREATION FAILED ===');
-      console.error('Error in createApplication:', error);
+      console.error('Error details:', error);
       throw error;
     }
   };

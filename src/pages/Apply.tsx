@@ -41,7 +41,6 @@ const Apply = () => {
 
   useEffect(() => {
     console.log('Apply page loaded with jobId:', jobId);
-    console.log('Current URL:', window.location.href);
     
     const fetchJob = async () => {
       if (!jobId) {
@@ -154,7 +153,6 @@ const Apply = () => {
           console.log('CV uploaded successfully, URL:', cvUrl);
         } catch (cvError) {
           console.error('CV upload failed:', cvError);
-          // Continue without CV if upload fails
           toast({
             title: "CV Upload Failed",
             description: "Continuing without CV attachment",
@@ -193,8 +191,6 @@ const Apply = () => {
     } catch (error: any) {
       console.error('=== APPLICATION SUBMISSION FAILED ===');
       console.error('Error details:', error);
-      console.error('Error message:', error.message);
-      console.error('Error stack:', error.stack);
       
       let errorMessage = "An unexpected error occurred. Please try again.";
       
