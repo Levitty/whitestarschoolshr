@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -143,9 +142,9 @@ const Apply = () => {
         console.log('CV uploaded successfully:', cvUrl);
       }
 
-      // Create application
+      // Create application - this will now work with public access
       console.log('Creating application...');
-      await createApplication({
+      const applicationResult = await createApplication({
         job_id: jobId,
         candidate_name: formData.candidate_name.trim(),
         candidate_email: formData.candidate_email.trim(),
@@ -153,7 +152,7 @@ const Apply = () => {
         cv_url: cvUrl || undefined
       });
 
-      console.log('Application created successfully');
+      console.log('Application created successfully:', applicationResult);
       
       toast({
         title: "Success",

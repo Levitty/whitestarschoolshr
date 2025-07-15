@@ -102,6 +102,7 @@ export const useJobApplications = () => {
     try {
       console.log('Creating application with data:', applicationData);
       
+      // Create the application without authentication
       const { data, error } = await supabase
         .from('job_applications')
         .insert([{
@@ -121,13 +122,6 @@ export const useJobApplications = () => {
       }
       
       console.log('Application created successfully:', data);
-      
-      try {
-        await fetchApplications();
-      } catch (fetchError) {
-        console.log('Could not refresh applications list (likely not admin):', fetchError);
-      }
-      
       return data;
     } catch (error) {
       console.error('Error in createApplication:', error);
