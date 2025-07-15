@@ -23,6 +23,11 @@ export const useJobListings = () => {
   const fetchJobListings = async () => {
     try {
       console.log('Fetching job listings...');
+      
+      // Get current user to check permissions
+      const { data: { user } } = await supabase.auth.getUser();
+      console.log('Current user for job listings fetch:', user);
+
       const { data, error } = await supabase
         .from('job_listings')
         .select('*')
@@ -51,6 +56,32 @@ export const useJobListings = () => {
     try {
       console.log('Creating job listing with data:', jobData);
       
+      // Check authentication first
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        console.error('Authentication error:', authError);
+        throw new Error('You must be logged in to create job postings');
+      }
+
+      // Check user role
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+      if (profileError) {
+        console.error('Error fetching user profile:', profileError);
+        throw new Error('Unable to verify user permissions');
+      }
+
+      if (profile?.role !== 'admin' && profile?.role !== 'superadmin') {
+        console.error('User does not have admin permissions:', profile?.role);
+        throw new Error('Only administrators can create job postings');
+      }
+
+      console.log('User has admin permissions, proceeding with job creation');
+      
       const { data, error } = await supabase
         .from('job_listings')
         .insert([jobData])
@@ -58,26 +89,17 @@ export const useJobListings = () => {
         .single();
 
       if (error) {
-        console.error('Error creating job listing:', error);
-        throw error;
+        console.error('Supabase error creating job listing:', error);
+        throw new Error(error.message || 'Failed to create job posting');
       }
       
       console.log('Job listing created successfully:', data);
       setJobListings(prev => [data as JobListing, ...prev]);
-      toast({
-        title: "Success",
-        description: "Job posting created successfully"
-      });
       
       return data;
     } catch (error) {
-      console.error('Error creating job listing:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create job posting",
-        variant: "destructive"
-      });
-      throw error;
+      console.error('Error in createJobListing:', error);
+      throw error; // Re-throw so the component can handle it
     }
   };
 

@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useJobListings } from '@/hooks/useJobListings';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 
 interface JobPostingFormProps {
   onSuccess: () => void;
@@ -15,6 +16,7 @@ interface JobPostingFormProps {
 export const JobPostingForm = ({ onSuccess }: JobPostingFormProps) => {
   const { createJobListing } = useJobListings();
   const { toast } = useToast();
+  const { user, profile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -26,6 +28,32 @@ export const JobPostingForm = ({ onSuccess }: JobPostingFormProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    console.log('Job posting form submission started');
+    console.log('Current user:', user);
+    console.log('Current profile:', profile);
+
+    // Check authentication
+    if (!user) {
+      console.error('No authenticated user found');
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to create job postings",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Check admin permissions
+    if (profile?.role !== 'admin' && profile?.role !== 'superadmin') {
+      console.error('User does not have admin permissions:', profile?.role);
+      toast({
+        title: "Access Denied",
+        description: "Only administrators can create job postings",
+        variant: "destructive"
+      });
+      return;
+    }
     
     // Validate required fields
     if (!formData.title || !formData.description || !formData.department || !formData.location) {
@@ -40,10 +68,12 @@ export const JobPostingForm = ({ onSuccess }: JobPostingFormProps) => {
     setLoading(true);
     try {
       console.log('Creating job listing with data:', formData);
-      await createJobListing({
+      const result = await createJobListing({
         ...formData,
         status: 'Open'
       });
+      
+      console.log('Job listing created successfully:', result);
       
       // Reset form
       setFormData({
@@ -54,18 +84,40 @@ export const JobPostingForm = ({ onSuccess }: JobPostingFormProps) => {
         employment_type: 'Full-time'
       });
       
+      toast({
+        title: "Success",
+        description: "Job posting created successfully!"
+      });
+      
       onSuccess();
     } catch (error) {
       console.error('Error creating job posting:', error);
       toast({
         title: "Error",
-        description: "Failed to create job posting. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to create job posting. Please try again.",
         variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
   };
+
+  // Show message if user is not authenticated or not admin
+  if (!user) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-500">Please log in to create job postings.</p>
+      </div>
+    );
+  }
+
+  if (profile?.role !== 'admin' && profile?.role !== 'superadmin') {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-500">Only administrators can create job postings.</p>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
