@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -10,6 +11,8 @@ import Auth from '@/pages/Auth';
 import SuperAdminAuth from '@/pages/SuperAdminAuth';
 import Jobs from '@/pages/Jobs';
 import JobDetail from '@/pages/JobDetail';
+import JobDetails from '@/pages/JobDetails';
+import JobsBoard from '@/pages/JobsBoard';
 import Apply from '@/pages/Apply';
 import Dashboard from '@/pages/Dashboard';
 import Employees from '@/pages/Employees';
@@ -39,8 +42,11 @@ function App() {
             <Route path="/auth" element={<Auth />} />
             <Route path="/admin-auth" element={<SuperAdminAuth />} />
             <Route path="/jobs" element={<Jobs />} />
+            <Route path="/jobs-board" element={<JobsBoard />} />
             <Route path="/jobs/:id" element={<JobDetail />} />
+            <Route path="/job-details" element={<JobDetails />} />
             <Route path="/apply/:jobId" element={<Apply />} />
+            <Route path="/apply" element={<Apply />} />
             
             {/* Protected routes with Layout */}
             <Route path="/dashboard" element={<Layout />}>
