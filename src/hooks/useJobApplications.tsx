@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -136,7 +135,7 @@ export const useJobApplications = () => {
         console.error('Error message:', error.message);
         console.error('Error details:', error.details);
         console.error('Error hint:', error.hint);
-        throw new Error(`Application creation failed: ${error.message}`);
+        throw new Error(`Application submission failed: ${error.message}`);
       }
       
       if (!data) {

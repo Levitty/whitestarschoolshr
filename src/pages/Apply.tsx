@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -192,13 +191,13 @@ const Apply = () => {
       console.error('=== APPLICATION SUBMISSION FAILED ===');
       console.error('Error details:', error);
       
-      let errorMessage = "An unexpected error occurred. Please try again.";
+      let errorMessage = "Failed to submit application. Please try again.";
       
       if (error.message) {
         if (error.message.includes('CV upload failed')) {
           errorMessage = "Failed to upload CV. Please try again or submit without CV.";
-        } else if (error.message.includes('Application creation failed')) {
-          errorMessage = "Failed to submit application. Please try again.";
+        } else if (error.message.includes('Application submission failed')) {
+          errorMessage = "Failed to submit application. Please check your details and try again.";
         } else {
           errorMessage = error.message;
         }
