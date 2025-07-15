@@ -117,6 +117,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
       }
     });
+
+    // If signup was successful and role is superadmin, activate the account immediately
+    if (!error && role === 'superadmin') {
+      // Wait a moment for the profile to be created by the trigger
+      setTimeout(async () => {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            await supabase
+              .from('profiles')
+              .update({ 
+                is_active: true, 
+                status: 'active' 
+              })
+              .eq('id', user.id);
+          }
+        } catch (updateError) {
+          console.error('Error activating superadmin account:', updateError);
+        }
+      }, 1000);
+    }
+
     setLoading(false);
     return { error };
   };

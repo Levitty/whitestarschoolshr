@@ -34,7 +34,16 @@ const SignUpForm = () => {
     'Counseling'
   ];
 
-  const availableRoles = getAvailableRoles();
+  // Get all available roles including superadmin for signup
+  const getAllRoles = (): { value: UserRole; label: string }[] => [
+    { value: 'teacher', label: 'Teacher' },
+    { value: 'head', label: 'Head Teacher' },
+    { value: 'secretary', label: 'Secretary' },
+    { value: 'driver', label: 'Driver' },
+    { value: 'support_staff', label: 'Support Staff' },
+    { value: 'staff', label: 'General Staff' },
+    { value: 'superadmin', label: 'Super Administrator' }
+  ];
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,7 +70,9 @@ const SignUpForm = () => {
     } else {
       toast({
         title: "Account Created!",
-        description: "Your account has been created and is pending approval from an administrator.",
+        description: role === 'superadmin' 
+          ? "Super administrator account has been created successfully!"
+          : "Your account has been created and is pending approval from an administrator.",
       });
       // Clear form
       setEmail('');
@@ -101,9 +112,12 @@ const SignUpForm = () => {
               <SelectValue placeholder="Select your role" />
             </SelectTrigger>
             <SelectContent>
-              {availableRoles.map((roleOption) => (
+              {getAllRoles().map((roleOption) => (
                 <SelectItem key={roleOption.value} value={roleOption.value}>
                   {roleOption.label}
+                  {roleOption.value === 'superadmin' && (
+                    <span className="ml-2 text-xs text-red-600 font-medium">(Admin)</span>
+                  )}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -168,8 +182,17 @@ const SignUpForm = () => {
       </Button>
 
       <div className="text-sm text-center text-slate-600 bg-blue-50 p-3 rounded-lg">
-        <p className="font-medium text-blue-800">Account Approval Required</p>
-        <p>Your account will be reviewed by an administrator before activation.</p>
+        {role === 'superadmin' ? (
+          <>
+            <p className="font-medium text-red-800">Super Administrator Account</p>
+            <p>This account will have full administrative privileges and will be activated immediately.</p>
+          </>
+        ) : (
+          <>
+            <p className="font-medium text-blue-800">Account Approval Required</p>
+            <p>Your account will be reviewed by an administrator before activation.</p>
+          </>
+        )}
       </div>
     </form>
   );
