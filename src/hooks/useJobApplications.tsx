@@ -57,6 +57,45 @@ export const useJobApplications = () => {
     }
   };
 
+  const uploadCV = async (file: File, jobId: string, candidateName: string) => {
+    try {
+      console.log('Starting CV upload:', { fileName: file.name, size: file.size, jobId, candidateName });
+      
+      const fileExt = file.name.split('.').pop();
+      const fileName = `applications/${jobId}/${candidateName.replace(/\s+/g, '_')}_cv_${Date.now()}.${fileExt}`;
+      
+      console.log('Uploading to path:', fileName);
+      
+      const { data, error: uploadError } = await supabase.storage
+        .from('cv-uploads')
+        .upload(fileName, file, {
+          upsert: true
+        });
+
+      if (uploadError) {
+        console.error('Storage upload error:', uploadError);
+        throw uploadError;
+      }
+
+      console.log('Upload successful, data:', data);
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('cv-uploads')
+        .getPublicUrl(fileName);
+
+      console.log('CV uploaded successfully, public URL:', publicUrl);
+      return publicUrl;
+    } catch (error) {
+      console.error('Error in uploadCV:', error);
+      toast({
+        title: "Upload Error",
+        description: "Failed to upload CV. Please try again.",
+        variant: "destructive"
+      });
+      throw error;
+    }
+  };
+
   const createApplication = async (applicationData: {
     job_id: string;
     candidate_name: string;
@@ -147,38 +186,6 @@ export const useJobApplications = () => {
         description: "Failed to update application status",
         variant: "destructive"
       });
-      throw error;
-    }
-  };
-
-  const uploadCV = async (file: File, jobId: string, candidateName: string) => {
-    try {
-      console.log('Starting CV upload:', { fileName: file.name, size: file.size });
-      
-      const fileExt = file.name.split('.').pop();
-      const fileName = `applications/${jobId}/${candidateName.replace(/\s+/g, '_')}_cv_${Date.now()}.${fileExt}`;
-      
-      console.log('Uploading to path:', fileName);
-      
-      const { error: uploadError } = await supabase.storage
-        .from('cv-uploads')
-        .upload(fileName, file, {
-          upsert: true
-        });
-
-      if (uploadError) {
-        console.error('Storage upload error:', uploadError);
-        throw uploadError;
-      }
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('cv-uploads')
-        .getPublicUrl(fileName);
-
-      console.log('CV uploaded successfully, public URL:', publicUrl);
-      return publicUrl;
-    } catch (error) {
-      console.error('Error in uploadCV:', error);
       throw error;
     }
   };

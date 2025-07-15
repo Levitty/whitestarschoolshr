@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, Upload, File, X, CheckCircle } from 'lucide-react';
 import { useJobApplications } from '@/hooks/useJobApplications';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface JobListing {
   id: string;
@@ -20,6 +22,7 @@ const Apply = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { createApplication, uploadCV } = useJobApplications();
+  const { toast } = useToast();
   
   const [job, setJob] = useState<JobListing | null>(null);
   const [loading, setLoading] = useState(true);
@@ -40,12 +43,13 @@ const Apply = () => {
   useEffect(() => {
     const fetchJob = async () => {
       if (!jobId) {
+        console.error('No job ID provided');
         setLoading(false);
         return;
       }
       
       try {
-        const { supabase } = await import('@/integrations/supabase/client');
+        console.log('Fetching job with ID:', jobId);
         const { data, error } = await supabase
           .from('job_listings')
           .select('id, title, department, location')
@@ -53,26 +57,54 @@ const Apply = () => {
           .eq('status', 'Open')
           .single();
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error fetching job:', error);
+          throw error;
+        }
+        
+        console.log('Job fetched successfully:', data);
         setJob(data);
       } catch (error) {
         console.error('Error fetching job:', error);
+        toast({
+          title: "Error",
+          description: "Could not load job details",
+          variant: "destructive"
+        });
       } finally {
         setLoading(false);
       }
     };
 
     fetchJob();
-  }, [jobId]);
+  }, [jobId, toast]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      console.log('File selected:', { name: file.name, size: file.size, type: file.type });
+      
       // Check file size (max 10MB)
       if (file.size > 10 * 1024 * 1024) {
-        alert('Please select a file smaller than 10MB');
+        toast({
+          title: "File too large",
+          description: "Please select a file smaller than 10MB",
+          variant: "destructive"
+        });
         return;
       }
+      
+      // Check file type
+      const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+      if (!allowedTypes.includes(file.type)) {
+        toast({
+          title: "Invalid file type",
+          description: "Please select a PDF, DOC, or DOCX file",
+          variant: "destructive"
+        });
+        return;
+      }
+      
       setCvFile(file);
     }
   };
@@ -80,8 +112,23 @@ const Apply = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.candidate_name || !formData.candidate_email || !jobId) {
-      alert('Please fill in all required fields');
+    if (!formData.candidate_name.trim() || !formData.candidate_email.trim() || !jobId) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.candidate_email)) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address",
+        variant: "destructive"
+      });
       return;
     }
 
@@ -101,23 +148,23 @@ const Apply = () => {
       console.log('Creating application...');
       await createApplication({
         job_id: jobId,
-        candidate_name: formData.candidate_name,
-        candidate_email: formData.candidate_email,
-        note: formData.note || undefined,
+        candidate_name: formData.candidate_name.trim(),
+        candidate_email: formData.candidate_email.trim(),
+        note: formData.note.trim() || undefined,
         cv_url: cvUrl || undefined
       });
 
       console.log('Application created successfully');
       setSubmitted(true);
 
-      // Redirect after 2 seconds
+      // Redirect after 3 seconds
       setTimeout(() => {
-        navigate('/applications');
-      }, 2000);
+        navigate('/jobs-board');
+      }, 3000);
       
     } catch (error) {
       console.error('Error submitting application:', error);
-      alert('Failed to submit application. Please try again.');
+      // Error is already handled by the hooks with toast notifications
     } finally {
       setSubmitting(false);
     }
@@ -170,10 +217,10 @@ const Apply = () => {
                 We have received your application and will review it shortly.
               </p>
               <p className="text-sm text-gray-500 mb-6">
-                Redirecting to applications page...
+                Redirecting to jobs board...
               </p>
-              <Button onClick={() => navigate('/applications')}>
-                View Applications Now
+              <Button onClick={() => navigate('/jobs-board')}>
+                View More Jobs
               </Button>
             </CardContent>
           </Card>
@@ -214,6 +261,7 @@ const Apply = () => {
                     }))}
                     placeholder="Enter your full name"
                     required
+                    disabled={submitting}
                   />
                 </div>
                 <div>
@@ -228,6 +276,7 @@ const Apply = () => {
                     }))}
                     placeholder="Enter your email"
                     required
+                    disabled={submitting}
                   />
                 </div>
               </div>
@@ -244,6 +293,7 @@ const Apply = () => {
                         className="hidden"
                         onChange={handleFileSelect}
                         accept=".pdf,.doc,.docx"
+                        disabled={submitting}
                       />
                       <Label htmlFor="cv" className="cursor-pointer">
                         <Upload className="mx-auto h-12 w-12 text-gray-400" />
@@ -269,6 +319,7 @@ const Apply = () => {
                         variant="ghost"
                         size="sm"
                         onClick={() => setCvFile(null)}
+                        disabled={submitting}
                       >
                         <X className="h-4 w-4" />
                       </Button>
@@ -288,6 +339,7 @@ const Apply = () => {
                   }))}
                   placeholder="Tell us why you're interested in this position..."
                   rows={4}
+                  disabled={submitting}
                 />
               </div>
 

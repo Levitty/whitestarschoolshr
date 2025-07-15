@@ -9,9 +9,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Download, MessageSquare, FileText, User, Mail, Calendar } from 'lucide-react';
 import { useJobApplications } from '@/hooks/useJobApplications';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 export const ApplicationsList = () => {
   const { applications, loading, updateApplicationStatus } = useJobApplications();
+  const { toast } = useToast();
   const [selectedApp, setSelectedApp] = useState<string | null>(null);
   const [statusUpdate, setStatusUpdate] = useState('');
   const [noteUpdate, setNoteUpdate] = useState('');
@@ -27,13 +29,6 @@ export const ApplicationsList = () => {
   };
 
   const getStatusBadge = (status: string) => {
-    const variants = {
-      'New': 'secondary',
-      'Interview': 'default',
-      'Rejected': 'destructive',
-      'Hired': 'default'
-    } as const;
-
     const colors = {
       'New': 'bg-blue-100 text-blue-800',
       'Interview': 'bg-yellow-100 text-yellow-800',
@@ -52,45 +47,73 @@ export const ApplicationsList = () => {
     try {
       console.log('Downloading CV from:', cvUrl);
       
-      // Extract the file path from the full URL
-      const urlParts = cvUrl.split('/');
-      const bucketIndex = urlParts.findIndex(part => part === 'cv-uploads');
-      if (bucketIndex === -1) {
-        throw new Error('Invalid CV URL format');
-      }
-      
-      const filePath = urlParts.slice(bucketIndex + 1).join('/');
-      console.log('File path:', filePath);
-      
-      // Get the file from Supabase Storage
-      const { data, error } = await supabase.storage
-        .from('cv-uploads')
-        .download(filePath);
+      // Check if the URL is a full URL or just a path
+      if (cvUrl.startsWith('http')) {
+        // If it's a full URL, try to download directly
+        const response = await fetch(cvUrl);
+        if (!response.ok) {
+          throw new Error('Failed to fetch CV');
+        }
+        
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${candidateName.replace(/\s+/g, '_')}_CV.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        // Extract the file path from the URL
+        const urlParts = cvUrl.split('/');
+        const bucketIndex = urlParts.findIndex(part => part === 'cv-uploads');
+        
+        if (bucketIndex === -1) {
+          throw new Error('Invalid CV URL format');
+        }
+        
+        const filePath = urlParts.slice(bucketIndex + 1).join('/');
+        console.log('File path:', filePath);
+        
+        // Get the file from Supabase Storage
+        const { data, error } = await supabase.storage
+          .from('cv-uploads')
+          .download(filePath);
 
-      if (error) {
-        console.error('Storage download error:', error);
-        throw error;
-      }
+        if (error) {
+          console.error('Storage download error:', error);
+          throw error;
+        }
 
-      if (!data) {
-        throw new Error('No file data received');
-      }
+        if (!data) {
+          throw new Error('No file data received');
+        }
 
-      // Create blob URL and download
-      const blob = new Blob([data]);
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${candidateName.replace(/\s+/g, '_')}_CV`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+        // Create blob URL and download
+        const blob = new Blob([data]);
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${candidateName.replace(/\s+/g, '_')}_CV`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }
       
       console.log('CV downloaded successfully');
+      toast({
+        title: "Success",
+        description: "CV downloaded successfully"
+      });
     } catch (error) {
       console.error('Error downloading CV:', error);
-      alert('Failed to download CV. Please try again.');
+      toast({
+        title: "Download Error",
+        description: "Failed to download CV. Please try again.",
+        variant: "destructive"
+      });
     }
   };
 
