@@ -59,14 +59,13 @@ export const useJobApplications = () => {
 
   const uploadCV = async (file: File, jobId: string, candidateName: string) => {
     try {
-      console.log('Starting CV upload for anonymous user:', { fileName: file.name, size: file.size, jobId, candidateName });
+      console.log('Starting CV upload:', { fileName: file.name, size: file.size, jobId, candidateName });
       
       const fileExt = file.name.split('.').pop();
       const fileName = `${jobId}/${candidateName.replace(/\s+/g, '_')}_${Date.now()}.${fileExt}`;
       
       console.log('Uploading to path:', fileName);
       
-      // Upload file without authentication since we've set up policies for anonymous users
       const { data, error: uploadError } = await supabase.storage
         .from('cv-uploads')
         .upload(fileName, file, {
@@ -76,12 +75,11 @@ export const useJobApplications = () => {
 
       if (uploadError) {
         console.error('Storage upload error:', uploadError);
-        throw uploadError;
+        throw new Error(`CV upload failed: ${uploadError.message}`);
       }
 
       console.log('Upload successful:', data);
 
-      // Get the public URL for the uploaded file
       const { data: { publicUrl } } = supabase.storage
         .from('cv-uploads')
         .getPublicUrl(fileName);
@@ -90,7 +88,7 @@ export const useJobApplications = () => {
       return publicUrl;
     } catch (error) {
       console.error('Error in uploadCV:', error);
-      throw error; // Re-throw to handle in calling function
+      throw error;
     }
   };
 
@@ -104,7 +102,6 @@ export const useJobApplications = () => {
     try {
       console.log('Creating application with data:', applicationData);
       
-      // Insert application data - this should work for anonymous users based on RLS policies
       const { data, error } = await supabase
         .from('job_applications')
         .insert([{
@@ -120,23 +117,21 @@ export const useJobApplications = () => {
 
       if (error) {
         console.error('Supabase error creating application:', error);
-        throw error;
+        throw new Error(`Application creation failed: ${error.message}`);
       }
       
       console.log('Application created successfully:', data);
       
-      // Refresh the applications list if we're authenticated (admin view)
       try {
         await fetchApplications();
       } catch (fetchError) {
         console.log('Could not refresh applications list (likely not admin):', fetchError);
-        // This is fine for anonymous users
       }
       
       return data;
     } catch (error) {
       console.error('Error in createApplication:', error);
-      throw error; // Re-throw to handle in calling function
+      throw error;
     }
   };
 

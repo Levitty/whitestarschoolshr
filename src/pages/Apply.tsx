@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -35,7 +36,6 @@ const Apply = () => {
     note: ''
   });
 
-  // Get job ID from URL parameters
   const searchParams = new URLSearchParams(location.search);
   const jobId = searchParams.get('id');
 
@@ -139,59 +139,52 @@ const Apply = () => {
       // Upload CV if provided
       if (cvFile) {
         console.log('Uploading CV file...');
-        try {
-          cvUrl = await uploadCV(cvFile, jobId, formData.candidate_name);
-          console.log('CV uploaded successfully:', cvUrl);
-        } catch (uploadError) {
-          console.error('CV upload failed:', uploadError);
-          toast({
-            title: "Upload Error",
-            description: "Failed to upload CV. Please try again.",
-            variant: "destructive"
-          });
-          return;
-        }
+        cvUrl = await uploadCV(cvFile, jobId, formData.candidate_name);
+        console.log('CV uploaded successfully:', cvUrl);
       }
 
       // Create application
       console.log('Creating application...');
-      try {
-        await createApplication({
-          job_id: jobId,
-          candidate_name: formData.candidate_name.trim(),
-          candidate_email: formData.candidate_email.trim(),
-          note: formData.note.trim() || undefined,
-          cv_url: cvUrl || undefined
-        });
+      await createApplication({
+        job_id: jobId,
+        candidate_name: formData.candidate_name.trim(),
+        candidate_email: formData.candidate_email.trim(),
+        note: formData.note.trim() || undefined,
+        cv_url: cvUrl || undefined
+      });
 
-        console.log('Application created successfully');
-        
-        toast({
-          title: "Success",
-          description: "Application submitted successfully!"
-        });
-        
-        setSubmitted(true);
+      console.log('Application created successfully');
+      
+      toast({
+        title: "Success",
+        description: "Application submitted successfully!"
+      });
+      
+      setSubmitted(true);
 
-        // Redirect after 3 seconds
-        setTimeout(() => {
-          navigate('/jobs-board');
-        }, 3000);
-        
-      } catch (appError) {
-        console.error('Application creation failed:', appError);
-        toast({
-          title: "Submission Error",
-          description: "Failed to submit application. Please try again.",
-          variant: "destructive"
-        });
+      // Redirect after 3 seconds
+      setTimeout(() => {
+        navigate('/jobs-board');
+      }, 3000);
+      
+    } catch (error: any) {
+      console.error('Application submission failed:', error);
+      
+      let errorMessage = "An unexpected error occurred. Please try again.";
+      
+      if (error.message) {
+        if (error.message.includes('CV upload failed')) {
+          errorMessage = "Failed to upload CV. Please try again or submit without CV.";
+        } else if (error.message.includes('Application creation failed')) {
+          errorMessage = "Failed to submit application. Please try again.";
+        } else {
+          errorMessage = error.message;
+        }
       }
       
-    } catch (error) {
-      console.error('Unexpected error during submission:', error);
       toast({
-        title: "Error",
-        description: "An unexpected error occurred. Please try again.",
+        title: "Submission Error",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
@@ -310,7 +303,6 @@ const Apply = () => {
                 </div>
               </div>
 
-              {/* CV Upload */}
               <div>
                 <Label htmlFor="cv">Upload CV (Optional)</Label>
                 <div className="mt-2">
