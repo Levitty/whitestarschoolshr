@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -140,31 +139,61 @@ const Apply = () => {
       // Upload CV if provided
       if (cvFile) {
         console.log('Uploading CV file...');
-        cvUrl = await uploadCV(cvFile, jobId, formData.candidate_name);
-        console.log('CV uploaded successfully:', cvUrl);
+        try {
+          cvUrl = await uploadCV(cvFile, jobId, formData.candidate_name);
+          console.log('CV uploaded successfully:', cvUrl);
+        } catch (uploadError) {
+          console.error('CV upload failed:', uploadError);
+          toast({
+            title: "Upload Error",
+            description: "Failed to upload CV. Please try again.",
+            variant: "destructive"
+          });
+          return;
+        }
       }
 
       // Create application
       console.log('Creating application...');
-      await createApplication({
-        job_id: jobId,
-        candidate_name: formData.candidate_name.trim(),
-        candidate_email: formData.candidate_email.trim(),
-        note: formData.note.trim() || undefined,
-        cv_url: cvUrl || undefined
-      });
+      try {
+        await createApplication({
+          job_id: jobId,
+          candidate_name: formData.candidate_name.trim(),
+          candidate_email: formData.candidate_email.trim(),
+          note: formData.note.trim() || undefined,
+          cv_url: cvUrl || undefined
+        });
 
-      console.log('Application created successfully');
-      setSubmitted(true);
+        console.log('Application created successfully');
+        
+        toast({
+          title: "Success",
+          description: "Application submitted successfully!"
+        });
+        
+        setSubmitted(true);
 
-      // Redirect after 3 seconds
-      setTimeout(() => {
-        navigate('/jobs-board');
-      }, 3000);
+        // Redirect after 3 seconds
+        setTimeout(() => {
+          navigate('/jobs-board');
+        }, 3000);
+        
+      } catch (appError) {
+        console.error('Application creation failed:', appError);
+        toast({
+          title: "Submission Error",
+          description: "Failed to submit application. Please try again.",
+          variant: "destructive"
+        });
+      }
       
     } catch (error) {
-      console.error('Error submitting application:', error);
-      // Error is already handled by the hooks with toast notifications
+      console.error('Unexpected error during submission:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setSubmitting(false);
     }
