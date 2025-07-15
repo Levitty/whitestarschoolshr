@@ -26,6 +26,7 @@ export const useJobApplications = () => {
 
   const fetchApplications = async () => {
     try {
+      console.log('Fetching job applications...');
       const { data, error } = await supabase
         .from('job_applications')
         .select(`
@@ -37,10 +38,15 @@ export const useJobApplications = () => {
         `)
         .order('applied_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching applications:', error);
+        throw error;
+      }
+      
+      console.log('Applications fetched successfully:', data?.length || 0);
       setApplications((data || []) as JobApplication[]);
     } catch (error) {
-      console.error('Error fetching applications:', error);
+      console.error('Error in fetchApplications:', error);
       toast({
         title: "Error",
         description: "Failed to load applications",
@@ -59,15 +65,31 @@ export const useJobApplications = () => {
     note?: string;
   }) => {
     try {
+      console.log('Creating application with data:', applicationData);
+      
       const { data, error } = await supabase
         .from('job_applications')
-        .insert([applicationData])
+        .insert([{
+          job_id: applicationData.job_id,
+          candidate_name: applicationData.candidate_name,
+          candidate_email: applicationData.candidate_email,
+          cv_url: applicationData.cv_url || null,
+          note: applicationData.note || null,
+          status: 'New'
+        }])
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error creating application:', error);
+        throw error;
+      }
       
-      await fetchApplications(); // Refresh the list
+      console.log('Application created successfully:', data);
+      
+      // Refresh the applications list
+      await fetchApplications();
+      
       toast({
         title: "Success",
         description: "Application submitted successfully"
@@ -75,7 +97,7 @@ export const useJobApplications = () => {
       
       return data;
     } catch (error) {
-      console.error('Error creating application:', error);
+      console.error('Error in createApplication:', error);
       toast({
         title: "Error",
         description: "Failed to submit application",
@@ -87,6 +109,8 @@ export const useJobApplications = () => {
 
   const updateApplicationStatus = async (id: string, status: JobApplication['status'], note?: string) => {
     try {
+      console.log('Updating application status:', { id, status, note });
+      
       const updateData: any = { status };
       if (note !== undefined) {
         updateData.note = note;
@@ -99,9 +123,17 @@ export const useJobApplications = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating application:', error);
+        throw error;
+      }
       
-      setApplications(prev => prev.map(app => app.id === id ? { ...app, ...data } as JobApplication : app));
+      console.log('Application updated successfully:', data);
+      
+      setApplications(prev => prev.map(app => 
+        app.id === id ? { ...app, ...data } as JobApplication : app
+      ));
+      
       toast({
         title: "Success",
         description: "Application status updated successfully"
@@ -109,7 +141,7 @@ export const useJobApplications = () => {
       
       return data;
     } catch (error) {
-      console.error('Error updating application:', error);
+      console.error('Error in updateApplicationStatus:', error);
       toast({
         title: "Error",
         description: "Failed to update application status",
@@ -121,8 +153,12 @@ export const useJobApplications = () => {
 
   const uploadCV = async (file: File, jobId: string, candidateName: string) => {
     try {
+      console.log('Starting CV upload:', { fileName: file.name, size: file.size });
+      
       const fileExt = file.name.split('.').pop();
-      const fileName = `applications/${jobId}/${candidateName}_cv.${fileExt}`;
+      const fileName = `applications/${jobId}/${candidateName.replace(/\s+/g, '_')}_cv_${Date.now()}.${fileExt}`;
+      
+      console.log('Uploading to path:', fileName);
       
       const { error: uploadError } = await supabase.storage
         .from('cv-uploads')
@@ -130,15 +166,19 @@ export const useJobApplications = () => {
           upsert: true
         });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Storage upload error:', uploadError);
+        throw uploadError;
+      }
 
       const { data: { publicUrl } } = supabase.storage
         .from('cv-uploads')
         .getPublicUrl(fileName);
 
+      console.log('CV uploaded successfully, public URL:', publicUrl);
       return publicUrl;
     } catch (error) {
-      console.error('Error uploading CV:', error);
+      console.error('Error in uploadCV:', error);
       throw error;
     }
   };

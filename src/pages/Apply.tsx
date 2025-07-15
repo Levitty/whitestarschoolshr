@@ -7,8 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, Upload, File, X, CheckCircle } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useJobApplications } from '@/hooks/useJobApplications';
 
 interface JobListing {
   id: string;
@@ -20,7 +19,7 @@ interface JobListing {
 const Apply = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const { createApplication, uploadCV } = useJobApplications();
   
   const [job, setJob] = useState<JobListing | null>(null);
   const [loading, setLoading] = useState(true);
@@ -46,6 +45,7 @@ const Apply = () => {
       }
       
       try {
+        const { supabase } = await import('@/integrations/supabase/client');
         const { data, error } = await supabase
           .from('job_listings')
           .select('id, title, department, location')
@@ -70,87 +70,54 @@ const Apply = () => {
     if (file) {
       // Check file size (max 10MB)
       if (file.size > 10 * 1024 * 1024) {
-        toast({
-          title: "File too large",
-          description: "Please select a file smaller than 10MB",
-          variant: "destructive"
-        });
+        alert('Please select a file smaller than 10MB');
         return;
       }
       setCvFile(file);
     }
   };
 
-  const uploadCV = async (file: File, jobId: string, candidateName: string) => {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `applications/${jobId}/${candidateName}_cv.${fileExt}`;
-    
-    const { error: uploadError } = await supabase.storage
-      .from('cv-uploads')
-      .upload(fileName, file);
-
-    if (uploadError) throw uploadError;
-
-    const { data: { publicUrl } } = supabase.storage
-      .from('cv-uploads')
-      .getPublicUrl(fileName);
-
-    return publicUrl;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.candidate_name || !formData.candidate_email || !jobId) {
-      toast({
-        title: "Validation Error",
-        description: "Please fill in all required fields",
-        variant: "destructive"
-      });
+      alert('Please fill in all required fields');
       return;
     }
 
     setSubmitting(true);
+    
     try {
       let cvUrl = null;
       
       // Upload CV if provided
       if (cvFile) {
+        console.log('Uploading CV file...');
         cvUrl = await uploadCV(cvFile, jobId, formData.candidate_name);
+        console.log('CV uploaded successfully:', cvUrl);
       }
 
-      // Insert application
-      const { error: appError } = await supabase
-        .from('job_applications')
-        .insert([{
-          job_id: jobId,
-          candidate_name: formData.candidate_name,
-          candidate_email: formData.candidate_email,
-          note: formData.note,
-          cv_url: cvUrl,
-          status: 'New'
-        }]);
-
-      if (appError) throw appError;
-
-      setSubmitted(true);
-      toast({
-        title: "Application Submitted!",
-        description: "Thank you for your interest. We'll be in touch soon.",
+      // Create application
+      console.log('Creating application...');
+      await createApplication({
+        job_id: jobId,
+        candidate_name: formData.candidate_name,
+        candidate_email: formData.candidate_email,
+        note: formData.note || undefined,
+        cv_url: cvUrl || undefined
       });
 
-      // Redirect to applications page after a short delay
+      console.log('Application created successfully');
+      setSubmitted(true);
+
+      // Redirect after 2 seconds
       setTimeout(() => {
         navigate('/applications');
-      }, 3000);
+      }, 2000);
       
     } catch (error) {
       console.error('Error submitting application:', error);
-      toast({
-        title: "Submission Error",
-        description: "Failed to submit application. Please try again.",
-        variant: "destructive"
-      });
+      alert('Failed to submit application. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -202,18 +169,12 @@ const Apply = () => {
                 Thank you for applying to the <strong>{job.title}</strong> position. 
                 We have received your application and will review it shortly.
               </p>
-              <p className="text-sm text-gray-500 mb-8">
-                You should receive a confirmation email at {formData.candidate_email} within the next few minutes.
-                You will be redirected to the applications page in a moment.
+              <p className="text-sm text-gray-500 mb-6">
+                Redirecting to applications page...
               </p>
-              <div className="flex gap-4 justify-center">
-                <Button onClick={() => navigate('/jobs-board')} variant="outline">
-                  View More Jobs
-                </Button>
-                <Button onClick={() => navigate('/applications')}>
-                  View Applications
-                </Button>
-              </div>
+              <Button onClick={() => navigate('/applications')}>
+                View Applications Now
+              </Button>
             </CardContent>
           </Card>
         </div>
@@ -233,7 +194,7 @@ const Apply = () => {
 
         <Card className="shadow-lg">
           <CardHeader>
-            <CardTitle className="text-2xl">Apply</CardTitle>
+            <CardTitle className="text-2xl">Apply for Position</CardTitle>
             <div className="text-sm text-gray-600 bg-gray-50 p-4 rounded-lg">
               <p className="font-medium text-gray-900">{job.title}</p>
               <p>{job.department} • {job.location}</p>
@@ -273,7 +234,7 @@ const Apply = () => {
 
               {/* CV Upload */}
               <div>
-                <Label htmlFor="cv">Upload CV</Label>
+                <Label htmlFor="cv">Upload CV (Optional)</Label>
                 <div className="mt-2">
                   {!cvFile ? (
                     <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">

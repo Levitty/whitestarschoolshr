@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -5,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Download, Eye, MessageSquare } from 'lucide-react';
+import { Download, MessageSquare, FileText, User, Mail, Calendar } from 'lucide-react';
 import { useJobApplications } from '@/hooks/useJobApplications';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -33,8 +34,15 @@ export const ApplicationsList = () => {
       'Hired': 'default'
     } as const;
 
+    const colors = {
+      'New': 'bg-blue-100 text-blue-800',
+      'Interview': 'bg-yellow-100 text-yellow-800',
+      'Rejected': 'bg-red-100 text-red-800',
+      'Hired': 'bg-green-100 text-green-800'
+    };
+
     return (
-      <Badge variant={variants[status as keyof typeof variants] || 'default'}>
+      <Badge className={colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800'}>
         {status}
       </Badge>
     );
@@ -42,6 +50,8 @@ export const ApplicationsList = () => {
 
   const downloadCV = async (cvUrl: string, candidateName: string) => {
     try {
+      console.log('Downloading CV from:', cvUrl);
+      
       // Extract the file path from the full URL
       const urlParts = cvUrl.split('/');
       const bucketIndex = urlParts.findIndex(part => part === 'cv-uploads');
@@ -50,6 +60,7 @@ export const ApplicationsList = () => {
       }
       
       const filePath = urlParts.slice(bucketIndex + 1).join('/');
+      console.log('File path:', filePath);
       
       // Get the file from Supabase Storage
       const { data, error } = await supabase.storage
@@ -66,55 +77,88 @@ export const ApplicationsList = () => {
       }
 
       // Create blob URL and download
-      const blob = new Blob([data], { type: 'application/pdf' });
+      const blob = new Blob([data]);
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${candidateName}_CV.pdf`;
+      a.download = `${candidateName.replace(/\s+/g, '_')}_CV`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
+      
+      console.log('CV downloaded successfully');
     } catch (error) {
       console.error('Error downloading CV:', error);
-      // Could add toast notification here if needed
+      alert('Failed to download CV. Please try again.');
     }
   };
 
   if (loading) {
-    return <div>Loading applications...</div>;
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <span className="ml-2 text-gray-600">Loading applications...</span>
+      </div>
+    );
+  }
+
+  if (!applications || applications.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <FileText className="mx-auto h-16 w-16 text-gray-400 mb-4" />
+        <h3 className="text-lg font-semibold text-gray-700 mb-2">No Applications Yet</h3>
+        <p className="text-gray-500">Applications will appear here once candidates start applying.</p>
+      </div>
+    );
   }
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Job Applications</h2>
+        <div>
+          <h2 className="text-xl font-semibold">Job Applications</h2>
+          <p className="text-gray-600">{applications.length} total applications</p>
+        </div>
       </div>
 
       <div className="grid gap-4">
-        {applications?.map((application) => (
-          <Card key={application.id}>
+        {applications.map((application) => (
+          <Card key={application.id} className="hover:shadow-md transition-shadow">
             <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className="text-lg font-semibold">{application.candidate_name}</h3>
-                  <p className="text-gray-600">
-                    Applied for: {application.job_listings?.title} • {application.job_listings?.department}
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <User className="h-4 w-4 text-gray-500" />
+                    <h3 className="text-lg font-semibold">{application.candidate_name}</h3>
+                    {getStatusBadge(application.status)}
+                  </div>
+                  
+                  <div className="flex items-center gap-4 text-sm text-gray-600 mb-2">
+                    <div className="flex items-center gap-1">
+                      <Mail className="h-4 w-4" />
+                      {application.candidate_email}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Calendar className="h-4 w-4" />
+                      Applied {new Date(application.applied_at).toLocaleDateString()}
+                    </div>
+                  </div>
+                  
+                  <p className="text-gray-600 font-medium">
+                    Position: {application.job_listings?.title} • {application.job_listings?.department}
                   </p>
-                  <p className="text-sm text-gray-500">{application.candidate_email}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  {getStatusBadge(application.status)}
                 </div>
               </div>
 
               {application.note && (
                 <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+                  <p className="text-sm text-gray-700 font-medium mb-1">Cover Letter:</p>
                   <p className="text-sm text-gray-700">{application.note}</p>
                 </div>
               )}
 
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 {application.cv_url && (
                   <Button 
                     variant="outline" 
@@ -178,10 +222,6 @@ export const ApplicationsList = () => {
                     </div>
                   </DialogContent>
                 </Dialog>
-              </div>
-
-              <div className="mt-4 text-xs text-gray-500">
-                Applied: {new Date(application.applied_at).toLocaleDateString()}
               </div>
             </CardContent>
           </Card>
