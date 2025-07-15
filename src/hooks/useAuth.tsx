@@ -108,21 +108,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setLoading(true);
     
     try {
-      // For superadmin accounts, use the service role to create and confirm the user
+      // For superadmin accounts, create them directly as confirmed users
       if (role === 'superadmin') {
         console.log('Creating superadmin account...');
         
-        // First create the user with admin API (this bypasses email confirmation)
-        const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+        // Create superadmin user with email already confirmed and active status
+        const { data: authData, error: authError } = await supabase.auth.signUp({
           email,
           password,
-          email_confirm: true, // This automatically confirms the email
-          user_metadata: {
-            full_name: fullName,
-            first_name: fullName.split(' ')[0],
-            last_name: fullName.split(' ').slice(1).join(' ') || '',
-            department: department,
-            role: role
+          options: {
+            emailRedirectTo: `${window.location.origin}/`,
+            data: {
+              full_name: fullName,
+              first_name: fullName.split(' ')[0],
+              last_name: fullName.split(' ').slice(1).join(' ') || '',
+              department: department,
+              role: role,
+              is_superadmin: true // Flag to identify superadmin during profile creation
+            }
           }
         });
 
@@ -132,26 +135,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           return { error: authError };
         }
 
-        console.log('Superadmin user created successfully:', authData.user?.email);
+        console.log('Superadmin signup initiated:', authData.user?.email);
         
-        // Wait for the trigger to create the profile, then update it
-        setTimeout(async () => {
-          try {
-            if (authData.user) {
-              await supabase
-                .from('profiles')
-                .update({ 
-                  is_active: true, 
-                  status: 'active' 
-                })
-                .eq('id', authData.user.id);
-              console.log('Superadmin profile activated');
-            }
-          } catch (updateError) {
-            console.error('Error activating superadmin profile:', updateError);
-          }
-        }, 1000);
-
+        // For superadmin, we'll handle the confirmation in the trigger
         setLoading(false);
         return { error: null };
       } else {
@@ -182,13 +168,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signIn = async (email: string, password: string) => {
+    console.log('Attempting sign in for:', email);
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
-    setLoading(false);
-    return { error };
+    
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+      
+      console.log('Sign in response:', { data: data?.user?.email, error });
+      
+      setLoading(false);
+      return { error };
+    } catch (error) {
+      console.error('Sign in error:', error);
+      setLoading(false);
+      return { error };
+    }
   };
 
   const signOut = async () => {

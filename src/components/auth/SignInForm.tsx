@@ -17,17 +17,32 @@ const SignInForm = () => {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Sign in attempt for:', email);
     setLoading(true);
 
     const { error } = await signIn(email, password);
     
     if (error) {
+      console.error('Sign in error:', error);
+      
+      let errorMessage = error.message;
+      
+      // Handle specific error cases with user-friendly messages
+      if (error.message.includes('Email not confirmed')) {
+        errorMessage = 'Please check your email and click the confirmation link before signing in.';
+      } else if (error.message.includes('Invalid login credentials')) {
+        errorMessage = 'Invalid email or password. Please check your credentials and try again.';
+      } else if (error.message.includes('Too many requests')) {
+        errorMessage = 'Too many sign-in attempts. Please wait a moment and try again.';
+      }
+      
       toast({
         title: "Sign In Failed",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive"
       });
     } else {
+      console.log('Sign in successful');
       toast({
         title: "Welcome back!",
         description: "You have successfully signed in.",
