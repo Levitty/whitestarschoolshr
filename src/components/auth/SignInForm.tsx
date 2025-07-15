@@ -89,6 +89,10 @@ const SignInForm = () => {
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? 'Signing In...' : 'Sign In'}
       </Button>
+      
+      <div className="text-sm text-center text-slate-600">
+        <p>Having trouble signing in? Make sure your account has been approved by an administrator.</p>
+      </div>
     </form>
   );
 };

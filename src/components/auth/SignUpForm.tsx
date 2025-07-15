@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -57,21 +56,36 @@ const SignUpForm = () => {
       return;
     }
     
+    console.log('Starting signup process for:', { email, role, fullName, department });
     setLoading(true);
 
     const { error } = await signUp(email, password, fullName, department, role);
     
     if (error) {
+      console.error('Signup error:', error);
+      
+      let errorMessage = error.message;
+      
+      // Handle specific error cases
+      if (error.message.includes('User already registered')) {
+        errorMessage = 'An account with this email already exists. Try signing in instead.';
+      } else if (error.message.includes('Password should be at least')) {
+        errorMessage = 'Password must be at least 6 characters long.';
+      } else if (error.message.includes('Invalid email')) {
+        errorMessage = 'Please enter a valid email address.';
+      }
+      
       toast({
         title: "Sign Up Failed",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive"
       });
     } else {
+      console.log('Signup successful for role:', role);
       toast({
         title: "Account Created!",
         description: role === 'superadmin' 
-          ? "Super administrator account has been created successfully!"
+          ? "Super administrator account has been created and activated successfully! You can now sign in."
           : "Your account has been created and is pending approval from an administrator.",
       });
       // Clear form
