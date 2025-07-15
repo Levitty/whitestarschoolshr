@@ -19,9 +19,18 @@ import RecruitmentAssessments from '@/components/RecruitmentAssessments';
 const Recruitment = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('postings');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { jobListings, loading: jobsLoading, updateJobListing } = useJobListings();
   const { applications } = useJobApplications();
   const { interviews } = useInterviews();
+
+  const handleJobPostingSuccess = () => {
+    setIsDialogOpen(false);
+    toast({
+      title: "Success",
+      description: "Job posting created successfully!"
+    });
+  };
 
   const handleCopyJobLink = async (jobId: string, jobTitle: string) => {
     const jobUrl = `${window.location.origin}/job-details?id=${jobId}`;
@@ -136,7 +145,7 @@ const Recruitment = () => {
         <TabsContent value="postings" className="space-y-6">
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-semibold">Job Postings</h2>
-            <Dialog>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
                 <Button>
                   <Plus className="h-4 w-4 mr-2" />
@@ -147,14 +156,21 @@ const Recruitment = () => {
                 <DialogHeader>
                   <DialogTitle>Create New Job Posting</DialogTitle>
                 </DialogHeader>
-                <JobPostingForm onSuccess={() => window.location.reload()} />
+                <JobPostingForm onSuccess={handleJobPostingSuccess} />
               </DialogContent>
             </Dialog>
           </div>
 
           <div className="grid gap-4">
             {jobsLoading ? (
-              <div>Loading job postings...</div>
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p>Loading job postings...</p>
+              </div>
+            ) : jobListings?.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-gray-500">No job postings found. Create your first job posting!</p>
+              </div>
             ) : (
               jobListings?.map((job) => (
                 <Card key={job.id}>

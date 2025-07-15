@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useJobListings } from '@/hooks/useJobListings';
+import { useToast } from '@/hooks/use-toast';
 
 interface JobPostingFormProps {
   onSuccess: () => void;
@@ -13,6 +14,7 @@ interface JobPostingFormProps {
 
 export const JobPostingForm = ({ onSuccess }: JobPostingFormProps) => {
   const { createJobListing } = useJobListings();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -25,19 +27,41 @@ export const JobPostingForm = ({ onSuccess }: JobPostingFormProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate required fields
     if (!formData.title || !formData.description || !formData.department || !formData.location) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields",
+        variant: "destructive"
+      });
       return;
     }
 
     setLoading(true);
     try {
+      console.log('Creating job listing with data:', formData);
       await createJobListing({
         ...formData,
         status: 'Open'
       });
+      
+      // Reset form
+      setFormData({
+        title: '',
+        description: '',
+        department: '',
+        location: '',
+        employment_type: 'Full-time'
+      });
+      
       onSuccess();
     } catch (error) {
       console.error('Error creating job posting:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create job posting. Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
@@ -47,7 +71,7 @@ export const JobPostingForm = ({ onSuccess }: JobPostingFormProps) => {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="title">Job Title</Label>
+          <Label htmlFor="title">Job Title *</Label>
           <Input
             id="title"
             value={formData.title}
@@ -57,7 +81,7 @@ export const JobPostingForm = ({ onSuccess }: JobPostingFormProps) => {
           />
         </div>
         <div>
-          <Label htmlFor="department">Department</Label>
+          <Label htmlFor="department">Department *</Label>
           <Input
             id="department"
             value={formData.department}
@@ -69,7 +93,7 @@ export const JobPostingForm = ({ onSuccess }: JobPostingFormProps) => {
       </div>
       
       <div>
-        <Label htmlFor="description">Job Description</Label>
+        <Label htmlFor="description">Job Description *</Label>
         <Textarea
           id="description"
           value={formData.description}
@@ -82,7 +106,7 @@ export const JobPostingForm = ({ onSuccess }: JobPostingFormProps) => {
       
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="location">Location</Label>
+          <Label htmlFor="location">Location *</Label>
           <Input
             id="location"
             value={formData.location}

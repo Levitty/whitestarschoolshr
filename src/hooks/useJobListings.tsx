@@ -22,12 +22,18 @@ export const useJobListings = () => {
 
   const fetchJobListings = async () => {
     try {
+      console.log('Fetching job listings...');
       const { data, error } = await supabase
         .from('job_listings')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching job listings:', error);
+        throw error;
+      }
+      
+      console.log('Job listings fetched successfully:', data);
       setJobListings((data || []) as JobListing[]);
     } catch (error) {
       console.error('Error fetching job listings:', error);
@@ -43,14 +49,20 @@ export const useJobListings = () => {
 
   const createJobListing = async (jobData: Omit<JobListing, 'id' | 'created_at' | 'updated_at'>) => {
     try {
+      console.log('Creating job listing with data:', jobData);
+      
       const { data, error } = await supabase
         .from('job_listings')
         .insert([jobData])
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating job listing:', error);
+        throw error;
+      }
       
+      console.log('Job listing created successfully:', data);
       setJobListings(prev => [data as JobListing, ...prev]);
       toast({
         title: "Success",
@@ -71,6 +83,8 @@ export const useJobListings = () => {
 
   const updateJobListing = async (id: string, updates: Partial<JobListing>) => {
     try {
+      console.log('Updating job listing:', id, updates);
+      
       const { data, error } = await supabase
         .from('job_listings')
         .update(updates)
@@ -78,8 +92,12 @@ export const useJobListings = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating job listing:', error);
+        throw error;
+      }
       
+      console.log('Job listing updated successfully:', data);
       setJobListings(prev => prev.map(job => job.id === id ? data as JobListing : job));
       toast({
         title: "Success",
@@ -100,13 +118,19 @@ export const useJobListings = () => {
 
   const deleteJobListing = async (id: string) => {
     try {
+      console.log('Deleting job listing:', id);
+      
       const { error } = await supabase
         .from('job_listings')
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error deleting job listing:', error);
+        throw error;
+      }
       
+      console.log('Job listing deleted successfully');
       setJobListings(prev => prev.filter(job => job.id !== id));
       toast({
         title: "Success",

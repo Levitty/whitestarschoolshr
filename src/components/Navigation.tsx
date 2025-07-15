@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -99,31 +100,35 @@ const Navigation = () => {
         </NavigationMenuItem>
 
         <NavigationMenuItem>
-          <Link
-            to="/recruitment"
-            className={`px-4 py-2 rounded-md transition-colors ${
-              location.pathname === '/recruitment'
-                ? 'bg-primary text-primary-foreground'
-                : 'hover:bg-accent hover:text-accent-foreground'
-            }`}
-          >
-            <Briefcase className="w-4 h-4 mr-2 inline" />
-            Recruitment
-          </Link>
+          <NavigationMenuLink asChild>
+            <Link
+              to="/recruitment"
+              className={`px-4 py-2 rounded-md transition-colors flex items-center ${
+                location.pathname === '/recruitment'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'hover:bg-accent hover:text-accent-foreground'
+              }`}
+            >
+              <Briefcase className="w-4 h-4 mr-2" />
+              Recruitment
+            </Link>
+          </NavigationMenuLink>
         </NavigationMenuItem>
 
         <NavigationMenuItem>
-          <Link
-            to="/tickets"
-            className={`px-4 py-2 rounded-md transition-colors ${
-              location.pathname === '/tickets'
-                ? 'bg-primary text-primary-foreground'
-                : 'hover:bg-accent hover:text-accent-foreground'
-            }`}
-          >
-            <HelpCircle className="w-4 h-4 mr-2 inline" />
-            Support
-          </Link>
+          <NavigationMenuLink asChild>
+            <Link
+              to="/tickets"
+              className={`px-4 py-2 rounded-md transition-colors flex items-center ${
+                location.pathname === '/tickets'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'hover:bg-accent hover:text-accent-foreground'
+              }`}
+            >
+              <HelpCircle className="w-4 h-4 mr-2" />
+              Support
+            </Link>
+          </NavigationMenuLink>
         </NavigationMenuItem>
       </NavigationMenuList>
 
