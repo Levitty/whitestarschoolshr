@@ -138,6 +138,11 @@ const Apply = () => {
         title: "Application Submitted!",
         description: "Thank you for your interest. We'll be in touch soon.",
       });
+
+      // Redirect to applications page after a short delay
+      setTimeout(() => {
+        navigate('/applications');
+      }, 3000);
       
     } catch (error) {
       console.error('Error submitting application:', error);
@@ -199,13 +204,14 @@ const Apply = () => {
               </p>
               <p className="text-sm text-gray-500 mb-8">
                 You should receive a confirmation email at {formData.candidate_email} within the next few minutes.
+                You will be redirected to the applications page in a moment.
               </p>
               <div className="flex gap-4 justify-center">
                 <Button onClick={() => navigate('/jobs-board')} variant="outline">
                   View More Jobs
                 </Button>
-                <Button onClick={() => window.location.reload()}>
-                  Submit Another Application
+                <Button onClick={() => navigate('/applications')}>
+                  View Applications
                 </Button>
               </div>
             </CardContent>
