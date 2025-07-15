@@ -59,13 +59,21 @@ export const useJobApplications = () => {
 
   const uploadCV = async (file: File, jobId: string, candidateName: string) => {
     try {
-      console.log('Starting CV upload:', { fileName: file.name, size: file.size, jobId, candidateName });
+      console.log('=== CV UPLOAD START ===');
+      console.log('File details:', { 
+        fileName: file.name, 
+        size: file.size, 
+        type: file.type,
+        jobId, 
+        candidateName 
+      });
       
       const fileExt = file.name.split('.').pop();
       const fileName = `${jobId}/${candidateName.replace(/\s+/g, '_')}_${Date.now()}.${fileExt}`;
       
-      console.log('Uploading to path:', fileName);
+      console.log('Uploading to storage path:', fileName);
       
+      // Try to upload to storage
       const { data, error: uploadError } = await supabase.storage
         .from('cv-uploads')
         .upload(fileName, file, {
@@ -74,20 +82,24 @@ export const useJobApplications = () => {
         });
 
       if (uploadError) {
-        console.error('Storage upload error:', uploadError);
+        console.error('Storage upload error details:', uploadError);
         throw new Error(`CV upload failed: ${uploadError.message}`);
       }
 
-      console.log('Upload successful:', data);
+      console.log('Upload successful, data:', data);
 
+      // Get the public URL
       const { data: { publicUrl } } = supabase.storage
         .from('cv-uploads')
         .getPublicUrl(fileName);
 
-      console.log('CV uploaded successfully, public URL:', publicUrl);
+      console.log('Public URL generated:', publicUrl);
+      console.log('=== CV UPLOAD SUCCESS ===');
+      
       return publicUrl;
     } catch (error) {
-      console.error('Error in uploadCV:', error);
+      console.error('=== CV UPLOAD FAILED ===');
+      console.error('Error details:', error);
       throw error;
     }
   };
@@ -100,30 +112,60 @@ export const useJobApplications = () => {
     note?: string;
   }) => {
     try {
-      console.log('Creating application with data:', applicationData);
+      console.log('=== APPLICATION CREATION START ===');
+      console.log('Application data:', applicationData);
       
-      // Create the application without authentication
+      // Test database connection first
+      const { error: testError } = await supabase
+        .from('job_applications')
+        .select('count')
+        .limit(1);
+        
+      if (testError) {
+        console.error('Database connection test failed:', testError);
+        throw new Error(`Database connection failed: ${testError.message}`);
+      }
+      
+      console.log('Database connection test passed');
+      
+      // Create the application record
+      const insertData = {
+        job_id: applicationData.job_id,
+        candidate_name: applicationData.candidate_name,
+        candidate_email: applicationData.candidate_email,
+        cv_url: applicationData.cv_url || null,
+        note: applicationData.note || null,
+        status: 'New' as const
+      };
+      
+      console.log('Inserting data:', insertData);
+      
       const { data, error } = await supabase
         .from('job_applications')
-        .insert([{
-          job_id: applicationData.job_id,
-          candidate_name: applicationData.candidate_name,
-          candidate_email: applicationData.candidate_email,
-          cv_url: applicationData.cv_url || null,
-          note: applicationData.note || null,
-          status: 'New'
-        }])
+        .insert([insertData])
         .select()
         .single();
 
       if (error) {
-        console.error('Supabase error creating application:', error);
+        console.error('=== DATABASE INSERT ERROR ===');
+        console.error('Error code:', error.code);
+        console.error('Error message:', error.message);
+        console.error('Error details:', error.details);
+        console.error('Error hint:', error.hint);
         throw new Error(`Application creation failed: ${error.message}`);
       }
       
+      if (!data) {
+        console.error('No data returned from insert');
+        throw new Error('No data returned from application creation');
+      }
+      
       console.log('Application created successfully:', data);
+      console.log('=== APPLICATION CREATION SUCCESS ===');
+      
       return data;
     } catch (error) {
+      console.error('=== APPLICATION CREATION FAILED ===');
       console.error('Error in createApplication:', error);
       throw error;
     }

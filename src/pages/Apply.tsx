@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -39,9 +40,12 @@ const Apply = () => {
   const jobId = searchParams.get('id');
 
   useEffect(() => {
+    console.log('Apply page loaded with jobId:', jobId);
+    console.log('Current URL:', window.location.href);
+    
     const fetchJob = async () => {
       if (!jobId) {
-        console.error('No job ID provided');
+        console.error('No job ID provided in URL');
         setLoading(false);
         return;
       }
@@ -110,7 +114,13 @@ const Apply = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('=== STARTING APPLICATION SUBMISSION ===');
+    console.log('Form data:', formData);
+    console.log('Job ID:', jobId);
+    console.log('CV file:', cvFile?.name);
+    
     if (!formData.candidate_name.trim() || !formData.candidate_email.trim() || !jobId) {
+      console.error('Validation failed - missing required fields');
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields",
@@ -122,6 +132,7 @@ const Apply = () => {
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.candidate_email)) {
+      console.error('Email validation failed');
       toast({
         title: "Invalid Email",
         description: "Please enter a valid email address",
@@ -137,21 +148,34 @@ const Apply = () => {
       
       // Upload CV if provided
       if (cvFile) {
-        console.log('Uploading CV file...');
-        cvUrl = await uploadCV(cvFile, jobId, formData.candidate_name);
-        console.log('CV uploaded successfully:', cvUrl);
+        console.log('=== UPLOADING CV ===');
+        try {
+          cvUrl = await uploadCV(cvFile, jobId, formData.candidate_name);
+          console.log('CV uploaded successfully, URL:', cvUrl);
+        } catch (cvError) {
+          console.error('CV upload failed:', cvError);
+          // Continue without CV if upload fails
+          toast({
+            title: "CV Upload Failed",
+            description: "Continuing without CV attachment",
+            variant: "destructive"
+          });
+        }
       }
 
-      // Create application - this will now work with public access
-      console.log('Creating application...');
-      const applicationResult = await createApplication({
+      // Create application
+      console.log('=== CREATING APPLICATION ===');
+      const applicationData = {
         job_id: jobId,
         candidate_name: formData.candidate_name.trim(),
         candidate_email: formData.candidate_email.trim(),
         note: formData.note.trim() || undefined,
         cv_url: cvUrl || undefined
-      });
-
+      };
+      
+      console.log('Application data to submit:', applicationData);
+      
+      const applicationResult = await createApplication(applicationData);
       console.log('Application created successfully:', applicationResult);
       
       toast({
@@ -167,7 +191,10 @@ const Apply = () => {
       }, 3000);
       
     } catch (error: any) {
-      console.error('Application submission failed:', error);
+      console.error('=== APPLICATION SUBMISSION FAILED ===');
+      console.error('Error details:', error);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
       
       let errorMessage = "An unexpected error occurred. Please try again.";
       
