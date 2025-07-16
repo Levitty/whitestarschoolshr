@@ -9,14 +9,19 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Search, Filter, Users, Target, TrendingUp, Award, Star, Calendar } from 'lucide-react';
+import { Plus, Search, Filter, Users, Target, TrendingUp, Award, Star, Calendar, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useEmployees } from '@/hooks/useEmployees';
+import PerformanceEvaluationDetail from '@/components/PerformanceEvaluationDetail';
+import GoalsManagement from '@/components/GoalsManagement';
 
 const Performance = () => {
   const { toast } = useToast();
+  const { employees, loading } = useEmployees();
   const [activeTab, setActiveTab] = useState('overview');
+  const [selectedEvaluation, setSelectedEvaluation] = useState<any>(null);
+  const [selectedEmployeeForGoals, setSelectedEmployeeForGoals] = useState<any>(null);
 
-  // Add missing state for new evaluation form
   const [newEvaluation, setNewEvaluation] = useState({
     employee_id: '',
     evaluation_period: '',
@@ -37,7 +42,6 @@ const Performance = () => {
     parent_feedback_score: 4.2
   });
 
-  // Mock data for performance evaluations with school-specific metrics
   const evaluations = [
     {
       id: 1,
@@ -93,14 +97,6 @@ const Performance = () => {
     }
   ];
 
-  // Mock employee data
-  const employees = [
-    { id: '1', name: 'Sarah Johnson', position: 'Mathematics Teacher', department: 'Mathematics' },
-    { id: '2', name: 'Mike Chen', position: 'Science Teacher', department: 'Science' },
-    { id: '3', name: 'Emily Davis', position: 'English Teacher', department: 'English' },
-    { id: '4', name: 'John Wilson', position: 'Department Head', department: 'Science' }
-  ];
-
   const handleCreateEvaluation = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -113,13 +109,11 @@ const Performance = () => {
       return;
     }
 
-    // TODO: Implement actual creation logic
     toast({
       title: "Success",
       description: "Performance evaluation created successfully!",
     });
 
-    // Reset form
     setNewEvaluation({
       employee_id: '',
       evaluation_period: '',
@@ -177,7 +171,6 @@ const Performance = () => {
         </div>
       </div>
 
-      {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
           <CardContent className="p-6">
@@ -259,11 +252,17 @@ const Performance = () => {
                           <SelectValue placeholder="Select employee" />
                         </SelectTrigger>
                         <SelectContent>
-                          {employees.map((emp) => (
-                            <SelectItem key={emp.id} value={emp.id}>
-                              {emp.name} - {emp.position}
-                            </SelectItem>
-                          ))}
+                          {loading ? (
+                            <SelectItem value="loading" disabled>Loading employees...</SelectItem>
+                          ) : employees.length > 0 ? (
+                            employees.map((emp) => (
+                              <SelectItem key={emp.id} value={emp.id}>
+                                {emp.first_name} {emp.last_name} - {emp.position}
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <SelectItem value="no-employees" disabled>No employees found</SelectItem>
+                          )}
                         </SelectContent>
                       </Select>
                     </div>
@@ -445,8 +444,14 @@ const Performance = () => {
                     <span>Evaluated on {evaluation.created_at} by {evaluation.evaluator}</span>
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm">View Details</Button>
-                    <Button variant="outline" size="sm">Generate Report</Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setSelectedEvaluation(evaluation)}
+                    >
+                      <Eye className="h-4 w-4 mr-2" />
+                      View Details
+                    </Button>
                   </div>
                 </div>
               </Card>
@@ -525,57 +530,52 @@ const Performance = () => {
         </TabsContent>
 
         <TabsContent value="goals" className="space-y-6">
-          <h2 className="text-xl font-semibold">Professional Development Goals</h2>
-          
-          <div className="grid gap-4">
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h3 className="font-semibold">Sarah Johnson - Mathematics Teacher</h3>
-                    <p className="text-gray-600 text-sm">Goals for 2025</p>
-                  </div>
-                  <Badge>In Progress</Badge>
-                </div>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-4 h-4 rounded-full bg-green-500"></div>
-                    <span className="text-sm">Complete Advanced Mathematics Certification - Due: March 2025</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-4 h-4 rounded-full bg-yellow-500"></div>
-                    <span className="text-sm">Implement new teaching technology in classroom - Due: February 2025</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-4 h-4 rounded-full bg-blue-500"></div>
-                    <span className="text-sm">Mentor 2 new mathematics teachers - Due: June 2025</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h3 className="font-semibold">Mike Chen - Science Teacher</h3>
-                    <p className="text-gray-600 text-sm">Goals for 2025</p>
-                  </div>
-                  <Badge variant="secondary">Planning</Badge>
-                </div>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-4 h-4 rounded-full bg-blue-500"></div>
-                    <span className="text-sm">Take on department leadership role - Due: April 2025</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-4 h-4 rounded-full bg-purple-500"></div>
-                    <span className="text-sm">Publish research paper on innovative lab techniques - Due: August 2025</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          {!selectedEmployeeForGoals ? (
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold">Professional Development Goals</h2>
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <Target className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-600 mb-2">Select an Employee</h3>
+                  <p className="text-gray-500 mb-4">Choose an employee to view and manage their professional development goals.</p>
+                  <Select onValueChange={(value) => {
+                    const employee = employees.find(emp => emp.id === value);
+                    setSelectedEmployeeForGoals(employee);
+                  }}>
+                    <SelectTrigger className="max-w-sm mx-auto">
+                      <SelectValue placeholder="Select employee" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {loading ? (
+                        <SelectItem value="loading" disabled>Loading employees...</SelectItem>
+                      ) : employees.length > 0 ? (
+                        employees.map((emp) => (
+                          <SelectItem key={emp.id} value={emp.id}>
+                            {emp.first_name} {emp.last_name} - {emp.position}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="no-employees" disabled>No employees found</SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </CardContent>
+              </Card>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold">Professional Development Goals</h2>
+                <Button variant="outline" onClick={() => setSelectedEmployeeForGoals(null)}>
+                  Change Employee
+                </Button>
+              </div>
+              <GoalsManagement 
+                employeeId={selectedEmployeeForGoals.id} 
+                employeeName={`${selectedEmployeeForGoals.first_name} ${selectedEmployeeForGoals.last_name}`}
+              />
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="feedback" className="space-y-6">
@@ -647,6 +647,13 @@ const Performance = () => {
           </div>
         </TabsContent>
       </Tabs>
+
+      {selectedEvaluation && (
+        <PerformanceEvaluationDetail 
+          evaluation={selectedEvaluation}
+          onClose={() => setSelectedEvaluation(null)}
+        />
+      )}
     </div>
   );
 };
