@@ -192,7 +192,7 @@ const GoalsManagement = ({ employeeId, employeeName }: GoalsManagementProps) => 
                   <Label htmlFor="priority">Priority</Label>
                   <Select
                     value={newGoal.priority || 'medium'}
-                    onValueChange={(value) => setNewGoal(prev => ({ ...prev, priority: value }))}
+                    onValueChange={(value: 'high' | 'medium' | 'low') => setNewGoal(prev => ({ ...prev, priority: value }))}
                   >
                     <SelectTrigger>
                       <SelectValue />
