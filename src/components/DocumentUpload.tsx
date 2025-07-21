@@ -18,7 +18,7 @@ interface DocumentUploadProps {
 export const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
   const { uploadDocument } = useDocuments();
   const { employees } = useEmployees();
-  const { canAccessSuperAdmin } = useProfile();
+  const { canAccessSuperAdmin, canAccessAdmin } = useProfile();
   const { toast } = useToast();
   
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -53,8 +53,8 @@ export const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
       return;
     }
 
-    // For admin users, employee_id is optional - they can upload for themselves or others
-    if (!canAccessSuperAdmin() && !formData.employee_id) {
+    // For admin users, employee selection is required
+    if ((canAccessSuperAdmin() || canAccessAdmin()) && !formData.employee_id) {
       toast({
         title: "Validation Error", 
         description: "Please select an employee.",
@@ -120,7 +120,7 @@ export const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Employee Selection */}
-          {canAccessSuperAdmin() && (
+          {(canAccessSuperAdmin() || canAccessAdmin()) && (
             <div>
               <Label htmlFor="employee">Select Employee *</Label>
               <Select
@@ -228,17 +228,24 @@ export const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
             />
           </div>
 
-          <div className="flex items-center space-x-2">
-            <input
-              id="signature"
-              type="checkbox"
-              checked={formData.requires_signature}
-              onChange={(e) => setFormData(prev => ({ ...prev, requires_signature: e.target.checked }))}
-              className="rounded"
-            />
-            <Label htmlFor="signature" className="text-sm">
-              This document requires a signature
-            </Label>
+          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+            <div className="flex items-center space-x-2">
+              <input
+                id="signature"
+                type="checkbox"
+                checked={formData.requires_signature}
+                onChange={(e) => setFormData(prev => ({ ...prev, requires_signature: e.target.checked }))}
+                className="rounded"
+              />
+              <Label htmlFor="signature" className="text-sm font-medium">
+                This document requires a signature
+              </Label>
+            </div>
+            <p className="text-xs text-blue-600 mt-2">
+              When enabled, the recipient will need to digitally sign this document. 
+              They'll receive a notification and must provide their signature before the document is considered complete.
+              This is useful for contracts, agreements, acknowledgments, and other legal documents.
+            </p>
           </div>
 
           <Button 
