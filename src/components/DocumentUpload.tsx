@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,9 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Upload, File, X, Trash2 } from 'lucide-react';
 import { useDocuments } from '@/hooks/useDocuments';
-import { useEmployees } from '@/hooks/useEmployees';
 import { useProfile } from '@/hooks/useProfile';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface DocumentUploadProps {
   onSuccess: () => void;
@@ -17,9 +17,27 @@ interface DocumentUploadProps {
 
 export const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
   const { uploadDocument } = useDocuments();
-  const { employees } = useEmployees();
   const { canAccessSuperAdmin, canAccessAdmin } = useProfile();
   const { toast } = useToast();
+  
+  // Fetch employees from profiles table instead of employee_profiles
+  const [employees, setEmployees] = useState<any[]>([]);
+  
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name, department, email')
+        .eq('is_active', true)
+        .order('first_name');
+      
+      if (!error && data) {
+        setEmployees(data);
+      }
+    };
+    
+    fetchEmployees();
+  }, []);
   
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
