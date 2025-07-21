@@ -13,9 +13,10 @@ import { supabase } from '@/integrations/supabase/client';
 
 interface DocumentUploadProps {
   onSuccess: () => void;
+  employeeId?: string; // Optional employee ID when uploading from employee profile
 }
 
-export const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
+export const DocumentUpload = ({ onSuccess, employeeId }: DocumentUploadProps) => {
   const { uploadDocument } = useDocuments();
   const { canAccessSuperAdmin, canAccessAdmin } = useProfile();
   const { toast } = useToast();
@@ -25,15 +26,35 @@ export const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
   
   useEffect(() => {
     const fetchEmployees = async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, first_name, last_name, department, email')
-        .eq('is_active', true)
-        .order('first_name');
+      // Fetch from both profiles and employee_profiles tables
+      const [profilesResult, employeeProfilesResult] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('id, first_name, last_name, department, email')
+          .eq('is_active', true),
+        supabase
+          .from('employee_profiles')
+          .select('id, first_name, last_name, department, email')
+          .eq('status', 'active')
+      ]);
       
-      if (!error && data) {
-        setEmployees(data);
+      const allEmployees = [];
+      
+      // Add profiles data
+      if (profilesResult.data) {
+        allEmployees.push(...profilesResult.data);
       }
+      
+      // Add employee_profiles data (avoid duplicates by checking if ID already exists)
+      if (employeeProfilesResult.data) {
+        const existingIds = new Set(allEmployees.map(emp => emp.id));
+        const uniqueEmployeeProfiles = employeeProfilesResult.data.filter(emp => !existingIds.has(emp.id));
+        allEmployees.push(...uniqueEmployeeProfiles);
+      }
+      
+      // Sort by first name
+      allEmployees.sort((a, b) => (a.first_name || '').localeCompare(b.first_name || ''));
+      setEmployees(allEmployees);
     };
     
     fetchEmployees();
@@ -45,7 +66,7 @@ export const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
     title: '',
     description: '',
     category: 'employment_records' as const,
-    employee_id: '',
+    employee_id: employeeId || '',
     requires_signature: false
   });
 
@@ -71,8 +92,8 @@ export const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
       return;
     }
 
-    // For admin users, employee selection is required
-    if ((canAccessSuperAdmin() || canAccessAdmin()) && !formData.employee_id) {
+    // For admin users without employee context, employee selection is required
+    if (!employeeId && (canAccessSuperAdmin() || canAccessAdmin()) && !formData.employee_id) {
       toast({
         title: "Validation Error", 
         description: "Please select an employee.",
@@ -109,7 +130,7 @@ export const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
           title: '',
           description: '',
           category: 'employment_records',
-          employee_id: '',
+          employee_id: employeeId || '',
           requires_signature: false
         });
         
@@ -137,8 +158,8 @@ export const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Employee Selection */}
-          {(canAccessSuperAdmin() || canAccessAdmin()) && (
+          {/* Employee Selection - Only show if no employee context and user is admin */}
+          {!employeeId && (canAccessSuperAdmin() || canAccessAdmin()) && (
             <div>
               <Label htmlFor="employee">Select Employee *</Label>
               <Select
@@ -151,7 +172,7 @@ export const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
                 <SelectContent>
                   {employees?.map((employee) => (
                     <SelectItem key={employee.id} value={employee.id}>
-                      {employee.first_name} {employee.last_name} - {employee.department}
+                      {employee.first_name} {employee.last_name} - {employee.department || 'No Department'}
                     </SelectItem>
                   ))}
                 </SelectContent>

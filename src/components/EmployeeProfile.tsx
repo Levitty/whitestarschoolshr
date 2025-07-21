@@ -326,7 +326,10 @@ const EmployeeProfile = ({ employee, onClose }: EmployeeProfileProps) => {
 
           <TabsContent value="documents" className="space-y-6">
             <div className="grid gap-6">
-              <DocumentUpload onSuccess={() => window.location.reload()} />
+              <DocumentUpload 
+                employeeId={employee.id} 
+                onSuccess={() => window.location.reload()} 
+              />
               <DocumentsList />
             </div>
           </TabsContent>
