@@ -119,19 +119,18 @@ export const DocumentUpload = ({ onSuccess }: DocumentUploadProps) => {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Employee Selection - Only show for admins or make optional */}
+          {/* Employee Selection */}
           {canAccessSuperAdmin() && (
             <div>
-              <Label htmlFor="employee">Employee (Optional for Admin)</Label>
+              <Label htmlFor="employee">Select Employee *</Label>
               <Select
                 value={formData.employee_id}
                 onValueChange={(value) => setFormData(prev => ({ ...prev, employee_id: value }))}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select employee (or leave empty for yourself)" />
+                  <SelectValue placeholder="Choose employee to upload document for" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="self">For myself</SelectItem>
                   {employees?.map((employee) => (
                     <SelectItem key={employee.id} value={employee.id}>
                       {employee.first_name} {employee.last_name} - {employee.department}
