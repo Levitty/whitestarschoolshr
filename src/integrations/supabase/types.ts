@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      audits: {
+        Row: {
+          action: string
+          created_at: string | null
+          id: string
+          new_values: Json | null
+          old_values: Json | null
+          record_id: string | null
+          table_name: string
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          record_id?: string | null
+          table_name: string
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          record_id?: string | null
+          table_name?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       contract_reminders: {
         Row: {
           created_at: string | null
@@ -999,6 +1032,33 @@ export type Database = {
           },
         ]
       }
+      permissions: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          module: string | null
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          module?: string | null
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          module?: string | null
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -1013,6 +1073,7 @@ export type Database = {
           last_name: string | null
           phone: string | null
           role: string | null
+          role_id: string | null
           status: string | null
           updated_at: string | null
         }
@@ -1029,6 +1090,7 @@ export type Database = {
           last_name?: string | null
           phone?: string | null
           role?: string | null
+          role_id?: string | null
           status?: string | null
           updated_at?: string | null
         }
@@ -1045,10 +1107,19 @@ export type Database = {
           last_name?: string | null
           phone?: string | null
           role?: string | null
+          role_id?: string | null
           status?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       recruitment_assessments: {
         Row: {
@@ -1124,6 +1195,63 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      role_permissions: {
+        Row: {
+          created_at: string | null
+          permission_id: string
+          role_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          permission_id: string
+          role_id: string
+        }
+        Update: {
+          created_at?: string | null
+          permission_id?: string
+          role_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "role_permissions_permission_id_fkey"
+            columns: ["permission_id"]
+            isOneToOne: false
+            referencedRelation: "permissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "role_permissions_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      roles: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       tickets: {
         Row: {
@@ -1249,6 +1377,18 @@ export type Database = {
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      get_user_permissions: {
+        Args: { user_id: string }
+        Returns: {
+          permission_name: string
+          permission_description: string
+          module: string
+        }[]
+      }
+      user_has_permission: {
+        Args: { user_id: string; permission_name: string }
+        Returns: boolean
       }
     }
     Enums: {
