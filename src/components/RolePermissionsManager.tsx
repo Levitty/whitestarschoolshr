@@ -30,6 +30,7 @@ interface Role {
 interface RoleFormData {
   name: string;
   description: string;
+  permissions: string[];
 }
 
 const AVAILABLE_PERMISSIONS: Permission[] = [
@@ -151,8 +152,7 @@ const RolePermissionsManager = () => {
   const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [editingRole, setEditingRole] = useState<Role | null>(null);
-  const [formData, setFormData] = useState<RoleFormData>({ name: '', description: '' });
+  const [formData, setFormData] = useState<RoleFormData>({ name: '', description: '', permissions: [] });
   const { toast } = useToast();
 
   useEffect(() => {
@@ -161,13 +161,20 @@ const RolePermissionsManager = () => {
 
   const loadRoles = async () => {
     try {
+      console.log('Loading roles...');
+      
       // Load roles with their permissions
       const { data: rolesData, error: rolesError } = await supabase
         .from('roles')
         .select('*')
         .order('name');
 
-      if (rolesError) throw rolesError;
+      if (rolesError) {
+        console.error('Error loading roles:', rolesError);
+        throw rolesError;
+      }
+
+      console.log('Roles loaded:', rolesData);
 
       // Load role permissions
       const { data: rolePermissions, error: permError } = await supabase
@@ -178,7 +185,12 @@ const RolePermissionsManager = () => {
           permissions (name)
         `);
 
-      if (permError) throw permError;
+      if (permError) {
+        console.error('Error loading role permissions:', permError);
+        throw permError;
+      }
+
+      console.log('Role permissions loaded:', rolePermissions);
 
       // Combine roles with their permissions
       const rolesWithPermissions = rolesData.map(role => ({
@@ -188,6 +200,7 @@ const RolePermissionsManager = () => {
           .map(rp => rp.permissions.name)
       }));
 
+      console.log('Roles with permissions:', rolesWithPermissions);
       setRoles(rolesWithPermissions);
     } catch (error) {
       console.error('Error loading roles:', error);
@@ -211,21 +224,60 @@ const RolePermissionsManager = () => {
 
     setLoading(true);
     try {
-      const { error } = await supabase
+      console.log('Creating role:', formData);
+      
+      // Create the role
+      const { data: newRole, error: roleError } = await supabase
         .from('roles')
         .insert([{
           name: formData.name.toLowerCase().replace(/\s+/g, '_'),
           description: formData.description
-        }]);
+        }])
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (roleError) {
+        console.error('Error creating role:', roleError);
+        throw roleError;
+      }
+
+      console.log('Role created:', newRole);
+
+      // Assign permissions to the role
+      if (formData.permissions.length > 0) {
+        // Get permission IDs
+        const { data: permissions, error: permissionsError } = await supabase
+          .from('permissions')
+          .select('id, name')
+          .in('name', formData.permissions);
+
+        if (permissionsError) {
+          console.error('Error fetching permissions:', permissionsError);
+          throw permissionsError;
+        }
+
+        // Create role-permission associations
+        const rolePermissionInserts = permissions.map(permission => ({
+          role_id: newRole.id,
+          permission_id: permission.id
+        }));
+
+        const { error: rolePermError } = await supabase
+          .from('role_permissions')
+          .insert(rolePermissionInserts);
+
+        if (rolePermError) {
+          console.error('Error assigning permissions:', rolePermError);
+          throw rolePermError;
+        }
+      }
 
       toast({
         title: "Success",
         description: "Role created successfully.",
       });
 
-      setFormData({ name: '', description: '' });
+      setFormData({ name: '', description: '', permissions: [] });
       setShowCreateDialog(false);
       loadRoles();
     } catch (error) {
@@ -342,6 +394,15 @@ const RolePermissionsManager = () => {
     }
   };
 
+  const handlePermissionToggle = (permissionName: string, enabled: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      permissions: enabled 
+        ? [...prev.permissions, permissionName]
+        : prev.permissions.filter(p => p !== permissionName)
+    }));
+  };
+
   const getRoleDisplayName = (name: string): string => {
     const names = {
       superadmin: 'Super Administrator',
@@ -394,36 +455,77 @@ const RolePermissionsManager = () => {
               Create Role
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Create New Role</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Role Name
-                </label>
-                <Input
-                  value={formData.name}
-                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="Enter role name (e.g., Counselor)"
-                />
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Role Name
+                  </label>
+                  <Input
+                    value={formData.name}
+                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="Enter role name (e.g., Counselor)"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Description
+                  </label>
+                  <Textarea
+                    value={formData.description}
+                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Enter role description"
+                    rows={3}
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Description
-                </label>
-                <Textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Enter role description"
-                  rows={3}
-                />
+              
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Permissions</h3>
+                {Object.entries(groupedPermissions).map(([module, permissions]) => (
+                  <div key={module} className="space-y-3">
+                    <h4 className="font-medium text-gray-900 border-b border-gray-200 pb-1">
+                      {module}
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {permissions.map((permission) => {
+                        const isEnabled = formData.permissions.includes(permission.name);
+                        const Icon = permission.icon;
+                        
+                        return (
+                          <div key={permission.id} className="flex items-center justify-between p-3 border rounded-lg bg-gray-50">
+                            <div className="flex items-center gap-3">
+                              <Icon className="w-4 h-4 text-gray-600" />
+                              <div>
+                                <p className="font-medium text-sm">{permission.name}</p>
+                                <p className="text-xs text-gray-600">{permission.description}</p>
+                              </div>
+                            </div>
+                            <Switch
+                              checked={isEnabled}
+                              onCheckedChange={(enabled) => 
+                                handlePermissionToggle(permission.name, enabled)
+                              }
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
               </div>
+              
               <div className="flex justify-end space-x-2">
                 <Button
                   variant="outline"
-                  onClick={() => setShowCreateDialog(false)}
+                  onClick={() => {
+                    setShowCreateDialog(false);
+                    setFormData({ name: '', description: '', permissions: [] });
+                  }}
                 >
                   Cancel
                 </Button>
