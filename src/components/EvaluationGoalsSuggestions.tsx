@@ -74,8 +74,8 @@ const EvaluationGoalsSuggestions = () => {
     return suggestions;
   };
 
-  const improvementCandidates = evaluations.filter(eval => 
-    eval.overall_rating < 4 && eval.status === 'approved'
+  const improvementCandidates = evaluations.filter(evaluation => 
+    evaluation.overall_rating < 4 && evaluation.status === 'approved'
   );
 
   return (

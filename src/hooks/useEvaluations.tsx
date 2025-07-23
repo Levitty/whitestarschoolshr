@@ -42,6 +42,35 @@ interface Evaluation {
   evaluator_name?: string;
 }
 
+interface CreateEvaluationData {
+  employee_id: string;
+  evaluator_id: string;
+  period: string;
+  type: string;
+  branch: string;
+  academic_student_performance: number;
+  academic_teaching_strategies: number;
+  academic_slow_learners: number;
+  academic_initiatives: number;
+  academic_comments?: string;
+  culture_mission_support: number;
+  culture_extracurricular: number;
+  culture_collaboration: number;
+  culture_diversity: number;
+  culture_comments?: string;
+  development_workshops: number;
+  development_education: number;
+  development_methodologies: number;
+  development_mentoring: number;
+  development_comments?: string;
+  customer_responsiveness: number;
+  customer_communication: number;
+  customer_feedback: number;
+  customer_conflict_resolution: number;
+  customer_comments?: string;
+  status?: string;
+}
+
 export const useEvaluations = () => {
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -81,7 +110,7 @@ export const useEvaluations = () => {
     fetchEvaluations();
   }, []);
 
-  const createEvaluation = async (evaluationData: Partial<Evaluation>) => {
+  const createEvaluation = async (evaluationData: CreateEvaluationData) => {
     try {
       const { data, error } = await supabase
         .from('evaluations')
@@ -111,7 +140,7 @@ export const useEvaluations = () => {
     }
   };
 
-  const updateEvaluation = async (id: string, updates: Partial<Evaluation>) => {
+  const updateEvaluation = async (id: string, updates: Partial<CreateEvaluationData>) => {
     try {
       const { error } = await supabase
         .from('evaluations')
