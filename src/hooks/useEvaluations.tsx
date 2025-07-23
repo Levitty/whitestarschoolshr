@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -112,6 +111,39 @@ export const useEvaluations = () => {
 
   const createEvaluation = async (evaluationData: CreateEvaluationData) => {
     try {
+      console.log('Creating evaluation with data:', evaluationData);
+      
+      // Check current user first
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) {
+        console.error('User not authenticated:', userError);
+        toast({
+          title: "Error",
+          description: "You must be logged in to create evaluations.",
+          variant: "destructive"
+        });
+        return null;
+      }
+
+      // Check user profile and role
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (profileError || !profile) {
+        console.error('Error fetching user profile:', profileError);
+        toast({
+          title: "Error",
+          description: "Could not verify user permissions.",
+          variant: "destructive"
+        });
+        return null;
+      }
+
+      console.log('Current user profile:', profile);
+
       const { data, error } = await supabase
         .from('evaluations')
         .insert(evaluationData)
@@ -120,14 +152,30 @@ export const useEvaluations = () => {
 
       if (error) {
         console.error('Error creating evaluation:', error);
-        toast({
-          title: "Error",
-          description: "Failed to create evaluation. Please try again.",
-          variant: "destructive"
+        console.error('Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
         });
+        
+        if (error.code === '42501' || error.message.includes('row-level security')) {
+          toast({
+            title: "Permission Error",
+            description: "You don't have permission to create evaluations. Please contact your administrator.",
+            variant: "destructive"
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: `Failed to create evaluation: ${error.message}`,
+            variant: "destructive"
+          });
+        }
         return null;
       }
 
+      console.log('Evaluation created successfully:', data);
       await fetchEvaluations();
       toast({
         title: "Success",
@@ -136,6 +184,11 @@ export const useEvaluations = () => {
       return data;
     } catch (error) {
       console.error('Error creating evaluation:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred while creating the evaluation.",
+        variant: "destructive"
+      });
       return null;
     }
   };
