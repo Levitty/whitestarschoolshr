@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -18,6 +17,35 @@ interface CreateEvaluationFormProps {
   isOpen: boolean;
   onClose: () => void;
   selectedEmployeeId?: string;
+}
+
+interface CreateEvaluationData {
+  employee_id: string;
+  evaluator_id: string;
+  period: string;
+  type: string;
+  branch: string;
+  academic_student_performance: number;
+  academic_teaching_strategies: number;
+  academic_slow_learners: number;
+  academic_initiatives: number;
+  academic_comments?: string;
+  culture_mission_support: number;
+  culture_extracurricular: number;
+  culture_collaboration: number;
+  culture_diversity: number;
+  culture_comments?: string;
+  development_workshops: number;
+  development_education: number;
+  development_methodologies: number;
+  development_mentoring: number;
+  development_comments?: string;
+  customer_responsiveness: number;
+  customer_communication: number;
+  customer_feedback: number;
+  customer_conflict_resolution: number;
+  customer_comments?: string;
+  status?: string;
 }
 
 const CreateEvaluationForm = ({ isOpen, onClose, selectedEmployeeId }: CreateEvaluationFormProps) => {
@@ -67,12 +95,13 @@ const CreateEvaluationForm = ({ isOpen, onClose, selectedEmployeeId }: CreateEva
       return;
     }
 
-    const evaluationData = {
+    const evaluationData: CreateEvaluationData = {
       ...formData,
-      evaluator_id: profile?.id,
+      evaluator_id: profile?.id || '',
       status: 'draft'
     };
 
+    console.log('Submitting evaluation data:', evaluationData);
     const result = await createEvaluation(evaluationData);
     if (result) {
       onClose();
