@@ -455,6 +455,132 @@ export type Database = {
           },
         ]
       }
+      evaluations: {
+        Row: {
+          academic_comments: string | null
+          academic_initiatives: number | null
+          academic_slow_learners: number | null
+          academic_student_performance: number | null
+          academic_teaching_strategies: number | null
+          academic_total: number | null
+          branch: string
+          created_at: string | null
+          culture_collaboration: number | null
+          culture_comments: string | null
+          culture_diversity: number | null
+          culture_extracurricular: number | null
+          culture_mission_support: number | null
+          culture_total: number | null
+          customer_comments: string | null
+          customer_communication: number | null
+          customer_conflict_resolution: number | null
+          customer_feedback: number | null
+          customer_responsiveness: number | null
+          customer_total: number | null
+          development_comments: string | null
+          development_education: number | null
+          development_mentoring: number | null
+          development_methodologies: number | null
+          development_total: number | null
+          development_workshops: number | null
+          employee_id: string
+          evaluator_id: string
+          id: string
+          overall_rating: number | null
+          period: string
+          status: string | null
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          academic_comments?: string | null
+          academic_initiatives?: number | null
+          academic_slow_learners?: number | null
+          academic_student_performance?: number | null
+          academic_teaching_strategies?: number | null
+          academic_total?: number | null
+          branch: string
+          created_at?: string | null
+          culture_collaboration?: number | null
+          culture_comments?: string | null
+          culture_diversity?: number | null
+          culture_extracurricular?: number | null
+          culture_mission_support?: number | null
+          culture_total?: number | null
+          customer_comments?: string | null
+          customer_communication?: number | null
+          customer_conflict_resolution?: number | null
+          customer_feedback?: number | null
+          customer_responsiveness?: number | null
+          customer_total?: number | null
+          development_comments?: string | null
+          development_education?: number | null
+          development_mentoring?: number | null
+          development_methodologies?: number | null
+          development_total?: number | null
+          development_workshops?: number | null
+          employee_id: string
+          evaluator_id: string
+          id?: string
+          overall_rating?: number | null
+          period: string
+          status?: string | null
+          type?: string
+          updated_at?: string | null
+        }
+        Update: {
+          academic_comments?: string | null
+          academic_initiatives?: number | null
+          academic_slow_learners?: number | null
+          academic_student_performance?: number | null
+          academic_teaching_strategies?: number | null
+          academic_total?: number | null
+          branch?: string
+          created_at?: string | null
+          culture_collaboration?: number | null
+          culture_comments?: string | null
+          culture_diversity?: number | null
+          culture_extracurricular?: number | null
+          culture_mission_support?: number | null
+          culture_total?: number | null
+          customer_comments?: string | null
+          customer_communication?: number | null
+          customer_conflict_resolution?: number | null
+          customer_feedback?: number | null
+          customer_responsiveness?: number | null
+          customer_total?: number | null
+          development_comments?: string | null
+          development_education?: number | null
+          development_mentoring?: number | null
+          development_methodologies?: number | null
+          development_total?: number | null
+          development_workshops?: number | null
+          employee_id?: string
+          evaluator_id?: string
+          id?: string
+          overall_rating?: number | null
+          period?: string
+          status?: string | null
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evaluations_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employee_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evaluations_evaluator_id_fkey"
+            columns: ["evaluator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       interview_records: {
         Row: {
           candidate_email: string | null
