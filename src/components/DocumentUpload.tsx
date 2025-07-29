@@ -22,13 +22,16 @@ export const DocumentUpload = ({ onSuccess, employeeId }: DocumentUploadProps) =
   const { canAccessSuperAdmin, canAccessAdmin } = useProfile();
   const { toast } = useToast();
   
-  // Fetch employees - prioritize profiles table since that's what the foreign key likely references
+  // Fetch employees - try multiple sources to ensure compatibility
   const [employees, setEmployees] = useState<any[]>([]);
+  const [loadingEmployees, setLoadingEmployees] = useState(true);
   
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
-        // First, try to get active profiles (this is likely what the foreign key references)
+        setLoadingEmployees(true);
+        
+        // Try to fetch from profiles first (most likely source for foreign key)
         const { data: profilesData, error: profilesError } = await supabase
           .from('profiles')
           .select('id, first_name, last_name, department, email')
@@ -36,21 +39,49 @@ export const DocumentUpload = ({ onSuccess, employeeId }: DocumentUploadProps) =
 
         if (profilesError) {
           console.error('Error fetching profiles:', profilesError);
-          toast({
-            title: "Error",
-            description: "Failed to load employee list.",
-            variant: "destructive"
-          });
-          return;
         }
 
-        // Sort by first name and set employees
-        const sortedEmployees = (profilesData || []).sort((a, b) => 
+        // Also try employee_profiles as backup
+        const { data: employeeProfilesData, error: employeeProfilesError } = await supabase
+          .from('employee_profiles')
+          .select('id, first_name, last_name, department, email')
+          .eq('status', 'active');
+
+        if (employeeProfilesError) {
+          console.error('Error fetching employee profiles:', employeeProfilesError);
+        }
+
+        // Combine both sources, avoiding duplicates
+        const allEmployees = [];
+        const seenIds = new Set();
+
+        // Add profiles data first
+        if (profilesData) {
+          profilesData.forEach(emp => {
+            if (!seenIds.has(emp.id)) {
+              allEmployees.push(emp);
+              seenIds.add(emp.id);
+            }
+          });
+        }
+
+        // Add employee_profiles data
+        if (employeeProfilesData) {
+          employeeProfilesData.forEach(emp => {
+            if (!seenIds.has(emp.id)) {
+              allEmployees.push(emp);
+              seenIds.add(emp.id);
+            }
+          });
+        }
+
+        // Sort by first name
+        const sortedEmployees = allEmployees.sort((a, b) => 
           (a.first_name || '').localeCompare(b.first_name || '')
         );
         
         setEmployees(sortedEmployees);
-        console.log('Fetched employees from profiles:', sortedEmployees.length);
+        console.log('Fetched employees:', sortedEmployees.length, 'from both sources');
       } catch (error) {
         console.error('Unexpected error fetching employees:', error);
         toast({
@@ -58,6 +89,8 @@ export const DocumentUpload = ({ onSuccess, employeeId }: DocumentUploadProps) =
           description: "Failed to load employee list.",
           variant: "destructive"
         });
+      } finally {
+        setLoadingEmployees(false);
       }
     };
     
@@ -106,19 +139,7 @@ export const DocumentUpload = ({ onSuccess, employeeId }: DocumentUploadProps) =
       return;
     }
 
-    // Validate that the selected employee exists
     const selectedEmployeeId = formData.employee_id || employeeId;
-    if (selectedEmployeeId) {
-      const employeeExists = employees.some(emp => emp.id === selectedEmployeeId);
-      if (!employeeExists) {
-        toast({
-          title: "Validation Error",
-          description: "Selected employee does not exist. Please refresh and try again.",
-          variant: "destructive"
-        });
-        return;
-      }
-    }
 
     setUploading(true);
     try {
@@ -186,9 +207,10 @@ export const DocumentUpload = ({ onSuccess, employeeId }: DocumentUploadProps) =
               <Select
                 value={formData.employee_id}
                 onValueChange={(value) => setFormData(prev => ({ ...prev, employee_id: value }))}
+                disabled={loadingEmployees}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Choose employee to upload document for" />
+                  <SelectValue placeholder={loadingEmployees ? "Loading employees..." : "Choose employee to upload document for"} />
                 </SelectTrigger>
                 <SelectContent>
                   {employees?.map((employee) => (
@@ -198,8 +220,11 @@ export const DocumentUpload = ({ onSuccess, employeeId }: DocumentUploadProps) =
                   ))}
                 </SelectContent>
               </Select>
-              {employees.length === 0 && (
+              {loadingEmployees && (
                 <p className="text-sm text-gray-500 mt-1">Loading employees...</p>
+              )}
+              {!loadingEmployees && employees.length === 0 && (
+                <p className="text-sm text-red-500 mt-1">No employees found. Please check your permissions.</p>
               )}
             </div>
           )}
@@ -314,7 +339,7 @@ export const DocumentUpload = ({ onSuccess, employeeId }: DocumentUploadProps) =
           <Button 
             type="submit" 
             className="w-full" 
-            disabled={uploading || !selectedFile || !formData.title}
+            disabled={uploading || !selectedFile || !formData.title || loadingEmployees}
           >
             {uploading ? 'Uploading...' : 'Upload Document'}
           </Button>
