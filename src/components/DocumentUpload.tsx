@@ -39,23 +39,40 @@ export const DocumentUpload = ({ onSuccess, employeeId }: DocumentUploadProps) =
         if (employeeId) {
           console.log('Looking for specific employee with ID:', employeeId);
           
-          const { data: profileData, error: profileError } = await supabase
-            .from('profiles')
-            .select('id, first_name, last_name, department, email')
-            .eq('id', employeeId)
-            .maybeSingle();
+          // Try both tables to find the employee
+          const [profileResult, employeeProfileResult] = await Promise.all([
+            supabase
+              .from('profiles')
+              .select('id, first_name, last_name, department, email')
+              .eq('id', employeeId)
+              .maybeSingle(),
+            supabase
+              .from('employee_profiles')
+              .select('id, profile_id, first_name, last_name, department, email')
+              .eq('id', employeeId)
+              .maybeSingle()
+          ]);
 
-          if (profileError) {
-            console.error('Error fetching employee profile:', profileError);
-            setFetchError('Failed to load employee information');
-            return;
+          let employeeData = null;
+
+          if (profileResult.data) {
+            employeeData = profileResult.data;
+            console.log('Found employee in profiles:', employeeData);
+          } else if (employeeProfileResult.data) {
+            employeeData = {
+              id: employeeProfileResult.data.profile_id || employeeProfileResult.data.id,
+              first_name: employeeProfileResult.data.first_name,
+              last_name: employeeProfileResult.data.last_name,
+              department: employeeProfileResult.data.department,
+              email: employeeProfileResult.data.email
+            };
+            console.log('Found employee in employee_profiles:', employeeData);
           }
 
-          if (profileData) {
-            setSelectedEmployee(profileData);
-            console.log('Found employee in profiles:', profileData);
+          if (employeeData) {
+            setSelectedEmployee(employeeData);
           } else {
-            console.log('Employee not found in profiles table');
+            console.log('Employee not found in either table');
             setFetchError('Employee not found');
             return;
           }
