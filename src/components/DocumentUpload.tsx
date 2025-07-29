@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,44 +22,47 @@ export const DocumentUpload = ({ onSuccess, employeeId }: DocumentUploadProps) =
   const { canAccessSuperAdmin, canAccessAdmin } = useProfile();
   const { toast } = useToast();
   
-  // Fetch employees from profiles table instead of employee_profiles
+  // Fetch employees - prioritize profiles table since that's what the foreign key likely references
   const [employees, setEmployees] = useState<any[]>([]);
   
   useEffect(() => {
     const fetchEmployees = async () => {
-      // Fetch from both profiles and employee_profiles tables
-      const [profilesResult, employeeProfilesResult] = await Promise.all([
-        supabase
+      try {
+        // First, try to get active profiles (this is likely what the foreign key references)
+        const { data: profilesData, error: profilesError } = await supabase
           .from('profiles')
           .select('id, first_name, last_name, department, email')
-          .eq('is_active', true),
-        supabase
-          .from('employee_profiles')
-          .select('id, first_name, last_name, department, email')
-          .eq('status', 'active')
-      ]);
-      
-      const allEmployees = [];
-      
-      // Add profiles data
-      if (profilesResult.data) {
-        allEmployees.push(...profilesResult.data);
+          .eq('is_active', true);
+
+        if (profilesError) {
+          console.error('Error fetching profiles:', profilesError);
+          toast({
+            title: "Error",
+            description: "Failed to load employee list.",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        // Sort by first name and set employees
+        const sortedEmployees = (profilesData || []).sort((a, b) => 
+          (a.first_name || '').localeCompare(b.first_name || '')
+        );
+        
+        setEmployees(sortedEmployees);
+        console.log('Fetched employees from profiles:', sortedEmployees.length);
+      } catch (error) {
+        console.error('Unexpected error fetching employees:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load employee list.",
+          variant: "destructive"
+        });
       }
-      
-      // Add employee_profiles data (avoid duplicates by checking if ID already exists)
-      if (employeeProfilesResult.data) {
-        const existingIds = new Set(allEmployees.map(emp => emp.id));
-        const uniqueEmployeeProfiles = employeeProfilesResult.data.filter(emp => !existingIds.has(emp.id));
-        allEmployees.push(...uniqueEmployeeProfiles);
-      }
-      
-      // Sort by first name
-      allEmployees.sort((a, b) => (a.first_name || '').localeCompare(b.first_name || ''));
-      setEmployees(allEmployees);
     };
     
     fetchEmployees();
-  }, []);
+  }, [toast]);
   
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -102,20 +106,37 @@ export const DocumentUpload = ({ onSuccess, employeeId }: DocumentUploadProps) =
       return;
     }
 
+    // Validate that the selected employee exists
+    const selectedEmployeeId = formData.employee_id || employeeId;
+    if (selectedEmployeeId) {
+      const employeeExists = employees.some(emp => emp.id === selectedEmployeeId);
+      if (!employeeExists) {
+        toast({
+          title: "Validation Error",
+          description: "Selected employee does not exist. Please refresh and try again.",
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
     setUploading(true);
     try {
+      console.log('Uploading document with employee_id:', selectedEmployeeId);
+      
       const result = await uploadDocument(
         selectedFile,
         formData.title,
         formData.description,
         formData.category,
-        formData.employee_id || undefined
+        selectedEmployeeId || undefined
       );
       
       if (result?.error) {
+        console.error('Upload error:', result.error);
         toast({
           title: "Upload Failed",
-          description: result.error.message,
+          description: result.error.message || "Failed to upload document.",
           variant: "destructive"
         });
       } else {
@@ -177,6 +198,9 @@ export const DocumentUpload = ({ onSuccess, employeeId }: DocumentUploadProps) =
                   ))}
                 </SelectContent>
               </Select>
+              {employees.length === 0 && (
+                <p className="text-sm text-gray-500 mt-1">Loading employees...</p>
+              )}
             </div>
           )}
 
