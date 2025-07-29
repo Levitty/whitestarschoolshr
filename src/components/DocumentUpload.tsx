@@ -28,6 +28,12 @@ export const DocumentUpload = ({ onSuccess, employeeId }: DocumentUploadProps) =
   const [fetchError, setFetchError] = useState<string>('');
   
   useEffect(() => {
+    // Skip loading if no profile needed (admin mode without specific employee)
+    if (!employeeId && !profile) {
+      setLoadingEmployees(false);
+      return;
+    }
+    
     if (!profile) return; // Wait for profile to load
     
     const fetchEmployees = async () => {
