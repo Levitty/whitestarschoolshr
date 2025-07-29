@@ -14,7 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 interface DocumentUploadProps {
   onSuccess: () => void;
-  employeeId?: string; // Optional employee ID when uploading from employee profile
+  employeeId?: string;
 }
 
 export const DocumentUpload = ({ onSuccess, employeeId }: DocumentUploadProps) => {
@@ -25,55 +25,46 @@ export const DocumentUpload = ({ onSuccess, employeeId }: DocumentUploadProps) =
   const [employees, setEmployees] = useState<any[]>([]);
   const [loadingEmployees, setLoadingEmployees] = useState(true);
   const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
+  const [fetchError, setFetchError] = useState<string>('');
   
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
         setLoadingEmployees(true);
+        setFetchError('');
         
-        // If we have an employeeId, verify it exists and get the employee details
+        console.log('Starting employee fetch. EmployeeId:', employeeId);
+        
+        // If we have an employeeId (from employee profile), find that specific employee
         if (employeeId) {
-          console.log('Looking for employee with ID:', employeeId);
+          console.log('Looking for specific employee with ID:', employeeId);
           
-          // First try to find in profiles table
           const { data: profileData, error: profileError } = await supabase
             .from('profiles')
             .select('id, first_name, last_name, department, email')
             .eq('id', employeeId)
-            .single();
+            .maybeSingle();
 
           if (profileError) {
-            console.log('Profile not found, trying employee_profiles:', profileError);
-            
-            // If not found in profiles, try employee_profiles
-            const { data: empProfileData, error: empProfileError } = await supabase
-              .from('employee_profiles')
-              .select('id, first_name, last_name, department, email, profile_id')
-              .eq('id', employeeId)
-              .single();
+            console.error('Error fetching employee profile:', profileError);
+            setFetchError('Failed to load employee information');
+            return;
+          }
 
-            if (empProfileError) {
-              console.error('Employee not found in either table:', empProfileError);
-              toast({
-                title: "Error",
-                description: "Selected employee not found. Please refresh and try again.",
-                variant: "destructive"
-              });
-              return;
-            }
-
-            // If we found in employee_profiles, use the profile_id if available
-            const finalEmployeeId = empProfileData.profile_id || empProfileData.id;
-            setSelectedEmployee({ ...empProfileData, id: finalEmployeeId });
-            console.log('Found employee in employee_profiles:', empProfileData);
-          } else {
+          if (profileData) {
             setSelectedEmployee(profileData);
             console.log('Found employee in profiles:', profileData);
+          } else {
+            console.log('Employee not found in profiles table');
+            setFetchError('Employee not found');
+            return;
           }
         }
 
-        // Always fetch all employees for the dropdown (for admin users)
+        // For admin users, fetch all employees for dropdown
         if (!employeeId && (canAccessSuperAdmin() || canAccessAdmin())) {
+          console.log('Fetching all employees for admin dropdown');
+          
           const { data: allProfiles, error: allProfilesError } = await supabase
             .from('profiles')
             .select('id, first_name, last_name, department, email')
@@ -82,25 +73,22 @@ export const DocumentUpload = ({ onSuccess, employeeId }: DocumentUploadProps) =
 
           if (allProfilesError) {
             console.error('Error fetching all profiles:', allProfilesError);
+            setFetchError('Failed to load employees list');
           } else {
             setEmployees(allProfiles || []);
-            console.log('Fetched all employees for dropdown:', allProfiles?.length);
+            console.log('Fetched employees for dropdown:', allProfiles?.length);
           }
         }
       } catch (error) {
         console.error('Unexpected error fetching employees:', error);
-        toast({
-          title: "Error",
-          description: "Failed to load employee information.",
-          variant: "destructive"
-        });
+        setFetchError('An unexpected error occurred');
       } finally {
         setLoadingEmployees(false);
       }
     };
     
     fetchEmployees();
-  }, [employeeId, canAccessSuperAdmin, canAccessAdmin, toast]);
+  }, [employeeId, canAccessSuperAdmin, canAccessAdmin]);
   
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -145,10 +133,8 @@ export const DocumentUpload = ({ onSuccess, employeeId }: DocumentUploadProps) =
     let finalEmployeeId = '';
     
     if (employeeId && selectedEmployee) {
-      // We're on an employee profile page
       finalEmployeeId = selectedEmployee.id;
     } else if (!employeeId && (canAccessSuperAdmin() || canAccessAdmin()) && formData.employee_id) {
-      // Admin is selecting an employee from dropdown
       finalEmployeeId = formData.employee_id;
     } else {
       toast({
@@ -215,6 +201,24 @@ export const DocumentUpload = ({ onSuccess, employeeId }: DocumentUploadProps) =
           <div className="flex items-center justify-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mr-3"></div>
             <span>Loading employee information...</span>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (fetchError) {
+    return (
+      <Card className="w-full max-w-2xl mx-auto">
+        <CardContent className="p-6">
+          <div className="text-center text-red-600">
+            <p className="mb-4">{fetchError}</p>
+            <Button 
+              onClick={() => window.location.reload()} 
+              variant="outline"
+            >
+              Retry
+            </Button>
           </div>
         </CardContent>
       </Card>
