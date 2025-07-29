@@ -19,15 +19,17 @@ interface DocumentUploadProps {
 
 export const DocumentUpload = ({ onSuccess, employeeId }: DocumentUploadProps) => {
   const { uploadDocument } = useDocuments();
-  const { canAccessSuperAdmin, canAccessAdmin } = useProfile();
+  const { profile, canAccessSuperAdmin, canAccessAdmin } = useProfile();
   const { toast } = useToast();
   
   const [employees, setEmployees] = useState<any[]>([]);
-  const [loadingEmployees, setLoadingEmployees] = useState(true);
+  const [loadingEmployees, setLoadingEmployees] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
   const [fetchError, setFetchError] = useState<string>('');
   
   useEffect(() => {
+    if (!profile) return; // Wait for profile to load
+    
     const fetchEmployees = async () => {
       try {
         setLoadingEmployees(true);
@@ -105,7 +107,7 @@ export const DocumentUpload = ({ onSuccess, employeeId }: DocumentUploadProps) =
     };
     
     fetchEmployees();
-  }, [employeeId, canAccessSuperAdmin, canAccessAdmin]);
+  }, [employeeId, profile, canAccessSuperAdmin, canAccessAdmin]);
   
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
