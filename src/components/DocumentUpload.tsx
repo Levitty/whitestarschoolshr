@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Upload, File, X, Trash2 } from 'lucide-react';
+import { Upload, File, X } from 'lucide-react';
 import { useDocuments } from '@/hooks/useDocuments';
 import { useProfile } from '@/hooks/useProfile';
 import { useToast } from '@/hooks/use-toast';
@@ -22,71 +22,76 @@ export const DocumentUpload = ({ onSuccess, employeeId }: DocumentUploadProps) =
   const { canAccessSuperAdmin, canAccessAdmin } = useProfile();
   const { toast } = useToast();
   
-  // Fetch employees - try multiple sources to ensure compatibility
   const [employees, setEmployees] = useState<any[]>([]);
   const [loadingEmployees, setLoadingEmployees] = useState(true);
+  const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
   
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
         setLoadingEmployees(true);
         
-        // Try to fetch from profiles first (most likely source for foreign key)
-        const { data: profilesData, error: profilesError } = await supabase
-          .from('profiles')
-          .select('id, first_name, last_name, department, email')
-          .eq('is_active', true);
+        // If we have an employeeId, verify it exists and get the employee details
+        if (employeeId) {
+          console.log('Looking for employee with ID:', employeeId);
+          
+          // First try to find in profiles table
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select('id, first_name, last_name, department, email')
+            .eq('id', employeeId)
+            .single();
 
-        if (profilesError) {
-          console.error('Error fetching profiles:', profilesError);
-        }
+          if (profileError) {
+            console.log('Profile not found, trying employee_profiles:', profileError);
+            
+            // If not found in profiles, try employee_profiles
+            const { data: empProfileData, error: empProfileError } = await supabase
+              .from('employee_profiles')
+              .select('id, first_name, last_name, department, email, profile_id')
+              .eq('id', employeeId)
+              .single();
 
-        // Also try employee_profiles as backup
-        const { data: employeeProfilesData, error: employeeProfilesError } = await supabase
-          .from('employee_profiles')
-          .select('id, first_name, last_name, department, email')
-          .eq('status', 'active');
-
-        if (employeeProfilesError) {
-          console.error('Error fetching employee profiles:', employeeProfilesError);
-        }
-
-        // Combine both sources, avoiding duplicates
-        const allEmployees = [];
-        const seenIds = new Set();
-
-        // Add profiles data first
-        if (profilesData) {
-          profilesData.forEach(emp => {
-            if (!seenIds.has(emp.id)) {
-              allEmployees.push(emp);
-              seenIds.add(emp.id);
+            if (empProfileError) {
+              console.error('Employee not found in either table:', empProfileError);
+              toast({
+                title: "Error",
+                description: "Selected employee not found. Please refresh and try again.",
+                variant: "destructive"
+              });
+              return;
             }
-          });
+
+            // If we found in employee_profiles, use the profile_id if available
+            const finalEmployeeId = empProfileData.profile_id || empProfileData.id;
+            setSelectedEmployee({ ...empProfileData, id: finalEmployeeId });
+            console.log('Found employee in employee_profiles:', empProfileData);
+          } else {
+            setSelectedEmployee(profileData);
+            console.log('Found employee in profiles:', profileData);
+          }
         }
 
-        // Add employee_profiles data
-        if (employeeProfilesData) {
-          employeeProfilesData.forEach(emp => {
-            if (!seenIds.has(emp.id)) {
-              allEmployees.push(emp);
-              seenIds.add(emp.id);
-            }
-          });
-        }
+        // Always fetch all employees for the dropdown (for admin users)
+        if (!employeeId && (canAccessSuperAdmin() || canAccessAdmin())) {
+          const { data: allProfiles, error: allProfilesError } = await supabase
+            .from('profiles')
+            .select('id, first_name, last_name, department, email')
+            .eq('is_active', true)
+            .order('first_name');
 
-        // Sort by first name
-        const sortedEmployees = allEmployees.sort((a, b) => 
-          (a.first_name || '').localeCompare(b.first_name || '')
-        );
-        
-        setEmployees(sortedEmployees);
-        console.log('Fetched employees:', sortedEmployees.length, 'from both sources');
+          if (allProfilesError) {
+            console.error('Error fetching all profiles:', allProfilesError);
+          } else {
+            setEmployees(allProfiles || []);
+            console.log('Fetched all employees for dropdown:', allProfiles?.length);
+          }
+        }
       } catch (error) {
         console.error('Unexpected error fetching employees:', error);
         toast({
           title: "Error",
-          description: "Failed to load employee list.",
+          description: "Failed to load employee information.",
           variant: "destructive"
         });
       } finally {
@@ -95,7 +100,7 @@ export const DocumentUpload = ({ onSuccess, employeeId }: DocumentUploadProps) =
     };
     
     fetchEmployees();
-  }, [toast]);
+  }, [employeeId, canAccessSuperAdmin, canAccessAdmin, toast]);
   
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -103,9 +108,16 @@ export const DocumentUpload = ({ onSuccess, employeeId }: DocumentUploadProps) =
     title: '',
     description: '',
     category: 'employment_records' as const,
-    employee_id: employeeId || '',
+    employee_id: '',
     requires_signature: false
   });
+
+  // Update form data when selectedEmployee changes
+  useEffect(() => {
+    if (selectedEmployee) {
+      setFormData(prev => ({ ...prev, employee_id: selectedEmployee.id }));
+    }
+  }, [selectedEmployee]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -129,8 +141,16 @@ export const DocumentUpload = ({ onSuccess, employeeId }: DocumentUploadProps) =
       return;
     }
 
-    // For admin users without employee context, employee selection is required
-    if (!employeeId && (canAccessSuperAdmin() || canAccessAdmin()) && !formData.employee_id) {
+    // Determine which employee ID to use
+    let finalEmployeeId = '';
+    
+    if (employeeId && selectedEmployee) {
+      // We're on an employee profile page
+      finalEmployeeId = selectedEmployee.id;
+    } else if (!employeeId && (canAccessSuperAdmin() || canAccessAdmin()) && formData.employee_id) {
+      // Admin is selecting an employee from dropdown
+      finalEmployeeId = formData.employee_id;
+    } else {
       toast({
         title: "Validation Error", 
         description: "Please select an employee.",
@@ -139,18 +159,16 @@ export const DocumentUpload = ({ onSuccess, employeeId }: DocumentUploadProps) =
       return;
     }
 
-    const selectedEmployeeId = formData.employee_id || employeeId;
+    console.log('Final employee ID for upload:', finalEmployeeId);
 
     setUploading(true);
     try {
-      console.log('Uploading document with employee_id:', selectedEmployeeId);
-      
       const result = await uploadDocument(
         selectedFile,
         formData.title,
         formData.description,
         formData.category,
-        selectedEmployeeId || undefined
+        finalEmployeeId
       );
       
       if (result?.error) {
@@ -163,7 +181,7 @@ export const DocumentUpload = ({ onSuccess, employeeId }: DocumentUploadProps) =
       } else {
         toast({
           title: "Success",
-          description: "Document uploaded successfully!"
+          description: `Document uploaded successfully for ${selectedEmployee?.first_name || 'selected employee'}!`
         });
         
         // Reset form
@@ -172,7 +190,7 @@ export const DocumentUpload = ({ onSuccess, employeeId }: DocumentUploadProps) =
           title: '',
           description: '',
           category: 'employment_records',
-          employee_id: employeeId || '',
+          employee_id: selectedEmployee?.id || '',
           requires_signature: false
         });
         
@@ -190,12 +208,30 @@ export const DocumentUpload = ({ onSuccess, employeeId }: DocumentUploadProps) =
     }
   };
 
+  if (loadingEmployees) {
+    return (
+      <Card className="w-full max-w-2xl mx-auto">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mr-3"></div>
+            <span>Loading employee information...</span>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Upload className="h-5 w-5" />
           Upload Document
+          {selectedEmployee && (
+            <span className="text-sm font-normal text-gray-600">
+              for {selectedEmployee.first_name} {selectedEmployee.last_name}
+            </span>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -207,23 +243,19 @@ export const DocumentUpload = ({ onSuccess, employeeId }: DocumentUploadProps) =
               <Select
                 value={formData.employee_id}
                 onValueChange={(value) => setFormData(prev => ({ ...prev, employee_id: value }))}
-                disabled={loadingEmployees}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder={loadingEmployees ? "Loading employees..." : "Choose employee to upload document for"} />
+                  <SelectValue placeholder="Choose employee to upload document for" />
                 </SelectTrigger>
                 <SelectContent>
-                  {employees?.map((employee) => (
+                  {employees.map((employee) => (
                     <SelectItem key={employee.id} value={employee.id}>
                       {employee.first_name} {employee.last_name} - {employee.department || 'No Department'}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              {loadingEmployees && (
-                <p className="text-sm text-gray-500 mt-1">Loading employees...</p>
-              )}
-              {!loadingEmployees && employees.length === 0 && (
+              {employees.length === 0 && (
                 <p className="text-sm text-red-500 mt-1">No employees found. Please check your permissions.</p>
               )}
             </div>
@@ -339,7 +371,7 @@ export const DocumentUpload = ({ onSuccess, employeeId }: DocumentUploadProps) =
           <Button 
             type="submit" 
             className="w-full" 
-            disabled={uploading || !selectedFile || !formData.title || loadingEmployees}
+            disabled={uploading || !selectedFile || !formData.title}
           >
             {uploading ? 'Uploading...' : 'Upload Document'}
           </Button>
