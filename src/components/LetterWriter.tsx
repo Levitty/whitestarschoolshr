@@ -315,22 +315,65 @@ const LetterWriter = () => {
       const { jsPDF } = await import('jspdf');
       const doc = new jsPDF();
       
-      // Set font and split text to fit PDF width
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(12);
+      // Get letterhead settings
+      const { data: letterheadData } = await supabase
+        .from('letterhead_settings')
+        .select('*')
+        .eq('is_active', true)
+        .single();
       
+      let yPosition = 20;
       const pageWidth = doc.internal.pageSize.getWidth();
       const margin = 20;
       const textWidth = pageWidth - 2 * margin;
       
-      const lines = doc.splitTextToSize(letterContent, textWidth);
+      // Add letterhead if available
+      if (letterheadData) {
+        // Company name
+        if (letterheadData.company_name) {
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(16);
+          doc.text(letterheadData.company_name, margin, yPosition);
+          yPosition += 10;
+        }
+        
+        // Contact details
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+        
+        if (letterheadData.address) {
+          const addressLines = doc.splitTextToSize(letterheadData.address, textWidth);
+          doc.text(addressLines, margin, yPosition);
+          yPosition += addressLines.length * 4;
+        }
+        
+        if (letterheadData.phone || letterheadData.email || letterheadData.website) {
+          const contactInfo = [];
+          if (letterheadData.phone) contactInfo.push(`Phone: ${letterheadData.phone}`);
+          if (letterheadData.email) contactInfo.push(`Email: ${letterheadData.email}`);
+          if (letterheadData.website) contactInfo.push(`Website: ${letterheadData.website}`);
+          
+          doc.text(contactInfo.join(' | '), margin, yPosition);
+          yPosition += 6;
+        }
+        
+        // Add separator line
+        doc.setLineWidth(0.5);
+        doc.line(margin, yPosition, pageWidth - margin, yPosition);
+        yPosition += 15;
+      }
       
-      doc.text(lines, margin, 30);
+      // Add letter content
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(12);
+      const lines = doc.splitTextToSize(letterContent, textWidth);
+      doc.text(lines, margin, yPosition);
+      
       doc.save(`${letterTitle || 'Letter'}.pdf`);
       
       toast({
         title: "PDF Downloaded",
-        description: "Letter has been downloaded as PDF."
+        description: "Letter has been downloaded as PDF with letterhead."
       });
     } catch (error) {
       console.error('PDF generation error:', error);
@@ -353,20 +396,65 @@ const LetterWriter = () => {
     }
 
     try {
-      const { Document, Packer, Paragraph, TextRun } = await import('docx');
+      const { Document, Packer, Paragraph, TextRun, AlignmentType } = await import('docx');
       
-      // Split content into paragraphs
-      const paragraphs = letterContent.split('\n\n').map(text => 
+      // Get letterhead settings
+      const { data: letterheadData } = await supabase
+        .from('letterhead_settings')
+        .select('*')
+        .eq('is_active', true)
+        .single();
+      
+      const children = [];
+      
+      // Add letterhead if available
+      if (letterheadData) {
+        // Company name
+        if (letterheadData.company_name) {
+          children.push(new Paragraph({
+            children: [new TextRun({
+              text: letterheadData.company_name,
+              bold: true,
+              size: 32 // 16pt
+            })],
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 200 }
+          }));
+        }
+        
+        // Contact details
+        const contactDetails = [];
+        if (letterheadData.address) contactDetails.push(letterheadData.address);
+        if (letterheadData.phone) contactDetails.push(`Phone: ${letterheadData.phone}`);
+        if (letterheadData.email) contactDetails.push(`Email: ${letterheadData.email}`);
+        if (letterheadData.website) contactDetails.push(`Website: ${letterheadData.website}`);
+        
+        if (contactDetails.length > 0) {
+          children.push(new Paragraph({
+            children: [new TextRun({
+              text: contactDetails.join('\n'),
+              size: 20 // 10pt
+            })],
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 400 }
+          }));
+        }
+      }
+      
+      // Add letter content paragraphs
+      const contentParagraphs = letterContent.split('\n\n').map(text => 
         new Paragraph({
           children: [new TextRun(text.trim())],
           spacing: { after: 200 }
         })
       );
+      
+      children.push(...contentParagraphs);
 
       const doc = new Document({
         sections: [{
           properties: {},
-          children: paragraphs,
+          children: children,
         }],
       });
 
@@ -382,7 +470,7 @@ const LetterWriter = () => {
       
       toast({
         title: "Word Document Downloaded",
-        description: "Letter has been downloaded as Word document."
+        description: "Letter has been downloaded as Word document with letterhead."
       });
     } catch (error) {
       console.error('Word generation error:', error);
@@ -474,30 +562,67 @@ const LetterWriter = () => {
 
     setIsSendingEmail(true);
     try {
-      // Generate PDF
+      // Get letterhead settings first
+      const { data: letterheadData } = await supabase
+        .from('letterhead_settings')
+        .select('*')
+        .eq('is_active', true)
+        .single();
+
+      // Generate PDF with letterhead
       const { jsPDF } = await import('jspdf');
       const doc = new jsPDF();
       
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(12);
-      
+      let yPosition = 20;
       const pageWidth = doc.internal.pageSize.getWidth();
       const margin = 20;
       const textWidth = pageWidth - 2 * margin;
       
+      // Add letterhead if available
+      if (letterheadData) {
+        // Company name
+        if (letterheadData.company_name) {
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(16);
+          doc.text(letterheadData.company_name, margin, yPosition);
+          yPosition += 10;
+        }
+        
+        // Contact details
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+        
+        if (letterheadData.address) {
+          const addressLines = doc.splitTextToSize(letterheadData.address, textWidth);
+          doc.text(addressLines, margin, yPosition);
+          yPosition += addressLines.length * 4;
+        }
+        
+        if (letterheadData.phone || letterheadData.email || letterheadData.website) {
+          const contactInfo = [];
+          if (letterheadData.phone) contactInfo.push(`Phone: ${letterheadData.phone}`);
+          if (letterheadData.email) contactInfo.push(`Email: ${letterheadData.email}`);
+          if (letterheadData.website) contactInfo.push(`Website: ${letterheadData.website}`);
+          
+          doc.text(contactInfo.join(' | '), margin, yPosition);
+          yPosition += 6;
+        }
+        
+        // Add separator line
+        doc.setLineWidth(0.5);
+        doc.line(margin, yPosition, pageWidth - margin, yPosition);
+        yPosition += 15;
+      }
+      
+      // Add letter content
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(12);
       const lines = doc.splitTextToSize(letterContent, textWidth);
-      doc.text(lines, margin, 30);
+      doc.text(lines, margin, yPosition);
       
       // Convert to base64
       const pdfData = doc.output('datauristring');
       const base64Data = pdfData.split(',')[1]; // Remove data:application/pdf;base64, prefix
-
-      // Get company name from letterhead settings
-      const { data: letterheadData } = await supabase
-        .from('letterhead_settings')
-        .select('company_name')
-        .eq('is_active', true)
-        .single();
 
       const response = await supabase.functions.invoke('send-letter-email', {
         body: {
@@ -554,33 +679,72 @@ const LetterWriter = () => {
 
     setIsSendingEmail(true);
     try {
-      // Generate Word document
-      const { Document, Packer, Paragraph, TextRun } = await import('docx');
+      // Get letterhead settings first
+      const { data: letterheadData } = await supabase
+        .from('letterhead_settings')
+        .select('*')
+        .eq('is_active', true)
+        .single();
+
+      // Generate Word document with letterhead
+      const { Document, Packer, Paragraph, TextRun, AlignmentType } = await import('docx');
       
-      const paragraphs = letterContent.split('\n\n').map(text => 
+      const children = [];
+      
+      // Add letterhead if available
+      if (letterheadData) {
+        // Company name
+        if (letterheadData.company_name) {
+          children.push(new Paragraph({
+            children: [new TextRun({
+              text: letterheadData.company_name,
+              bold: true,
+              size: 32 // 16pt
+            })],
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 200 }
+          }));
+        }
+        
+        // Contact details
+        const contactDetails = [];
+        if (letterheadData.address) contactDetails.push(letterheadData.address);
+        if (letterheadData.phone) contactDetails.push(`Phone: ${letterheadData.phone}`);
+        if (letterheadData.email) contactDetails.push(`Email: ${letterheadData.email}`);
+        if (letterheadData.website) contactDetails.push(`Website: ${letterheadData.website}`);
+        
+        if (contactDetails.length > 0) {
+          children.push(new Paragraph({
+            children: [new TextRun({
+              text: contactDetails.join('\n'),
+              size: 20 // 10pt
+            })],
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 400 }
+          }));
+        }
+      }
+      
+      // Add letter content paragraphs
+      const contentParagraphs = letterContent.split('\n\n').map(text => 
         new Paragraph({
           children: [new TextRun(text.trim())],
           spacing: { after: 200 }
         })
       );
+      
+      children.push(...contentParagraphs);
 
       const doc = new Document({
         sections: [{
           properties: {},
-          children: paragraphs,
+          children: children,
         }],
       });
 
       // Convert to base64
       const buffer = await Packer.toBuffer(doc);
       const base64Data = btoa(String.fromCharCode(...new Uint8Array(buffer)));
-
-      // Get company name from letterhead settings
-      const { data: letterheadData } = await supabase
-        .from('letterhead_settings')
-        .select('company_name')
-        .eq('is_active', true)
-        .single();
 
       const response = await supabase.functions.invoke('send-letter-email', {
         body: {
