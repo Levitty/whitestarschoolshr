@@ -18,7 +18,9 @@ import {
   Download, 
   Loader,
   FileText,
-  AlertCircle
+  AlertCircle,
+  Mail,
+  FileImage
 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
@@ -37,6 +39,7 @@ const LetterWriter = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [letterTitle, setLetterTitle] = useState('');
   const [generationError, setGenerationError] = useState('');
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
 
   const employee = employees?.find(emp => emp.id === selectedEmployee);
   const template = templates?.find(temp => temp.id === selectedTemplate);
@@ -191,10 +194,18 @@ const LetterWriter = () => {
       const source = selectedTemplate ? 'template' : (situationDescription ? 'ai_generated' : 'manual');
       const category = template?.template_type || letterType || 'administrative';
       
+      // Use the employee's profile_id if available, otherwise use the selectedEmployee ID
+      let finalEmployeeId = selectedEmployee;
+      if (employee?.profile_id) {
+        finalEmployeeId = employee.profile_id;
+      }
+      
+      console.log('Saving letter with employee ID:', finalEmployeeId);
+      
       const result = await createLetter(
         letterTitle,
         letterContent,
-        selectedEmployee,
+        finalEmployeeId,
         letterType || 'General Letter',
         category as any,
         source as any,
@@ -202,6 +213,7 @@ const LetterWriter = () => {
       );
 
       if (result?.error) {
+        console.error('Save letter error:', result.error);
         throw new Error(result.error.message);
       }
 
@@ -217,11 +229,12 @@ const LetterWriter = () => {
       setSituationDescription('');
       setLetterContent('');
       setLetterTitle('');
+      setGenerationError('');
     } catch (error) {
       console.error('Save error:', error);
       toast({
         title: "Save Failed",
-        description: "Failed to save the letter. Please try again.",
+        description: `Failed to save the letter: ${(error as any)?.message || 'Unknown error'}`,
         variant: "destructive"
       });
     } finally {
@@ -248,6 +261,158 @@ const LetterWriter = () => {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  };
+
+  const downloadAsPDF = async () => {
+    if (!letterContent) {
+      toast({
+        title: "No Content",
+        description: "Please write or generate a letter first.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const { jsPDF } = await import('jspdf');
+      const doc = new jsPDF();
+      
+      // Set font and split text to fit PDF width
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(12);
+      
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const margin = 20;
+      const textWidth = pageWidth - 2 * margin;
+      
+      const lines = doc.splitTextToSize(letterContent, textWidth);
+      
+      doc.text(lines, margin, 30);
+      doc.save(`${letterTitle || 'Letter'}.pdf`);
+      
+      toast({
+        title: "PDF Downloaded",
+        description: "Letter has been downloaded as PDF."
+      });
+    } catch (error) {
+      console.error('PDF generation error:', error);
+      toast({
+        title: "Download Failed",
+        description: "Failed to generate PDF. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const downloadAsWord = async () => {
+    if (!letterContent) {
+      toast({
+        title: "No Content",
+        description: "Please write or generate a letter first.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const { Document, Packer, Paragraph, TextRun } = await import('docx');
+      
+      // Split content into paragraphs
+      const paragraphs = letterContent.split('\n\n').map(text => 
+        new Paragraph({
+          children: [new TextRun(text.trim())],
+          spacing: { after: 200 }
+        })
+      );
+
+      const doc = new Document({
+        sections: [{
+          properties: {},
+          children: paragraphs,
+        }],
+      });
+
+      const blob = await Packer.toBlob(doc);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${letterTitle || 'Letter'}.docx`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Word Document Downloaded",
+        description: "Letter has been downloaded as Word document."
+      });
+    } catch (error) {
+      console.error('Word generation error:', error);
+      toast({
+        title: "Download Failed",
+        description: "Failed to generate Word document. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const sendEmailToEmployee = async () => {
+    if (!selectedEmployee || !letterContent || !letterTitle) {
+      toast({
+        title: "Missing Information",
+        description: "Please select an employee and have letter content ready.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!employee?.email) {
+      toast({
+        title: "No Email Found",
+        description: "The selected employee doesn't have an email address.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSendingEmail(true);
+    try {
+      // Get company name from letterhead settings
+      const { data: letterheadData } = await supabase
+        .from('letterhead_settings')
+        .select('company_name')
+        .eq('is_active', true)
+        .single();
+
+      const response = await supabase.functions.invoke('send-letter-email', {
+        body: {
+          recipientEmail: employee.email,
+          recipientName: `${employee.first_name} ${employee.last_name}`,
+          letterTitle,
+          letterContent,
+          senderName: 'HR Department',
+          companyName: letterheadData?.company_name || 'Our Organization'
+        }
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message || 'Failed to send email');
+      }
+
+      toast({
+        title: "Email Sent Successfully",
+        description: `Letter has been sent to ${employee.email}`
+      });
+    } catch (error) {
+      console.error('Email sending error:', error);
+      toast({
+        title: "Email Failed",
+        description: "Failed to send email. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSendingEmail(false);
+    }
   };
 
   return (
@@ -401,7 +566,46 @@ const LetterWriter = () => {
               className="w-full"
             >
               <Download className="h-4 w-4 mr-2" />
-              Download
+              Download TXT
+            </Button>
+
+            <Button 
+              onClick={downloadAsPDF}
+              disabled={!letterContent}
+              variant="outline"
+              className="w-full"
+            >
+              <FileImage className="h-4 w-4 mr-2" />
+              Download PDF
+            </Button>
+
+            <Button 
+              onClick={downloadAsWord}
+              disabled={!letterContent}
+              variant="outline"
+              className="w-full"
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Download Word
+            </Button>
+
+            <Button 
+              onClick={sendEmailToEmployee}
+              disabled={isSendingEmail || !letterContent || !selectedEmployee || !employee?.email}
+              variant="outline"
+              className="w-full"
+            >
+              {isSendingEmail ? (
+                <>
+                  <Loader className="h-4 w-4 mr-2 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <Mail className="h-4 w-4 mr-2" />
+                  Email to {employee?.first_name || 'Employee'}
+                </>
+              )}
             </Button>
           </CardContent>
         </Card>
