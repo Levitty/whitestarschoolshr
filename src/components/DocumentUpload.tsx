@@ -87,7 +87,8 @@ export const DocumentUpload = ({ onSuccess, employeeId }: DocumentUploadProps) =
         }
 
         // For admin users, fetch all employees for dropdown
-        if (!employeeId && (canAccessSuperAdmin() || canAccessAdmin())) {
+        const isAdmin = profile?.role === 'superadmin' || profile?.role === 'admin';
+        if (!employeeId && isAdmin) {
           console.log('Fetching all employees for admin dropdown');
           
           const { data: allProfiles, error: allProfilesError } = await supabase
@@ -113,7 +114,7 @@ export const DocumentUpload = ({ onSuccess, employeeId }: DocumentUploadProps) =
     };
     
     fetchEmployees();
-  }, [employeeId, profile, canAccessSuperAdmin, canAccessAdmin]);
+  }, [employeeId, profile]);
   
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -159,7 +160,7 @@ export const DocumentUpload = ({ onSuccess, employeeId }: DocumentUploadProps) =
     
     if (employeeId && selectedEmployee) {
       finalEmployeeId = selectedEmployee.id;
-    } else if (!employeeId && (canAccessSuperAdmin() || canAccessAdmin()) && formData.employee_id) {
+    } else if (!employeeId && (profile?.role === 'superadmin' || profile?.role === 'admin') && formData.employee_id) {
       finalEmployeeId = formData.employee_id;
     } else {
       toast({
@@ -266,7 +267,7 @@ export const DocumentUpload = ({ onSuccess, employeeId }: DocumentUploadProps) =
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Employee Selection - Only show if no employee context and user is admin */}
-          {!employeeId && (canAccessSuperAdmin() || canAccessAdmin()) && (
+          {!employeeId && (profile?.role === 'superadmin' || profile?.role === 'admin') && (
             <div>
               <Label htmlFor="employee">Select Employee *</Label>
               <Select
