@@ -42,6 +42,7 @@ const LetterWriter = () => {
   const [letterTitle, setLetterTitle] = useState('');
   const [generationError, setGenerationError] = useState('');
   const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [letterSubject, setLetterSubject] = useState('');
 
   const employee = employees?.find(emp => emp.id === selectedEmployee);
   const template = templates?.find(temp => temp.id === selectedTemplate);
@@ -66,7 +67,8 @@ const LetterWriter = () => {
     } else if (employee && !template) {
       // Create basic letter structure when employee is selected but no template
       const currentDate = new Date().toLocaleDateString();
-      content = `Date: ${currentDate}\n\nDear ${employee.first_name} ${employee.last_name},\n\nRe: [Letter Subject]\n\n[Letter Content]\n\n${getSignatoryText()}`;
+      const subject = letterSubject || letterType || '[Letter Subject]';
+      content = `${currentDate}\n\nDear ${employee.first_name} ${employee.last_name},\n\nRE: ${subject}\n\n[Letter Content]\n\n${getSignatoryText()}`;
       title = `Letter - ${employee.first_name} ${employee.last_name}`;
     }
     
@@ -77,6 +79,7 @@ const LetterWriter = () => {
       content = content.replace(/{{employee_position}}/g, employee.position);
       content = content.replace(/{{employee_department}}/g, employee.department);
       content = content.replace(/{{date}}/g, new Date().toLocaleDateString());
+      content = content.replace(/{{subject}}/g, letterSubject || letterType || 'Official Communication');
       
       // Add signatory if not already present
       if (!content.includes('Yours sincerely') && !content.includes('[Your Name]')) {
@@ -90,7 +93,7 @@ const LetterWriter = () => {
     if (title) {
       setLetterTitle(title);
     }
-  }, [template, employee, profile]);
+  }, [template, employee, profile, letterSubject]);
 
   const generateWithAI = async () => {
     if (!employee || !letterType || !situationDescription) {
@@ -177,7 +180,8 @@ const LetterWriter = () => {
         const signatoryName = profile?.first_name && profile?.last_name ? `${profile.first_name} ${profile.last_name}` : '[Authorized Signatory]';
         const signatoryTitle = profile?.role ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1) : '[Title]';
         const signatoryDept = profile?.department || '[Department]';
-        const fallbackLetter = `Subject: ${letterType || 'Official Letter'} - ${fullName}\n\n${today}\n\nDear ${fullName},\n\nRe: ${letterType || 'Official Communication'}\n\nThis letter addresses the following matter:\n${situationDescription}\n\nExpectations and Next Steps:\n- Please provide a written response within 48 hours.\n- Adhere to company policies and guidelines at all times.\n- Further actions may follow per HR procedures.\n\nYours sincerely,\n\n\n${signatoryName}\n${signatoryTitle}\n${signatoryDept}\n${today}`;
+        const subject = letterSubject || letterType || 'Official Communication';
+        const fallbackLetter = `${today}\n\nDear ${fullName},\n\nRE: ${subject}\n\nThis letter addresses the following matter:\n${situationDescription}\n\nExpectations and Next Steps:\n- Please provide a written response within 48 hours.\n- Adhere to company policies and guidelines at all times.\n- Further actions may follow per HR procedures.\n\nYours sincerely,\n\n\n${signatoryName}\n${signatoryTitle}\n${signatoryDept}`;
 
         setLetterContent(fallbackLetter);
         setLetterTitle(`${letterType || 'Letter'} - ${fullName}`);
@@ -194,7 +198,8 @@ const LetterWriter = () => {
           const signatoryName = profile?.first_name && profile?.last_name ? `${profile.first_name} ${profile.last_name}` : '[Authorized Signatory]';
           const signatoryTitle = profile?.role ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1) : '[Title]';
           const signatoryDept = profile?.department || '[Department]';
-          const fallbackLetter = `Subject: ${letterType || 'Official Letter'} - ${fullName}\n\n${today}\n\nDear ${fullName},\n\nRe: ${letterType || 'Official Communication'}\n\nThis letter addresses the following matter:\n${situationDescription}\n\nExpectations and Next Steps:\n- Please provide a written response within 48 hours.\n- Adhere to company policies and guidelines at all times.\n- Further actions may follow per HR procedures.\n\nYours sincerely,\n\n\n${signatoryName}\n${signatoryTitle}\n${signatoryDept}\n${today}`;
+          const subject = letterSubject || letterType || 'Official Communication';
+          const fallbackLetter = `${today}\n\nDear ${fullName},\n\nRE: ${subject}\n\nThis letter addresses the following matter:\n${situationDescription}\n\nExpectations and Next Steps:\n- Please provide a written response within 48 hours.\n- Adhere to company policies and guidelines at all times.\n- Further actions may follow per HR procedures.\n\nYours sincerely,\n\n\n${signatoryName}\n${signatoryTitle}\n${signatoryDept}`;
 
           setLetterContent(fallbackLetter);
           setLetterTitle(`${letterType || 'Letter'} - ${fullName}`);
@@ -267,6 +272,7 @@ const LetterWriter = () => {
       setSituationDescription('');
       setLetterContent('');
       setLetterTitle('');
+      setLetterSubject('');
       setGenerationError('');
     } catch (error) {
       console.error('Save error:', error);
@@ -329,6 +335,25 @@ const LetterWriter = () => {
       
       // Add letterhead if available
       if (letterheadData) {
+        // Add logo if available
+        if (letterheadData.logo_url) {
+          try {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            await new Promise((resolve) => {
+              img.onload = resolve;
+              img.src = letterheadData.logo_url;
+            });
+            
+            const logoWidth = 30;
+            const logoHeight = 20;
+            doc.addImage(img, 'JPEG', margin, yPosition, logoWidth, logoHeight);
+            yPosition += logoHeight + 5;
+          } catch (error) {
+            console.log('Could not load logo:', error);
+          }
+        }
+        
         // Company name
         if (letterheadData.company_name) {
           doc.setFont('helvetica', 'bold');
@@ -409,6 +434,25 @@ const LetterWriter = () => {
       
       // Add letterhead if available
       if (letterheadData) {
+        // Add logo if available
+        if (letterheadData.logo_url) {
+          try {
+            // Note: Adding images to DOCX requires additional handling
+            // For now, we'll include the logo URL as text
+            children.push(new Paragraph({
+              children: [new TextRun({
+                text: `[Company Logo: ${letterheadData.logo_url}]`,
+                size: 16,
+                italics: true
+              })],
+              alignment: AlignmentType.CENTER,
+              spacing: { after: 100 }
+            }));
+          } catch (error) {
+            console.log('Could not add logo to Word:', error);
+          }
+        }
+        
         // Company name
         if (letterheadData.company_name) {
           children.push(new Paragraph({
@@ -580,6 +624,25 @@ const LetterWriter = () => {
       
       // Add letterhead if available
       if (letterheadData) {
+        // Add logo if available
+        if (letterheadData.logo_url) {
+          try {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            await new Promise((resolve) => {
+              img.onload = resolve;
+              img.src = letterheadData.logo_url;
+            });
+            
+            const logoWidth = 30;
+            const logoHeight = 20;
+            doc.addImage(img, 'JPEG', margin, yPosition, logoWidth, logoHeight);
+            yPosition += logoHeight + 5;
+          } catch (error) {
+            console.log('Could not load logo:', error);
+          }
+        }
+        
         // Company name
         if (letterheadData.company_name) {
           doc.setFont('helvetica', 'bold');
@@ -693,6 +756,25 @@ const LetterWriter = () => {
       
       // Add letterhead if available
       if (letterheadData) {
+        // Add logo if available
+        if (letterheadData.logo_url) {
+          try {
+            // Note: Adding images to DOCX requires additional handling
+            // For now, we'll include the logo URL as text
+            children.push(new Paragraph({
+              children: [new TextRun({
+                text: `[Company Logo: ${letterheadData.logo_url}]`,
+                size: 16,
+                italics: true
+              })],
+              alignment: AlignmentType.CENTER,
+              spacing: { after: 100 }
+            }));
+          } catch (error) {
+            console.log('Could not add logo to Word:', error);
+          }
+        }
+        
         // Company name
         if (letterheadData.company_name) {
           children.push(new Paragraph({
@@ -835,6 +917,16 @@ const LetterWriter = () => {
                 value={letterType}
                 onChange={(e) => setLetterType(e.target.value)}
                 placeholder="e.g., Show Cause, Promotion, Warning"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="subject">Letter Subject</Label>
+              <Input
+                id="subject"
+                value={letterSubject}
+                onChange={(e) => setLetterSubject(e.target.value)}
+                placeholder="e.g., Warning Letter, Show Cause Notice"
               />
             </div>
 
