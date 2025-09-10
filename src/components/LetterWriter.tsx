@@ -97,16 +97,20 @@ const LetterWriter = () => {
 
       if (response.error) {
         console.error('Supabase function error:', response.error);
-        // Parse the error message to provide better user feedback
-        const errorMessage = response.error.message || 'Failed to generate letter';
-        if (errorMessage.includes('quota exceeded')) {
-          throw new Error('AI service quota exceeded. The OpenAI API key has reached its usage limit. Please contact your administrator to update the billing plan.');
-        } else if (errorMessage.includes('rate limit')) {
-          throw new Error('Too many requests. Please wait a moment before trying again.');
-        } else if (errorMessage.includes('authentication failed')) {
-          throw new Error('AI service authentication issue. Please contact your administrator.');
+        // Try to surface the real error coming from the Edge Function
+        const ctx: any = (response.error as any).context || {};
+        const body = ctx.body || {};
+        const rawMsg = body.error || body.message || (response.error as any).message || 'Failed to generate letter';
+        let friendly = String(rawMsg);
+        const lower = friendly.toLowerCase();
+        if (lower.includes('insufficient_quota') || lower.includes('quota')) {
+          friendly = 'AI service quota exceeded. The OpenAI account has no credits left.';
+        } else if (lower.includes('rate limit')) {
+          friendly = 'Too many requests. Please wait a moment before trying again.';
+        } else if (lower.includes('authentication')) {
+          friendly = 'AI service authentication issue. Please contact your administrator.';
         }
-        throw new Error(errorMessage);
+        throw new Error(friendly);
       }
 
       if (!response.data || !response.data.generatedLetter) {
@@ -123,13 +127,50 @@ const LetterWriter = () => {
       });
     } catch (error) {
       console.error('AI generation error:', error);
-      const errorMessage = error.message || 'Failed to generate letter with AI. Please try again.';
-      setGenerationError(errorMessage);
-      toast({
-        title: "Generation Failed",
-        description: errorMessage,
-        variant: "destructive"
-      });
+      const errorMessage = (error as any)?.message || 'Failed to generate letter with AI. Please try again.';
+
+      // Graceful fallback: generate a structured template if AI is unavailable/quota exceeded
+      const lower = String(errorMessage).toLowerCase();
+      if (
+        lower.includes('quota') ||
+        lower.includes('rate limit') ||
+        lower.includes('authentication') ||
+        lower.includes('ai service')
+      ) {
+        const fullName = `${employee?.first_name ?? ''} ${employee?.last_name ?? ''}`.trim();
+        const today = new Date().toLocaleDateString();
+        const fallbackLetter = `Subject: ${letterType || 'Official Letter'} - ${fullName}\n\n${today}\n\nDear ${fullName},\n\nRe: ${letterType || 'Official Communication'}\n\nThis letter addresses the following matter:\n${situationDescription}\n\nExpectations and Next Steps:\n- Please provide a written response within 48 hours.\n- Adhere to company policies and guidelines at all times.\n- Further actions may follow per HR procedures.\n\nSincerely,\n[Authorized Signatory]\n[Title]\n[Company Name]`;
+
+        setLetterContent(fallbackLetter);
+        setLetterTitle(`${letterType || 'Letter'} - ${fullName}`);
+        setGenerationError(errorMessage);
+        toast({
+          title: 'AI temporarily unavailable',
+          description: 'Generated a professional template as a fallback. You can edit it before saving.',
+        });
+      } else {
+        // Also fallback when we only get a generic non-2xx error from Supabase Functions
+        if (lower.includes('non-2xx')) {
+          const fullName = `${employee?.first_name ?? ''} ${employee?.last_name ?? ''}`.trim();
+          const today = new Date().toLocaleDateString();
+          const fallbackLetter = `Subject: ${letterType || 'Official Letter'} - ${fullName}\n\n${today}\n\nDear ${fullName},\n\nRe: ${letterType || 'Official Communication'}\n\nThis letter addresses the following matter:\n${situationDescription}\n\nExpectations and Next Steps:\n- Please provide a written response within 48 hours.\n- Adhere to company policies and guidelines at all times.\n- Further actions may follow per HR procedures.\n\nSincerely,\n[Authorized Signatory]\n[Title]\n[Company Name]`;
+
+          setLetterContent(fallbackLetter);
+          setLetterTitle(`${letterType || 'Letter'} - ${fullName}`);
+          setGenerationError(errorMessage);
+          toast({
+            title: 'AI temporarily unavailable',
+            description: 'Generated a professional template as a fallback. You can edit it before saving.',
+          });
+        } else {
+          setGenerationError(errorMessage);
+          toast({
+            title: 'Generation Failed',
+            description: errorMessage,
+            variant: 'destructive',
+          });
+        }
+      }
     } finally {
       setIsGenerating(false);
     }
