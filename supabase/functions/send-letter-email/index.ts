@@ -16,6 +16,9 @@ interface SendLetterEmailRequest {
   letterContent: string;
   senderName: string;
   companyName: string;
+  attachmentData?: string; // Base64 encoded file data
+  attachmentName?: string; // File name with extension
+  attachmentType?: string; // MIME type
 }
 
 serve(async (req) => {
@@ -30,7 +33,10 @@ serve(async (req) => {
       letterTitle, 
       letterContent, 
       senderName, 
-      companyName 
+      companyName,
+      attachmentData,
+      attachmentName,
+      attachmentType
     }: SendLetterEmailRequest = await req.json();
 
     console.log('Sending letter email to:', recipientEmail);
@@ -46,7 +52,8 @@ serve(async (req) => {
       .replace(/^/, '<p>')
       .replace(/$/, '</p>');
 
-    const emailResponse = await resend.emails.send({
+    // Prepare email options
+    const emailOptions: any = {
       from: `${companyName || 'HR Department'} <noreply@hr.whitestarschools.com>`,
       to: [recipientEmail],
       subject: letterTitle,
@@ -56,7 +63,7 @@ serve(async (req) => {
             ${letterTitle}
           </h2>
           <div style="line-height: 1.6; color: #555; margin: 20px 0;">
-            ${formattedContent}
+            <p>Please find the attached letter document.</p>
           </div>
           <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; color: #888; font-size: 12px;">
             <p>This letter was sent from ${companyName || 'HR Department'} via the HR Portal system.</p>
@@ -64,8 +71,20 @@ serve(async (req) => {
           </div>
         </div>
       `,
-      text: letterContent
-    });
+      text: `Please find the attached letter document.\n\n${letterContent}`
+    };
+
+    // Add attachment if provided
+    if (attachmentData && attachmentName && attachmentType) {
+      console.log('Adding attachment:', attachmentName);
+      emailOptions.attachments = [{
+        filename: attachmentName,
+        content: attachmentData,
+        type: attachmentType,
+      }];
+    }
+
+    const emailResponse = await resend.emails.send(emailOptions);
 
     console.log('Email sent successfully:', emailResponse);
 

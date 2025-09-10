@@ -428,7 +428,7 @@ const LetterWriter = () => {
           recipientName: `${employee.first_name} ${employee.last_name}`,
           letterTitle,
           letterContent,
-          senderName: 'HR Department',
+          senderName: profile?.first_name && profile?.last_name ? `${profile.first_name} ${profile.last_name}` : 'HR Department',
           companyName: letterheadData?.company_name || 'Our Organization'
         }
       });
@@ -446,6 +446,169 @@ const LetterWriter = () => {
       toast({
         title: "Email Failed",
         description: "Failed to send email. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSendingEmail(false);
+    }
+  };
+
+  const sendEmailWithPDF = async () => {
+    if (!selectedEmployee || !letterContent || !letterTitle) {
+      toast({
+        title: "Missing Information",
+        description: "Please select an employee and have letter content ready.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!employee?.email) {
+      toast({
+        title: "No Email Found",
+        description: "The selected employee doesn't have an email address.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSendingEmail(true);
+    try {
+      // Generate PDF
+      const { jsPDF } = await import('jspdf');
+      const doc = new jsPDF();
+      
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(12);
+      
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const margin = 20;
+      const textWidth = pageWidth - 2 * margin;
+      
+      const lines = doc.splitTextToSize(letterContent, textWidth);
+      doc.text(lines, margin, 30);
+      
+      // Convert to base64
+      const pdfData = doc.output('datauristring');
+      const base64Data = pdfData.split(',')[1]; // Remove data:application/pdf;base64, prefix
+
+      // Get company name from letterhead settings
+      const { data: letterheadData } = await supabase
+        .from('letterhead_settings')
+        .select('company_name')
+        .eq('is_active', true)
+        .single();
+
+      const response = await supabase.functions.invoke('send-letter-email', {
+        body: {
+          recipientEmail: employee.email,
+          recipientName: `${employee.first_name} ${employee.last_name}`,
+          letterTitle,
+          letterContent,
+          senderName: profile?.first_name && profile?.last_name ? `${profile.first_name} ${profile.last_name}` : 'HR Department',
+          companyName: letterheadData?.company_name || 'Our Organization',
+          attachmentData: base64Data,
+          attachmentName: `${letterTitle || 'Letter'}.pdf`,
+          attachmentType: 'application/pdf'
+        }
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message || 'Failed to send email');
+      }
+
+      toast({
+        title: "Email with PDF Sent Successfully",
+        description: `Letter PDF has been sent to ${employee.email}`
+      });
+    } catch (error) {
+      console.error('Email sending error:', error);
+      toast({
+        title: "Email Failed",
+        description: "Failed to send email with PDF. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSendingEmail(false);
+    }
+  };
+
+  const sendEmailWithWord = async () => {
+    if (!selectedEmployee || !letterContent || !letterTitle) {
+      toast({
+        title: "Missing Information",
+        description: "Please select an employee and have letter content ready.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!employee?.email) {
+      toast({
+        title: "No Email Found",
+        description: "The selected employee doesn't have an email address.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSendingEmail(true);
+    try {
+      // Generate Word document
+      const { Document, Packer, Paragraph, TextRun } = await import('docx');
+      
+      const paragraphs = letterContent.split('\n\n').map(text => 
+        new Paragraph({
+          children: [new TextRun(text.trim())],
+          spacing: { after: 200 }
+        })
+      );
+
+      const doc = new Document({
+        sections: [{
+          properties: {},
+          children: paragraphs,
+        }],
+      });
+
+      // Convert to base64
+      const buffer = await Packer.toBuffer(doc);
+      const base64Data = btoa(String.fromCharCode(...new Uint8Array(buffer)));
+
+      // Get company name from letterhead settings
+      const { data: letterheadData } = await supabase
+        .from('letterhead_settings')
+        .select('company_name')
+        .eq('is_active', true)
+        .single();
+
+      const response = await supabase.functions.invoke('send-letter-email', {
+        body: {
+          recipientEmail: employee.email,
+          recipientName: `${employee.first_name} ${employee.last_name}`,
+          letterTitle,
+          letterContent,
+          senderName: profile?.first_name && profile?.last_name ? `${profile.first_name} ${profile.last_name}` : 'HR Department',
+          companyName: letterheadData?.company_name || 'Our Organization',
+          attachmentData: base64Data,
+          attachmentName: `${letterTitle || 'Letter'}.docx`,
+          attachmentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        }
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message || 'Failed to send email');
+      }
+
+      toast({
+        title: "Email with Word Document Sent Successfully",
+        description: `Letter document has been sent to ${employee.email}`
+      });
+    } catch (error) {
+      console.error('Email sending error:', error);
+      toast({
+        title: "Email Failed",
+        description: "Failed to send email with Word document. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -641,7 +804,45 @@ const LetterWriter = () => {
               ) : (
                 <>
                   <Mail className="h-4 w-4 mr-2" />
-                  Email to {employee?.first_name || 'Employee'}
+                  Email (Text)
+                </>
+              )}
+            </Button>
+
+            <Button 
+              onClick={sendEmailWithPDF}
+              disabled={isSendingEmail || !letterContent || !selectedEmployee || !employee?.email}
+              variant="outline"
+              className="w-full"
+            >
+              {isSendingEmail ? (
+                <>
+                  <Loader className="h-4 w-4 mr-2 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <FileImage className="h-4 w-4 mr-2" />
+                  Email as PDF
+                </>
+              )}
+            </Button>
+
+            <Button 
+              onClick={sendEmailWithWord}
+              disabled={isSendingEmail || !letterContent || !selectedEmployee || !employee?.email}
+              variant="outline"
+              className="w-full"
+            >
+              {isSendingEmail ? (
+                <>
+                  <Loader className="h-4 w-4 mr-2 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <FileText className="h-4 w-4 mr-2" />
+                  Email as Word
                 </>
               )}
             </Button>
