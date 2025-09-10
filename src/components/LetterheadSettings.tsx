@@ -104,23 +104,42 @@ const LetterheadSettings = () => {
 
     setSaving(true);
     try {
-      const settingsData = {
-        ...settings,
-        created_by: user.id,
-        updated_at: new Date().toISOString()
-      };
-
       if (settings.id) {
+        // Update existing record
+        const updateData = {
+          company_name: settings.company_name,
+          logo_url: settings.logo_url,
+          header_image_url: settings.header_image_url,
+          address: settings.address,
+          phone: settings.phone,
+          email: settings.email,
+          website: settings.website,
+          updated_at: new Date().toISOString()
+        };
+
         const { error } = await supabase
           .from('letterhead_settings')
-          .update(settingsData)
+          .update(updateData)
           .eq('id', settings.id);
 
         if (error) throw error;
       } else {
+        // Insert new record (exclude id field)
+        const insertData = {
+          company_name: settings.company_name,
+          logo_url: settings.logo_url,
+          header_image_url: settings.header_image_url,
+          address: settings.address,
+          phone: settings.phone,
+          email: settings.email,
+          website: settings.website,
+          created_by: user.id,
+          is_active: true
+        };
+
         const { data, error } = await supabase
           .from('letterhead_settings')
-          .insert(settingsData)
+          .insert(insertData)
           .select()
           .single();
 
