@@ -47,7 +47,7 @@ serve(async (req) => {
       .replace(/$/, '</p>');
 
     const emailResponse = await resend.emails.send({
-      from: `${companyName || 'HR Department'} <onboarding@resend.dev>`,
+      from: `${companyName || 'HR Department'} <noreply@yourdomain.com>`,
       to: [recipientEmail],
       subject: letterTitle,
       html: `
