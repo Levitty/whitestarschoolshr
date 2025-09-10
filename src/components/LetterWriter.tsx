@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useDocumentTemplates } from '@/hooks/useDocumentTemplates';
 import { useDocuments } from '@/hooks/useDocuments';
+import { useProfile } from '@/hooks/useProfile';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   PenTool, 
@@ -28,6 +29,7 @@ const LetterWriter = () => {
   const { employees } = useEmployees();
   const { templates } = useDocumentTemplates();
   const { createLetter } = useDocuments();
+  const { profile } = useProfile();
   const { toast } = useToast();
   
   const [selectedEmployee, setSelectedEmployee] = useState('');
@@ -44,21 +46,51 @@ const LetterWriter = () => {
   const employee = employees?.find(emp => emp.id === selectedEmployee);
   const template = templates?.find(temp => temp.id === selectedTemplate);
 
-  useEffect(() => {
-    if (template) {
-      let content = template.content;
-      if (employee) {
-        content = content.replace(/{{employee_name}}/g, `${employee.first_name} ${employee.last_name}`);
-        content = content.replace(/{{employee_email}}/g, employee.email);
-        content = content.replace(/{{employee_position}}/g, employee.position);
-        content = content.replace(/{{employee_department}}/g, employee.department);
-        content = content.replace(/{{date}}/g, new Date().toLocaleDateString());
-      }
-      setLetterContent(content);
-      setLetterTitle(template.name);
-      setLetterType(template.template_type);
+  // Helper function to get signatory text
+  const getSignatoryText = () => {
+    if (profile?.first_name && profile?.last_name) {
+      return `\n\nYours sincerely,\n\n\n${profile.first_name} ${profile.last_name}\n${profile.role ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1) : 'HR Department'}\n${profile.department || ''}\n${new Date().toLocaleDateString()}`;
     }
-  }, [template, employee]);
+    return `\n\nYours sincerely,\n\n\n[Your Name]\n[Your Title]\n[Department]\n${new Date().toLocaleDateString()}`;
+  };
+
+  useEffect(() => {
+    let content = '';
+    let title = '';
+    
+    if (template) {
+      // Use template content and auto-fill placeholders
+      content = template.content;
+      title = template.name;
+      setLetterType(template.template_type);
+    } else if (employee && !template) {
+      // Create basic letter structure when employee is selected but no template
+      const currentDate = new Date().toLocaleDateString();
+      content = `Date: ${currentDate}\n\nDear ${employee.first_name} ${employee.last_name},\n\nRe: [Letter Subject]\n\n[Letter Content]\n\n${getSignatoryText()}`;
+      title = `Letter - ${employee.first_name} ${employee.last_name}`;
+    }
+    
+    if (employee && content) {
+      // Replace placeholders with employee information
+      content = content.replace(/{{employee_name}}/g, `${employee.first_name} ${employee.last_name}`);
+      content = content.replace(/{{employee_email}}/g, employee.email);
+      content = content.replace(/{{employee_position}}/g, employee.position);
+      content = content.replace(/{{employee_department}}/g, employee.department);
+      content = content.replace(/{{date}}/g, new Date().toLocaleDateString());
+      
+      // Add signatory if not already present
+      if (!content.includes('Yours sincerely') && !content.includes('[Your Name]')) {
+        content += getSignatoryText();
+      }
+    }
+    
+    if (content) {
+      setLetterContent(content);
+    }
+    if (title) {
+      setLetterTitle(title);
+    }
+  }, [template, employee, profile]);
 
   const generateWithAI = async () => {
     if (!employee || !letterType || !situationDescription) {
@@ -142,7 +174,10 @@ const LetterWriter = () => {
       ) {
         const fullName = `${employee?.first_name ?? ''} ${employee?.last_name ?? ''}`.trim();
         const today = new Date().toLocaleDateString();
-        const fallbackLetter = `Subject: ${letterType || 'Official Letter'} - ${fullName}\n\n${today}\n\nDear ${fullName},\n\nRe: ${letterType || 'Official Communication'}\n\nThis letter addresses the following matter:\n${situationDescription}\n\nExpectations and Next Steps:\n- Please provide a written response within 48 hours.\n- Adhere to company policies and guidelines at all times.\n- Further actions may follow per HR procedures.\n\nSincerely,\n[Authorized Signatory]\n[Title]\n[Company Name]`;
+        const signatoryName = profile?.first_name && profile?.last_name ? `${profile.first_name} ${profile.last_name}` : '[Authorized Signatory]';
+        const signatoryTitle = profile?.role ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1) : '[Title]';
+        const signatoryDept = profile?.department || '[Department]';
+        const fallbackLetter = `Subject: ${letterType || 'Official Letter'} - ${fullName}\n\n${today}\n\nDear ${fullName},\n\nRe: ${letterType || 'Official Communication'}\n\nThis letter addresses the following matter:\n${situationDescription}\n\nExpectations and Next Steps:\n- Please provide a written response within 48 hours.\n- Adhere to company policies and guidelines at all times.\n- Further actions may follow per HR procedures.\n\nYours sincerely,\n\n\n${signatoryName}\n${signatoryTitle}\n${signatoryDept}\n${today}`;
 
         setLetterContent(fallbackLetter);
         setLetterTitle(`${letterType || 'Letter'} - ${fullName}`);
@@ -156,7 +191,10 @@ const LetterWriter = () => {
         if (lower.includes('non-2xx')) {
           const fullName = `${employee?.first_name ?? ''} ${employee?.last_name ?? ''}`.trim();
           const today = new Date().toLocaleDateString();
-          const fallbackLetter = `Subject: ${letterType || 'Official Letter'} - ${fullName}\n\n${today}\n\nDear ${fullName},\n\nRe: ${letterType || 'Official Communication'}\n\nThis letter addresses the following matter:\n${situationDescription}\n\nExpectations and Next Steps:\n- Please provide a written response within 48 hours.\n- Adhere to company policies and guidelines at all times.\n- Further actions may follow per HR procedures.\n\nSincerely,\n[Authorized Signatory]\n[Title]\n[Company Name]`;
+          const signatoryName = profile?.first_name && profile?.last_name ? `${profile.first_name} ${profile.last_name}` : '[Authorized Signatory]';
+          const signatoryTitle = profile?.role ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1) : '[Title]';
+          const signatoryDept = profile?.department || '[Department]';
+          const fallbackLetter = `Subject: ${letterType || 'Official Letter'} - ${fullName}\n\n${today}\n\nDear ${fullName},\n\nRe: ${letterType || 'Official Communication'}\n\nThis letter addresses the following matter:\n${situationDescription}\n\nExpectations and Next Steps:\n- Please provide a written response within 48 hours.\n- Adhere to company policies and guidelines at all times.\n- Further actions may follow per HR procedures.\n\nYours sincerely,\n\n\n${signatoryName}\n${signatoryTitle}\n${signatoryDept}\n${today}`;
 
           setLetterContent(fallbackLetter);
           setLetterTitle(`${letterType || 'Letter'} - ${fullName}`);
