@@ -159,7 +159,8 @@ export const DocumentUpload = ({ onSuccess, employeeId }: DocumentUploadProps) =
     let finalEmployeeId = '';
     
     if (employeeId && selectedEmployee) {
-      finalEmployeeId = selectedEmployee.id;
+      // Use the actual user profile ID, not the employee profile ID
+      finalEmployeeId = selectedEmployee.profile_id || selectedEmployee.id;
     } else if (!employeeId && (profile?.role === 'superadmin' || profile?.role === 'admin') && formData.employee_id) {
       finalEmployeeId = formData.employee_id;
     } else {
