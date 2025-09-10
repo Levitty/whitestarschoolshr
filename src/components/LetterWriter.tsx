@@ -97,7 +97,16 @@ const LetterWriter = () => {
 
       if (response.error) {
         console.error('Supabase function error:', response.error);
-        throw new Error(response.error.message || 'Failed to generate letter');
+        // Parse the error message to provide better user feedback
+        const errorMessage = response.error.message || 'Failed to generate letter';
+        if (errorMessage.includes('quota exceeded')) {
+          throw new Error('AI service quota exceeded. The OpenAI API key has reached its usage limit. Please contact your administrator to update the billing plan.');
+        } else if (errorMessage.includes('rate limit')) {
+          throw new Error('Too many requests. Please wait a moment before trying again.');
+        } else if (errorMessage.includes('authentication failed')) {
+          throw new Error('AI service authentication issue. Please contact your administrator.');
+        }
+        throw new Error(errorMessage);
       }
 
       if (!response.data || !response.data.generatedLetter) {

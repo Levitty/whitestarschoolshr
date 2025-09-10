@@ -74,7 +74,21 @@ Format the letter with clear sections and proper spacing.`;
     if (!response.ok) {
       const errorText = await response.text();
       console.error('OpenAI API error:', response.status, errorText);
-      throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
+      
+      // Handle specific error codes with user-friendly messages
+      if (response.status === 429) {
+        const errorData = JSON.parse(errorText);
+        if (errorData.error?.code === 'insufficient_quota') {
+          throw new Error('AI service quota exceeded. Please check your OpenAI billing details or contact support.');
+        }
+        throw new Error('AI service rate limit exceeded. Please try again in a few moments.');
+      } else if (response.status === 401) {
+        throw new Error('AI service authentication failed. Please contact support.');
+      } else if (response.status >= 500) {
+        throw new Error('AI service is temporarily unavailable. Please try again later.');
+      }
+      
+      throw new Error(`AI service error (${response.status}). Please try again or contact support if the problem persists.`);
     }
 
     const data = await response.json();
