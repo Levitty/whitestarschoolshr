@@ -67,7 +67,7 @@ const LeaveApprovalList = () => {
   // Enhanced filtering logic
   const filteredRequests = useMemo(() => {
     return leaveRequests.filter(request => {
-      const employee = employees.find(emp => emp.id === request.employee_id);
+      const employee = request.employee_profile || request.profile;
       
       // Leave type filter
       if (leaveTypeFilter !== 'all' && request.leave_type !== leaveTypeFilter) {
@@ -89,7 +89,7 @@ const LeaveApprovalList = () => {
       
       return true;
     });
-  }, [leaveRequests, employees, leaveTypeFilter, departmentFilter, startDateFilter, endDateFilter]);
+  }, [leaveRequests, leaveTypeFilter, departmentFilter, startDateFilter, endDateFilter]);
 
   const handleApprove = async (requestId: string) => {
     if (!profile) return;
@@ -136,7 +136,7 @@ const LeaveApprovalList = () => {
     }
 
     const csvData = filteredRequests.map(request => {
-      const employee = employees.find(emp => emp.id === request.employee_id);
+      const employee = request.employee_profile || request.profile;
       const reviewer = employees.find(emp => emp.id === request.approved_by);
       
       return {
@@ -185,7 +185,10 @@ const LeaveApprovalList = () => {
 
   // Get unique values for filters
   const uniqueLeaveTypes = [...new Set(leaveRequests.map(req => req.leave_type))];
-  const uniqueDepartments = [...new Set(employees.map(emp => emp.department))];
+  const uniqueDepartments = [...new Set(leaveRequests.map(req => {
+    const employee = req.employee_profile || req.profile;
+    return employee?.department;
+  }).filter(Boolean))];
 
   if (loading) {
     return (
@@ -313,7 +316,7 @@ const LeaveApprovalList = () => {
         ) : (
           <div className="space-y-6">
             {filteredRequests.map((request) => {
-              const employee = employees.find(emp => emp.id === request.employee_id);
+              const employee = request.employee_profile || request.profile;
               return (
                 <div key={request.id} className="border rounded-lg p-6 space-y-4">
                   <div className="flex items-start justify-between">
@@ -322,7 +325,7 @@ const LeaveApprovalList = () => {
                         {employee ? `${employee.first_name} ${employee.last_name}` : 'Unknown Employee'}
                       </h3>
                       <p className="text-sm text-muted-foreground">
-                        {employee?.department} • {employee?.position}
+                        {employee?.department} • {(employee as any)?.position || 'Staff'}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
