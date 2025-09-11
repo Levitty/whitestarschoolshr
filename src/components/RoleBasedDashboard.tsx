@@ -6,6 +6,8 @@ import { useProfile } from '@/hooks/useProfile';
 import { Card, CardContent } from '@/components/ui/card';
 import { Home, Users, Calendar, Briefcase, ListChecks, BarChart, GraduationCap, FileText, Settings, UserPlus, FolderOpen, MessageSquare } from 'lucide-react';
 import HRAnalyticsCards from '@/components/HRAnalyticsCards';
+import HeadDashboardSummary from '@/components/HeadDashboardSummary';
+import StaffDashboardSummary from '@/components/StaffDashboardSummary';
 import RoleGuard from '@/components/RoleGuard';
 
 const RoleBasedDashboard = () => {
@@ -156,6 +158,9 @@ const RoleBasedDashboard = () => {
   // Head Dashboard
   const HeadDashboard = () => (
     <div className="space-y-6">
+      {/* Head Summary Cards */}
+      <HeadDashboardSummary />
+      
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <Card className="bg-white/90 backdrop-blur-sm border-blue-200 hover:shadow-lg transition-all duration-200 cursor-pointer hover:scale-105" onClick={() => navigate('/employees')}>
           <CardContent className="p-6">
@@ -247,6 +252,9 @@ const RoleBasedDashboard = () => {
   // Teacher/Staff Dashboard
   const TeacherStaffDashboard = () => (
     <div className="space-y-6">
+      {/* Staff Summary Cards */}
+      <StaffDashboardSummary />
+      
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <Card className="bg-white/90 backdrop-blur-sm border-blue-200 hover:shadow-lg transition-all duration-200 cursor-pointer hover:scale-105" onClick={() => navigate('/leave')}>
           <CardContent className="p-6">
