@@ -147,6 +147,21 @@ const DocumentsList = () => {
     );
   }
 
+  // Helper function to get employee name from document
+  const getEmployeeName = (doc: any) => {
+    if (doc.employee_profile) {
+      return `${doc.employee_profile.first_name} ${doc.employee_profile.last_name}`;
+    } else if (doc.profile) {
+      return `${doc.profile.first_name} ${doc.profile.last_name}`;
+    }
+    return 'Unknown Employee';
+  };
+
+  // Helper function to get employee for filtering
+  const getEmployeeForFilter = (doc: any) => {
+    return doc.employee_profile || doc.profile || null;
+  };
+
   const filteredDocuments = documents.filter(doc => {
     // Text search
     const matchesSearch = doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -154,7 +169,11 @@ const DocumentsList = () => {
       getCategoryLabel(doc.category).toLowerCase().includes(searchTerm.toLowerCase());
     
     // Employee filter
-    const matchesEmployee = selectedEmployee === 'all' || doc.employee_id === selectedEmployee;
+    let matchesEmployee = selectedEmployee === 'all';
+    if (!matchesEmployee && selectedEmployee !== 'all') {
+      const employee = getEmployeeForFilter(doc);
+      matchesEmployee = employee && employee.id === selectedEmployee;
+    }
     
     // Category filter
     const matchesCategory = selectedCategory === 'all' || doc.category === selectedCategory;
@@ -164,12 +183,6 @@ const DocumentsList = () => {
     
     return matchesSearch && matchesEmployee && matchesCategory && matchesStatus;
   });
-
-  const getEmployeeName = (employeeId: string | null) => {
-    if (!employeeId) return 'Unassigned';
-    const employee = employees.find(emp => emp.id === employeeId);
-    return employee ? `${employee.first_name} ${employee.last_name}` : 'Unknown Employee';
-  };
 
   const categories = [
     { value: 'employment_records', label: 'Employment Records' },
@@ -216,7 +229,7 @@ const DocumentsList = () => {
                 <span>{getCategoryLabel(doc.category)}</span>
                 <span className="flex items-center gap-1">
                   <Users className="h-3 w-3" />
-                  {getEmployeeName(doc.employee_id)}
+                  {getEmployeeName(doc)}
                 </span>
                 <span className="flex items-center gap-1">
                   <Calendar className="h-3 w-3" />
@@ -285,7 +298,7 @@ const DocumentsList = () => {
                 </div>
               </TableCell>
               <TableCell>{getCategoryLabel(doc.category)}</TableCell>
-              <TableCell>{getEmployeeName(doc.employee_id)}</TableCell>
+              <TableCell>{getEmployeeName(doc)}</TableCell>
               <TableCell>{getStatusBadge(doc.status || 'draft')}</TableCell>
               <TableCell>{new Date(doc.created_at || '').toLocaleDateString()}</TableCell>
               <TableCell>

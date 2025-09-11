@@ -29,11 +29,15 @@ export default function DocumentViewerDialog({ open, onOpenChange, document }: D
     let active = true;
     const getUrl = async () => {
       if (!document?.file_path) {
+        console.log('No file_path for document:', document);
         setSignedUrl(null);
         return;
       }
       try {
         setLoading(true);
+        console.log('Creating signed URL for file:', document.file_path);
+        console.log('Document file type:', document.file_type);
+        
         const { data, error } = await supabase.storage
           .from('employee-documents')
           .createSignedUrl(document.file_path, 60);
@@ -42,6 +46,7 @@ export default function DocumentViewerDialog({ open, onOpenChange, document }: D
           console.error('Failed to create signed URL', error);
           setSignedUrl(null);
         } else {
+          console.log('Signed URL created successfully:', data?.signedUrl);
           setSignedUrl(data?.signedUrl ?? null);
         }
       } finally {
@@ -49,7 +54,13 @@ export default function DocumentViewerDialog({ open, onOpenChange, document }: D
       }
     };
 
-    if (open) {
+    if (open && document) {
+      console.log('Document viewer opened with document:', {
+        title: document.title,
+        file_type: document.file_type,
+        file_path: document.file_path,
+        supportsPreview: supportsInlinePreview
+      });
       getUrl();
     } else {
       setSignedUrl(null);
@@ -58,7 +69,7 @@ export default function DocumentViewerDialog({ open, onOpenChange, document }: D
     return () => {
       active = false;
     };
-  }, [open, document?.file_path]);
+  }, [open, document?.file_path, document]);
 
   const handleDownload = async () => {
     if (!document?.file_path) return;

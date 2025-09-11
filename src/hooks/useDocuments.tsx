@@ -22,15 +22,33 @@ export const useDocuments = () => {
 
   const fetchDocuments = async () => {
     try {
+      // Enhanced query with employee profile joins to get proper employee names
       const { data, error } = await supabase
         .from('documents')
-        .select('*')
+        .select(`
+          *,
+          employee_profile:employee_profiles!documents_employee_id_fkey(
+            id,
+            first_name,
+            last_name,
+            email,
+            department
+          ),
+          profile:profiles!documents_employee_id_fkey(
+            id,
+            first_name,
+            last_name,
+            email,
+            department
+          )
+        `)
         .order('created_at', { ascending: false });
 
       if (error) {
         console.error('Error fetching documents:', error);
         setDocuments([]);
       } else {
+        console.log('Fetched documents with employee data:', data);
         setDocuments(data || []);
       }
     } catch (error) {
@@ -53,6 +71,8 @@ export const useDocuments = () => {
     }
 
     try {
+      console.log('uploadDocument called with employeeId:', employeeId);
+      
       // Upload file
       const fileExt = file.name.split('.').pop() || 'unknown';
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
@@ -69,16 +89,30 @@ export const useDocuments = () => {
 
       // Resolve employee id to attach the document to
       let targetEmployeeId = employeeId || null;
+      console.log('Initial targetEmployeeId:', targetEmployeeId);
+      
+      // If no employee ID provided, try to find current user's employee profile
       if (!targetEmployeeId) {
+        console.log('No employeeId provided, looking for current user profile');
+        
+        // Try to find employee profile by profile_id first
         const { data: empProfile } = await supabase
           .from('employee_profiles')
-          .select('id')
+          .select('id, profile_id')
           .eq('profile_id', user.id)
           .maybeSingle();
+          
         if (empProfile?.id) {
           targetEmployeeId = empProfile.id;
+          console.log('Found employee profile ID:', targetEmployeeId);
+        } else {
+          // Fallback: use the user's ID directly (for profiles table)
+          targetEmployeeId = user.id;
+          console.log('Using user ID as fallback:', targetEmployeeId);
         }
       }
+
+      console.log('Final targetEmployeeId:', targetEmployeeId);
 
       // Create document record
       const { error: documentError } = await supabase
@@ -101,6 +135,7 @@ export const useDocuments = () => {
         return { error: { message: documentError.message } };
       }
 
+      console.log('Document uploaded successfully with employee_id:', targetEmployeeId);
       await fetchDocuments();
       return { error: null };
     } catch (error) {
