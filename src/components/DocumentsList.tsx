@@ -1,9 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useDocuments } from '@/hooks/useDocuments';
+import { useEmployees } from '@/hooks/useEmployees';
 import { useProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -14,15 +18,24 @@ import {
   Eye, 
   Search,
   Calendar,
-  Trash2
+  Trash2,
+  Filter,
+  Users,
+  Grid,
+  List
 } from 'lucide-react';
 
 const DocumentsList = () => {
   const { documents, loading, fetchDocuments } = useDocuments();
+  const { employees, loading: employeesLoading } = useEmployees();
   const { canAccessSuperAdmin } = useProfile();
   const { user } = useAuth();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedEmployee, setSelectedEmployee] = useState<string>('all');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const [deleting, setDeleting] = useState<string | null>(null);
 
   const getStatusBadge = (status: string) => {
@@ -119,11 +132,47 @@ const DocumentsList = () => {
     );
   }
 
-  const filteredDocuments = documents.filter(doc =>
-    doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    doc.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    getCategoryLabel(doc.category).toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredDocuments = documents.filter(doc => {
+    // Text search
+    const matchesSearch = doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      doc.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      getCategoryLabel(doc.category).toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Employee filter
+    const matchesEmployee = selectedEmployee === 'all' || doc.employee_id === selectedEmployee;
+    
+    // Category filter
+    const matchesCategory = selectedCategory === 'all' || doc.category === selectedCategory;
+    
+    // Status filter
+    const matchesStatus = selectedStatus === 'all' || doc.status === selectedStatus;
+    
+    return matchesSearch && matchesEmployee && matchesCategory && matchesStatus;
+  });
+
+  const getEmployeeName = (employeeId: string | null) => {
+    if (!employeeId) return 'Unassigned';
+    const employee = employees.find(emp => emp.id === employeeId);
+    return employee ? `${employee.first_name} ${employee.last_name}` : 'Unknown Employee';
+  };
+
+  const categories = [
+    { value: 'employment_records', label: 'Employment Records' },
+    { value: 'disciplinary_records', label: 'Disciplinary Records' },
+    { value: 'performance_records', label: 'Performance Records' },
+    { value: 'leave_requests', label: 'Leave Requests' },
+    { value: 'interview_records', label: 'Interview Records' },
+    { value: 'shared_documents', label: 'Shared Documents' }
+  ];
+
+  const statuses = [
+    { value: 'draft', label: 'Draft' },
+    { value: 'pending_review', label: 'Pending Review' },
+    { value: 'approved', label: 'Approved' },
+    { value: 'rejected', label: 'Rejected' },
+    { value: 'signed', label: 'Signed' },
+    { value: 'archived', label: 'Archived' }
+  ];
 
   if (loading) {
     return (
@@ -138,26 +187,213 @@ const DocumentsList = () => {
     );
   }
 
+  const renderCardsView = () => (
+    <div className="space-y-4 max-h-96 overflow-y-auto">
+      {filteredDocuments.map((doc) => (
+        <div key={doc.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <h4 className="font-medium text-slate-900">{doc.title}</h4>
+              {doc.description && (
+                <p className="text-sm text-gray-600 mt-1">{doc.description}</p>
+              )}
+              <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                <span>{getCategoryLabel(doc.category)}</span>
+                <span className="flex items-center gap-1">
+                  <Users className="h-3 w-3" />
+                  {getEmployeeName(doc.employee_id)}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Calendar className="h-3 w-3" />
+                  {new Date(doc.created_at || '').toLocaleDateString()}
+                </span>
+                {doc.file_size && (
+                  <span>
+                    {(doc.file_size / 1024 / 1024).toFixed(2)} MB
+                  </span>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center gap-2 ml-4">
+              {getStatusBadge(doc.status || 'draft')}
+              <Button variant="outline" size="sm">
+                <Eye className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" size="sm">
+                <Download className="h-4 w-4" />
+              </Button>
+              {canAccessSuperAdmin() && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleDelete(doc.id, doc.file_path)}
+                  disabled={deleting === doc.id}
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                >
+                  {deleting === doc.id ? (
+                    <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Trash2 className="h-4 w-4" />
+                  )}
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
+  const renderTableView = () => (
+    <div className="overflow-x-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Document</TableHead>
+            <TableHead>Category</TableHead>
+            <TableHead>Employee</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Date</TableHead>
+            <TableHead>Size</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {filteredDocuments.map((doc) => (
+            <TableRow key={doc.id}>
+              <TableCell>
+                <div>
+                  <p className="font-medium">{doc.title}</p>
+                  {doc.description && (
+                    <p className="text-sm text-gray-500">{doc.description}</p>
+                  )}
+                </div>
+              </TableCell>
+              <TableCell>{getCategoryLabel(doc.category)}</TableCell>
+              <TableCell>{getEmployeeName(doc.employee_id)}</TableCell>
+              <TableCell>{getStatusBadge(doc.status || 'draft')}</TableCell>
+              <TableCell>{new Date(doc.created_at || '').toLocaleDateString()}</TableCell>
+              <TableCell>
+                {doc.file_size ? `${(doc.file_size / 1024 / 1024).toFixed(2)} MB` : '-'}
+              </TableCell>
+              <TableCell className="text-right">
+                <div className="flex items-center gap-2 justify-end">
+                  <Button variant="outline" size="sm">
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <Download className="h-4 w-4" />
+                  </Button>
+                  {canAccessSuperAdmin() && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleDelete(doc.id, doc.file_path)}
+                      disabled={deleting === doc.id}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      {deleting === doc.id ? (
+                        <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <Trash2 className="h-4 w-4" />
+                      )}
+                    </Button>
+                  )}
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <FileText className="h-5 w-5" />
-          Document Library
-          {filteredDocuments.length > 0 && (
-            <Badge variant="outline" className="ml-2">
-              {filteredDocuments.length} document{filteredDocuments.length !== 1 ? 's' : ''}
-            </Badge>
-          )}
-        </CardTitle>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <Input
-            placeholder="Search documents..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            Document Library
+            {filteredDocuments.length > 0 && (
+              <Badge variant="outline" className="ml-2">
+                {filteredDocuments.length} document{filteredDocuments.length !== 1 ? 's' : ''}
+              </Badge>
+            )}
+          </CardTitle>
+          <div className="flex items-center gap-2">
+            <Button
+              variant={viewMode === 'cards' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('cards')}
+            >
+              <Grid className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === 'table' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('table')}
+            >
+              <List className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        
+        {/* Search and Filters */}
+        <div className="space-y-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Search documents..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by Employee" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Employees</SelectItem>
+                {employees.map((employee) => (
+                  <SelectItem key={employee.id} value={employee.id}>
+                    {employee.first_name} {employee.last_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by Category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {categories.map((category) => (
+                  <SelectItem key={category.value} value={category.value}>
+                    {category.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                {statuses.map((status) => (
+                  <SelectItem key={status.value} value={status.value}>
+                    {status.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -172,61 +408,12 @@ const DocumentsList = () => {
             ) : (
               <>
                 <p className="font-medium">No matching documents</p>
-                <p className="text-sm mt-2">Try adjusting your search terms</p>
+                <p className="text-sm mt-2">Try adjusting your search and filter settings</p>
               </>
             )}
           </div>
         ) : (
-          <div className="space-y-4 max-h-96 overflow-y-auto">
-            {filteredDocuments.map((doc) => (
-              <div key={doc.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h4 className="font-medium text-slate-900">{doc.title}</h4>
-                    {doc.description && (
-                      <p className="text-sm text-gray-600 mt-1">{doc.description}</p>
-                    )}
-                    <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
-                      <span>{getCategoryLabel(doc.category)}</span>
-                      <span className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        {new Date(doc.created_at || '').toLocaleDateString()}
-                      </span>
-                      {doc.file_size && (
-                        <span>
-                          {(doc.file_size / 1024 / 1024).toFixed(2)} MB
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 ml-4">
-                    {getStatusBadge(doc.status || 'draft')}
-                    <Button variant="outline" size="sm">
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <Download className="h-4 w-4" />
-                    </Button>
-                    {canAccessSuperAdmin() && (
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleDelete(doc.id, doc.file_path)}
-                        disabled={deleting === doc.id}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      >
-                        {deleting === doc.id ? (
-                          <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
-                        ) : (
-                          <Trash2 className="h-4 w-4" />
-                        )}
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+          viewMode === 'cards' ? renderCardsView() : renderTableView()
         )}
       </CardContent>
     </Card>
