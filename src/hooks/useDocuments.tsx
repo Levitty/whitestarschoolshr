@@ -22,34 +22,63 @@ export const useDocuments = () => {
 
   const fetchDocuments = async () => {
     try {
-      // Enhanced query with employee profile joins to get proper employee names
-      const { data, error } = await supabase
+      console.log('Fetching documents...');
+      
+      // First get all documents
+      const { data: documentsData, error } = await supabase
         .from('documents')
-        .select(`
-          *,
-          employee_profile:employee_profiles!documents_employee_id_fkey(
-            id,
-            first_name,
-            last_name,
-            email,
-            department
-          ),
-          profile:profiles!documents_employee_id_fkey(
-            id,
-            first_name,
-            last_name,
-            email,
-            department
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (error) {
         console.error('Error fetching documents:', error);
         setDocuments([]);
+        return;
+      }
+
+      console.log('Raw documents:', documentsData);
+
+      // If we have documents, enrich them with employee data
+      if (documentsData && documentsData.length > 0) {
+        const enrichedDocuments = await Promise.all(
+          documentsData.map(async (doc) => {
+            let employeeData = null;
+            
+            if (doc.employee_id) {
+              // Try to get from employee_profiles first
+              const { data: empProfile } = await supabase
+                .from('employee_profiles')
+                .select('id, first_name, last_name, email, department')
+                .eq('id', doc.employee_id)
+                .maybeSingle();
+              
+              if (empProfile) {
+                employeeData = { employee_profile: empProfile };
+              } else {
+                // Fallback to profiles table
+                const { data: profile } = await supabase
+                  .from('profiles')
+                  .select('id, first_name, last_name, email, department')
+                  .eq('id', doc.employee_id)
+                  .maybeSingle();
+                
+                if (profile) {
+                  employeeData = { profile: profile };
+                }
+              }
+            }
+            
+            return {
+              ...doc,
+              ...employeeData
+            };
+          })
+        );
+        console.log('Enriched documents with employee data:', enrichedDocuments);
+        setDocuments(enrichedDocuments);
       } else {
-        console.log('Fetched documents with employee data:', data);
-        setDocuments(data || []);
+        console.log('No documents found');
+        setDocuments([]);
       }
     } catch (error) {
       console.error('Error fetching documents:', error);
