@@ -67,6 +67,19 @@ export const useDocuments = () => {
         return { error: { message: uploadError.message } };
       }
 
+      // Resolve employee id to attach the document to
+      let targetEmployeeId = employeeId || null;
+      if (!targetEmployeeId) {
+        const { data: empProfile } = await supabase
+          .from('employee_profiles')
+          .select('id')
+          .eq('profile_id', user.id)
+          .maybeSingle();
+        if (empProfile?.id) {
+          targetEmployeeId = empProfile.id;
+        }
+      }
+
       // Create document record
       const { error: documentError } = await supabase
         .from('documents')
@@ -79,7 +92,7 @@ export const useDocuments = () => {
           file_size: file.size,
           file_type: file.type,
           uploaded_by: user.id,
-          employee_id: employeeId || user.id,
+          employee_id: targetEmployeeId,
           status: 'approved'
         });
 

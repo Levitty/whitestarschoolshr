@@ -12,6 +12,8 @@ import { useProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import DocumentViewerDialog from '@/components/DocumentViewerDialog';
+import { Database } from '@/integrations/supabase/types';
 import { 
   FileText, 
   Download, 
@@ -25,6 +27,8 @@ import {
   List
 } from 'lucide-react';
 
+type DocumentRow = Database['public']['Tables']['documents']['Row'];
+
 const DocumentsList = () => {
   const { documents, loading, fetchDocuments } = useDocuments();
   const { employees, loading: employeesLoading } = useEmployees();
@@ -37,6 +41,7 @@ const DocumentsList = () => {
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [previewDoc, setPreviewDoc] = useState<DocumentRow | null>(null);
 
   const getStatusBadge = (status: string) => {
     const variants = {
@@ -122,6 +127,16 @@ const DocumentsList = () => {
     }
   };
 
+  const handleDownload = async (filePath: string | null) => {
+    if (!filePath) return;
+    const { data } = await supabase.storage
+      .from('employee-documents')
+      .createSignedUrl(filePath, 60);
+    if (data?.signedUrl) {
+      window.open(data.signedUrl, '_blank');
+    }
+  };
+ 
   if (!user) {
     return (
       <Card className="w-full">
@@ -216,10 +231,10 @@ const DocumentsList = () => {
             </div>
             <div className="flex items-center gap-2 ml-4">
               {getStatusBadge(doc.status || 'draft')}
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={() => setPreviewDoc(doc)}>
                 <Eye className="h-4 w-4" />
               </Button>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={() => handleDownload(doc.file_path)}>
                 <Download className="h-4 w-4" />
               </Button>
               {canAccessSuperAdmin() && (
@@ -278,10 +293,10 @@ const DocumentsList = () => {
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex items-center gap-2 justify-end">
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" onClick={() => setPreviewDoc(doc)}>
                     <Eye className="h-4 w-4" />
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" onClick={() => handleDownload(doc.file_path)}>
                     <Download className="h-4 w-4" />
                   </Button>
                   {canAccessSuperAdmin() && (
@@ -309,6 +324,7 @@ const DocumentsList = () => {
   );
 
   return (
+    <>
     <Card className="w-full">
       <CardHeader>
         <div className="flex items-center justify-between">
@@ -417,7 +433,16 @@ const DocumentsList = () => {
         )}
       </CardContent>
     </Card>
+
+    <DocumentViewerDialog
+      open={!!previewDoc}
+      onOpenChange={(open) => {
+        if (!open) setPreviewDoc(null);
+      }}
+      document={previewDoc}
+    />
+    </>
   );
 };
-
+ 
 export default DocumentsList;
