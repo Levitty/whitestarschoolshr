@@ -172,11 +172,15 @@ const DocumentsList: React.FC<DocumentsListProps> = ({ employeeId }) => {
       doc.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       getCategoryLabel(doc.category).toLowerCase().includes(searchTerm.toLowerCase());
     
-    // Employee filter
+    // Employee filter by dropdown
     let matchesEmployee = selectedEmployee === 'all';
     if (!matchesEmployee && selectedEmployee !== 'all') {
       const employee = getEmployeeForFilter(doc);
-      matchesEmployee = employee && employee.id === selectedEmployee;
+      // Match against both employee_profile.id and profile.id for flexibility
+      matchesEmployee = employee && (
+        employee.id === selectedEmployee || 
+        (doc.employee_id === selectedEmployee)
+      );
     }
     
     // Category filter
@@ -186,7 +190,12 @@ const DocumentsList: React.FC<DocumentsListProps> = ({ employeeId }) => {
     const matchesStatus = selectedStatus === 'all' || doc.status === selectedStatus;
     
     // Filter by specific employee if employeeId is provided (from props)
-    const matchesEmployeeId = !employeeId || doc.employee_id === employeeId;
+    let matchesEmployeeId = !employeeId || doc.employee_id === employeeId;
+    if (!matchesEmployeeId && employeeId) {
+      // Also check if the employee profile data matches
+      const employee = getEmployeeForFilter(doc);
+      matchesEmployeeId = employee && employee.id === employeeId;
+    }
     
     return matchesSearch && matchesEmployee && matchesCategory && matchesStatus && matchesEmployeeId;
   });
