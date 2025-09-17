@@ -1,5 +1,4 @@
-
-import { useState, useEffect, createContext, useContext } from 'react';
+import React, { useState, useEffect, createContext, useContext } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { Profile, AuthContextType, UserRole } from '@/types/auth';
@@ -15,11 +14,16 @@ export const useAuth = () => {
   return context;
 };
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  console.log('AuthProvider starting to initialize...');
+  
+  // Test if basic useState works
+  const [user, setUser] = React.useState<User | null>(null);
+  const [session, setSession] = React.useState<Session | null>(null);
+  const [profile, setProfile] = React.useState<Profile | null>(null);
+  const [loading, setLoading] = React.useState(true);
+
+  console.log('AuthProvider useState calls successful');
 
   const transformProfileData = (data: any): Profile => {
     const normalizedRole = normalizeRole(data.role);
@@ -198,7 +202,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     window.location.href = '/auth';
   };
 
-  useEffect(() => {
+  React.useEffect(() => {
+    console.log('Setting up auth state listener...');
+    
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state change:', event, session?.user?.email);
@@ -238,43 +244,51 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     );
 
     const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      console.log('Initial session:', session?.user?.email);
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        setTimeout(async () => {
-          try {
-            console.log('Fetching initial profile...');
-            const { data, error } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', session.user.id)
-              .single();
+      try {
+        console.log('Getting initial session...');
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log('Initial session:', session?.user?.email);
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          setTimeout(async () => {
+            try {
+              console.log('Fetching initial profile...');
+              const { data, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', session.user.id)
+                .single();
 
-            if (error) {
+              if (error) {
+                console.error('Error fetching profile:', error);
+                setProfile(null);
+              } else {
+                console.log('Initial profile data:', data);
+                const transformedProfile = transformProfileData(data);
+                console.log('Initial profile role:', transformedProfile.role);
+                setProfile(transformedProfile);
+              }
+            } catch (error) {
               console.error('Error fetching profile:', error);
               setProfile(null);
-            } else {
-              console.log('Initial profile data:', data);
-              const transformedProfile = transformProfileData(data);
-              console.log('Initial profile role:', transformedProfile.role);
-              setProfile(transformedProfile);
             }
-          } catch (error) {
-            console.error('Error fetching profile:', error);
-            setProfile(null);
-          }
-        }, 0);
+          }, 0);
+        }
+        
+        setLoading(false);
+      } catch (error) {
+        console.error('Error getting session:', error);
+        setLoading(false);
       }
-      
-      setLoading(false);
     };
 
     getSession();
     return () => subscription.unsubscribe();
   }, []);
+
+  console.log('AuthProvider about to render context...');
 
   return (
     <AuthContext.Provider value={{
