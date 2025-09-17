@@ -7,6 +7,7 @@ import RoleGuard from '@/components/RoleGuard';
 import SuperAdminSetup from '@/components/SuperAdminSetup';
 import RolePermissionsManager from '@/components/RolePermissionsManager';
 import AccountApprovalManager from '@/components/AccountApprovalManager';
+import DepartmentManager from '@/components/DepartmentManager';
 
 const Settings = () => {
   return (
@@ -27,10 +28,11 @@ const Settings = () => {
           </div>
 
           <Tabs defaultValue="approvals" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-6">
+            <TabsList className="grid w-full grid-cols-7">
               <TabsTrigger value="approvals">Account Approvals</TabsTrigger>
               <TabsTrigger value="permissions">Role Permissions</TabsTrigger>
               <TabsTrigger value="users">User Management</TabsTrigger>
+              <TabsTrigger value="departments">Departments</TabsTrigger>
               <TabsTrigger value="templates">Templates</TabsTrigger>
               <TabsTrigger value="notifications">Notifications</TabsTrigger>
               <TabsTrigger value="system">System</TabsTrigger>
@@ -46,6 +48,10 @@ const Settings = () => {
 
             <TabsContent value="users">
               <SuperAdminSetup />
+            </TabsContent>
+
+            <TabsContent value="departments">
+              <DepartmentManager />
             </TabsContent>
 
             <TabsContent value="templates">

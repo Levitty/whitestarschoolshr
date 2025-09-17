@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -81,6 +81,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      departments: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       document_shares: {
         Row: {
@@ -613,6 +637,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      events: {
+        Row: {
+          created_at: string
+          description: string | null
+          event_date: string
+          event_type: string
+          id: string
+          location: string
+          max_participants: number | null
+          name: string
+          price: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          event_date: string
+          event_type?: string
+          id?: string
+          location: string
+          max_participants?: number | null
+          name: string
+          price?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          event_date?: string
+          event_type?: string
+          id?: string
+          location?: string
+          max_participants?: number | null
+          name?: string
+          price?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       interview_records: {
         Row: {
@@ -1196,6 +1262,75 @@ export type Database = {
           },
         ]
       }
+      registrations: {
+        Row: {
+          age: number
+          checked_in: boolean | null
+          checked_in_at: string | null
+          created_at: string
+          email: string
+          emergency_contact_name: string
+          emergency_contact_phone: string
+          event_id: string | null
+          first_name: string
+          gender: string
+          id: string
+          last_name: string
+          medical_conditions: string | null
+          payment_reference: string | null
+          payment_status: string | null
+          phone: string
+          previous_ultra_experience: boolean | null
+          registration_fee: number | null
+          shirt_size: string | null
+          updated_at: string
+        }
+        Insert: {
+          age: number
+          checked_in?: boolean | null
+          checked_in_at?: string | null
+          created_at?: string
+          email: string
+          emergency_contact_name: string
+          emergency_contact_phone: string
+          event_id?: string | null
+          first_name: string
+          gender: string
+          id?: string
+          last_name: string
+          medical_conditions?: string | null
+          payment_reference?: string | null
+          payment_status?: string | null
+          phone: string
+          previous_ultra_experience?: boolean | null
+          registration_fee?: number | null
+          shirt_size?: string | null
+          updated_at?: string
+        }
+        Update: {
+          age?: number
+          checked_in?: boolean | null
+          checked_in_at?: string | null
+          created_at?: string
+          email?: string
+          emergency_contact_name?: string
+          emergency_contact_phone?: string
+          event_id?: string | null
+          first_name?: string
+          gender?: string
+          id?: string
+          last_name?: string
+          medical_conditions?: string | null
+          payment_reference?: string | null
+          payment_status?: string | null
+          phone?: string
+          previous_ultra_experience?: boolean | null
+          registration_fee?: number | null
+          shirt_size?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       role_permissions: {
         Row: {
           created_at: string | null
@@ -1368,26 +1503,34 @@ export type Database = {
       check_expiring_contracts: {
         Args: Record<PropertyKey, never>
         Returns: {
-          employee_id: string
-          employee_name: string
           contract_end_date: string
           days_until_expiry: number
+          employee_id: string
+          employee_name: string
         }[]
       }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_event_price: {
+        Args: { event_name: string }
+        Returns: number
+      }
       get_user_permissions: {
         Args: { user_id: string }
         Returns: {
-          permission_name: string
-          permission_description: string
           module: string
+          permission_description: string
+          permission_name: string
         }[]
       }
+      send_registration_confirmation: {
+        Args: { registration_id_param: string }
+        Returns: Json
+      }
       user_has_permission: {
-        Args: { user_id: string; permission_name: string }
+        Args: { permission_name: string; user_id: string }
         Returns: boolean
       }
     }

@@ -29,7 +29,11 @@ import {
 
 type DocumentRow = Database['public']['Tables']['documents']['Row'];
 
-const DocumentsList = () => {
+interface DocumentsListProps {
+  employeeId?: string;
+}
+
+const DocumentsList: React.FC<DocumentsListProps> = ({ employeeId }) => {
   const { documents, loading, fetchDocuments } = useDocuments();
   const { employees, loading: employeesLoading } = useEmployees();
   const { canAccessSuperAdmin } = useProfile();
@@ -181,7 +185,10 @@ const DocumentsList = () => {
     // Status filter
     const matchesStatus = selectedStatus === 'all' || doc.status === selectedStatus;
     
-    return matchesSearch && matchesEmployee && matchesCategory && matchesStatus;
+    // Filter by specific employee if employeeId is provided (from props)
+    const matchesEmployeeId = !employeeId || doc.employee_id === employeeId;
+    
+    return matchesSearch && matchesEmployee && matchesCategory && matchesStatus && matchesEmployeeId;
   });
 
   const categories = [

@@ -330,7 +330,7 @@ const EmployeeProfile = ({ employee, onClose }: EmployeeProfileProps) => {
                 employeeId={employee.id} 
                 onSuccess={() => window.location.reload()} 
               />
-              <DocumentsList />
+              <DocumentsList employeeId={employee.id} />
             </div>
           </TabsContent>
 
