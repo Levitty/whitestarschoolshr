@@ -386,14 +386,35 @@ const DocumentsList: React.FC<DocumentsListProps> = ({ employeeId }) => {
         
         {/* Search and Filters */}
         <div className="space-y-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Search documents..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search documents..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    // Trigger search on Enter key
+                    setSearchTerm(searchTerm);
+                  }
+                }}
+              />
+            </div>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                // Clear all filters
+                setSearchTerm('');
+                setSelectedEmployee('all');
+                setSelectedCategory('all');
+                setSelectedStatus('all');
+              }}
+              className="shrink-0"
+            >
+              Clear Filters
+            </Button>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
