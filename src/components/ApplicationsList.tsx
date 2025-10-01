@@ -136,19 +136,38 @@ export const ApplicationsList = () => {
     );
   }
 
+  // Group applications by job position
+  const groupedApplications = applications.reduce((acc, app) => {
+    const jobTitle = app.job_listings?.title || 'Uncategorized';
+    if (!acc[jobTitle]) {
+      acc[jobTitle] = [];
+    }
+    acc[jobTitle].push(app);
+    return acc;
+  }, {} as Record<string, typeof applications>);
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-xl font-semibold">Job Applications</h2>
-          <p className="text-gray-600">{applications.length} total applications</p>
+          <p className="text-gray-600">{applications.length} total applications across {Object.keys(groupedApplications).length} positions</p>
         </div>
       </div>
 
-      <div className="grid gap-4">
-        {applications.map((application) => (
-          <Card key={application.id} className="hover:shadow-md transition-shadow">
-            <CardContent className="p-6">
+      {Object.entries(groupedApplications).map(([jobTitle, jobApplications]) => (
+        <Card key={jobTitle} className="border-2">
+          <CardHeader className="bg-muted/50">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg">{jobTitle}</CardTitle>
+              <Badge variant="secondary" className="text-sm">
+                {jobApplications.length} {jobApplications.length === 1 ? 'Application' : 'Applications'}
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="p-6 space-y-4">
+            {jobApplications.map((application) => (
+              <div key={application.id} className="p-4 border rounded-lg hover:bg-muted/30 transition-colors">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
@@ -246,10 +265,11 @@ export const ApplicationsList = () => {
                   </DialogContent>
                 </Dialog>
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 };
