@@ -126,11 +126,9 @@ export const useJobApplications = () => {
       
       console.log('Inserting data:', insertData);
       
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('job_applications')
-        .insert([insertData])
-        .select()
-        .single();
+        .insert([insertData]);
 
       if (error) {
         console.error('=== DATABASE INSERT ERROR ===');
@@ -141,15 +139,10 @@ export const useJobApplications = () => {
         throw new Error(`Application submission failed: ${error.message}`);
       }
       
-      if (!data) {
-        console.error('No data returned from insert');
-        throw new Error('No data returned from application creation');
-      }
-      
-      console.log('Application created successfully:', data);
+      console.log('Application created successfully');
       console.log('=== APPLICATION CREATION SUCCESS ===');
       
-      return data;
+      return { success: true };
     } catch (error) {
       console.error('=== APPLICATION CREATION FAILED ===');
       console.error('Error details:', error);
