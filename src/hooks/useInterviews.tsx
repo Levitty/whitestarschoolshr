@@ -76,47 +76,52 @@ export const useInterviews = () => {
           interviewer_name: interviewData.interviewer_name,
           interview_type: interviewData.interview_type
         }])
-        .select(`
-          *,
-          job_applications (
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Send interview notification email
+      try {
+        const { data: application, error: appErr } = await supabase
+          .from('job_applications')
+          .select(`
             candidate_name,
             candidate_email,
             job_listings (
               title,
               department
             )
-          )
-        `)
-        .single();
+          `)
+          .eq('id', interviewData.application_id)
+          .maybeSingle();
 
-      if (error) throw error;
-
-      // Send interview notification email
-      if (data) {
-        try {
-          console.log('Sending interview schedule notification...');
-          const { error: emailError } = await supabase.functions.invoke('send-interview-schedule', {
-            body: {
-              candidateName: data.job_applications?.candidate_name,
-              candidateEmail: data.job_applications?.candidate_email,
-              position: data.job_applications?.job_listings?.title,
-              department: data.job_applications?.job_listings?.department,
-              interviewDate: interviewData.interview_date,
-              interviewType: interviewData.interview_type,
-              interviewerName: interviewData.interviewer_name,
-              location: interviewData.location,
-              notes: interviewData.notes
-            }
-          });
-
-          if (emailError) {
-            console.error('Error sending interview schedule email:', emailError);
-          } else {
-            console.log('Interview schedule notification sent successfully');
-          }
-        } catch (emailError) {
-          console.error('Error in email notification:', emailError);
+        if (appErr) {
+          console.error('Error fetching application for email:', appErr);
         }
+
+        console.log('Sending interview schedule notification...');
+        const { error: emailError } = await supabase.functions.invoke('send-interview-schedule', {
+          body: {
+            candidateName: application?.candidate_name,
+            candidateEmail: application?.candidate_email,
+            position: application?.job_listings?.title,
+            department: application?.job_listings?.department,
+            interviewDate: interviewData.interview_date,
+            interviewType: interviewData.interview_type,
+            interviewerName: interviewData.interviewer_name,
+            location: interviewData.location,
+            notes: interviewData.notes
+          }
+        });
+
+        if (emailError) {
+          console.error('Error sending interview schedule email:', emailError);
+        } else {
+          console.log('Interview schedule notification sent successfully');
+        }
+      } catch (emailError) {
+        console.error('Error in email notification:', emailError);
       }
       
       await fetchInterviews(); // Refresh the list
