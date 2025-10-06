@@ -2,7 +2,16 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
-const FROM_ADDRESS = Deno.env.get("RESEND_FROM_EMAIL") || "HR Department <onboarding@resend.dev>";
+const RAW_FROM = (Deno.env.get("RESEND_FROM_EMAIL") || "").trim();
+const DEFAULT_FROM = "HR Department <onboarding@resend.dev>";
+const getFromAddress = () => {
+  const emailOnly = /^[^<>\s@]+@[^<>\s@]+\.[^<>\s@]+$/;
+  const nameAndEmail = /^.+<[^<>\s@]+@[^<>\s@]+\.[^<>\s@]+>$/;
+  if (RAW_FROM && emailOnly.test(RAW_FROM)) return `HR Department <${RAW_FROM}>`;
+  if (RAW_FROM && nameAndEmail.test(RAW_FROM)) return RAW_FROM;
+  if (!RAW_FROM) return DEFAULT_FROM;
+  throw new Error('RESEND_FROM_EMAIL is invalid. Use "hr@yourdomain.com" or "Name <hr@yourdomain.com>".');
+};
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -51,7 +60,7 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     const emailResponse = await resend.emails.send({
-      from: FROM_ADDRESS,
+      from: getFromAddress(),
       to: [candidateEmail],
       subject: `Interview Scheduled - ${position} Position`,
       html: `
