@@ -113,24 +113,51 @@ const SuperAdminSetup = () => {
 
   const updateUserRole = async (userId: string, role: 'superadmin' | 'admin' | 'head' | 'teacher' | 'staff' | 'secretary' | 'driver' | 'support_staff') => {
     try {
-      const { error } = await supabase
+      // First, delete existing role from user_roles
+      const { error: deleteError } = await supabase
+        .from('user_roles')
+        .delete()
+        .eq('user_id', userId);
+
+      if (deleteError) {
+        toast({
+          title: "Error",
+          description: `Failed to remove old role: ${deleteError.message}`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Then insert the new role
+      const { error: insertError } = await supabase
+        .from('user_roles')
+        .insert({ user_id: userId, role });
+
+      if (insertError) {
+        toast({
+          title: "Error",
+          description: `Failed to update user role: ${insertError.message}`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Also update the role in profiles for backward compatibility
+      const { error: profileError } = await supabase
         .from('profiles')
         .update({ role })
         .eq('id', userId);
 
-      if (error) {
-        toast({
-          title: "Error",
-          description: "Failed to update user role.",
-          variant: "destructive"
-        });
-      } else {
-        toast({
-          title: "Success",
-          description: `User role updated to ${role}.`,
-        });
-        fetchProfiles();
+      if (profileError) {
+        console.warn('Failed to update profile role (non-critical):', profileError);
       }
+
+      toast({
+        title: "Success",
+        description: `User role updated to ${role}.`,
+      });
+
+      fetchProfiles();
     } catch (error) {
       toast({
         title: "Error",

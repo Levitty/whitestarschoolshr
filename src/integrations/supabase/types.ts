@@ -1445,6 +1445,27 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       weekly_reports: {
         Row: {
           accomplishments: string
@@ -1528,6 +1549,17 @@ export type Database = {
           permission_name: string
         }[]
       }
+      get_user_role: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       send_registration_confirmation: {
         Args: { registration_id_param: string }
         Returns: Json
@@ -1538,6 +1570,15 @@ export type Database = {
       }
     }
     Enums: {
+      app_role:
+        | "superadmin"
+        | "admin"
+        | "head"
+        | "teacher"
+        | "staff"
+        | "secretary"
+        | "driver"
+        | "support_staff"
       document_category:
         | "employment_records"
         | "disciplinary_records"
@@ -1679,6 +1720,16 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: [
+        "superadmin",
+        "admin",
+        "head",
+        "teacher",
+        "staff",
+        "secretary",
+        "driver",
+        "support_staff",
+      ],
       document_category: [
         "employment_records",
         "disciplinary_records",
