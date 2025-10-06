@@ -16,26 +16,49 @@ export const InterviewsList = () => {
   const { interviews, loading, createInterview, updateInterview } = useInterviews();
   const { applications } = useJobApplications();
   const [showForm, setShowForm] = useState(false);
+  const [selectedPosition, setSelectedPosition] = useState('');
   const [formData, setFormData] = useState({
     application_id: '',
     interview_date: '',
     interviewer_name: '',
-    interview_type: 'Phone' as 'Phone' | 'Physical' | 'Online'
+    interview_type: 'Phone' as 'Phone' | 'Physical' | 'Online',
+    location: '',
+    notes: ''
   });
+
+  // Get unique positions from applications with Interview status
+  const positions = Array.from(new Set(
+    applications
+      ?.filter(app => app.status === 'Interview')
+      .map(app => app.job_listings?.title)
+      .filter(Boolean)
+  ));
+
+  // Filter applications by selected position
+  const filteredApplications = applications?.filter(
+    app => app.status === 'Interview' && app.job_listings?.title === selectedPosition
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       await createInterview({
-        ...formData,
-        interview_date: new Date(formData.interview_date).toISOString()
+        application_id: formData.application_id,
+        interview_date: new Date(formData.interview_date).toISOString(),
+        interviewer_name: formData.interviewer_name,
+        interview_type: formData.interview_type,
+        location: formData.location,
+        notes: formData.notes
       });
       setShowForm(false);
+      setSelectedPosition('');
       setFormData({
         application_id: '',
         interview_date: '',
         interviewer_name: '',
-        interview_type: 'Phone'
+        interview_type: 'Phone',
+        location: '',
+        notes: ''
       });
     } catch (error) {
       console.error('Error creating interview:', error);
@@ -76,23 +99,47 @@ export const InterviewsList = () => {
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label htmlFor="application">Application</Label>
+                <Label htmlFor="position">Position</Label>
                 <Select 
-                  value={formData.application_id} 
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, application_id: value }))}
+                  value={selectedPosition} 
+                  onValueChange={(value) => {
+                    setSelectedPosition(value);
+                    setFormData(prev => ({ ...prev, application_id: '' }));
+                  }}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select application" />
+                    <SelectValue placeholder="Select position" />
                   </SelectTrigger>
                   <SelectContent>
-                    {applications?.filter(app => app.status === 'Interview').map(app => (
-                      <SelectItem key={app.id} value={app.id}>
-                        {app.candidate_name} - {app.job_listings?.title}
+                    {positions.map(position => (
+                      <SelectItem key={position} value={position!}>
+                        {position}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
+
+              {selectedPosition && (
+                <div>
+                  <Label htmlFor="application">Applicant</Label>
+                  <Select 
+                    value={formData.application_id} 
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, application_id: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select applicant" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {filteredApplications?.map(app => (
+                        <SelectItem key={app.id} value={app.id}>
+                          {app.candidate_name} - {app.candidate_email}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div>
                 <Label htmlFor="interview_date">Interview Date & Time</Label>
                 <Input
@@ -130,7 +177,29 @@ export const InterviewsList = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <Button type="submit" className="w-full">Schedule Interview</Button>
+              <div>
+                <Label htmlFor="location">Location/Meeting Link</Label>
+                <Input
+                  id="location"
+                  value={formData.location}
+                  onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                  placeholder="Enter location or meeting link"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="notes">Additional Notes</Label>
+                <Textarea
+                  id="notes"
+                  value={formData.notes}
+                  onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                  placeholder="Enter any additional instructions or requirements"
+                  rows={3}
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={!formData.application_id}>
+                Schedule Interview
+              </Button>
             </form>
           </DialogContent>
         </Dialog>
