@@ -1,1 +1,7 @@
 project_id = "rogwhlgqsyasbemnovgf"
+
+[functions.send-interview-schedule]
+verify_jwt = false
+
+[functions.send-interview-notification]
+verify_jwt = false
