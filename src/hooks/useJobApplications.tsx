@@ -167,7 +167,13 @@ export const useJobApplications = () => {
         .from('job_applications')
         .update(updateData)
         .eq('id', id)
-        .select()
+        .select(`
+          *,
+          job_listings (
+            title,
+            department
+          )
+        `)
         .single();
 
       if (error) {
@@ -177,13 +183,44 @@ export const useJobApplications = () => {
       
       console.log('Application updated successfully:', data);
       
+      // Send interview notification email if status changed to Interview
+      if (status === 'Interview' && data) {
+        try {
+          console.log('Sending interview notification email...');
+          const { error: emailError } = await supabase.functions.invoke('send-interview-notification', {
+            body: {
+              candidateName: data.candidate_name,
+              candidateEmail: data.candidate_email,
+              position: data.job_listings?.title || 'Unknown Position',
+              department: data.job_listings?.department || 'Unknown Department',
+              note: note || data.note
+            }
+          });
+
+          if (emailError) {
+            console.error('Error sending interview notification:', emailError);
+            toast({
+              title: "Warning",
+              description: "Status updated but failed to send notification email",
+              variant: "destructive"
+            });
+          } else {
+            console.log('Interview notification sent successfully');
+          }
+        } catch (emailError) {
+          console.error('Error in email notification:', emailError);
+        }
+      }
+      
       setApplications(prev => prev.map(app => 
         app.id === id ? { ...app, ...data } as JobApplication : app
       ));
       
       toast({
         title: "Success",
-        description: "Application status updated successfully"
+        description: status === 'Interview' 
+          ? "Application updated and interview notification sent"
+          : "Application status updated successfully"
       });
       
       return data;
