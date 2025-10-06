@@ -181,10 +181,62 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         password
       });
       
-      console.log('Sign in response:', { data: data?.user?.email, error });
+      if (error) {
+        console.log('Sign in error:', error);
+        setLoading(false);
+        return { error };
+      }
       
+      // Check if user profile is approved
+      if (data.user) {
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('status, is_active')
+          .eq('id', data.user.id)
+          .single();
+        
+        if (profileError) {
+          console.error('Error fetching profile:', profileError);
+          await supabase.auth.signOut();
+          setLoading(false);
+          return { 
+            error: { 
+              message: 'Unable to verify account status. Please try again.',
+              name: 'ProfileError',
+              status: 500
+            } 
+          };
+        }
+        
+        // Block sign-in if account is not active or approved
+        if (profileData.status === 'pending' || !profileData.is_active) {
+          await supabase.auth.signOut();
+          setLoading(false);
+          return { 
+            error: { 
+              message: 'Your account is pending approval. Please wait for a super admin to activate your account.',
+              name: 'AccountNotApproved',
+              status: 403
+            } 
+          };
+        }
+        
+        if (profileData.status === 'inactive' || profileData.status === 'suspended') {
+          await supabase.auth.signOut();
+          setLoading(false);
+          return { 
+            error: { 
+              message: 'Your account has been deactivated. Please contact an administrator.',
+              name: 'AccountDeactivated',
+              status: 403
+            } 
+          };
+        }
+      }
+      
+      console.log('Sign in successful:', data.user?.email);
       setLoading(false);
-      return { error };
+      return { error: null };
     } catch (error) {
       console.error('Sign in error:', error);
       setLoading(false);
