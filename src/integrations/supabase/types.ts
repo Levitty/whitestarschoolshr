@@ -789,6 +789,7 @@ export type Database = {
           id: string
           job_id: string | null
           note: string | null
+          phone_number: string | null
           status: string
           updated_at: string | null
         }
@@ -800,6 +801,7 @@ export type Database = {
           id?: string
           job_id?: string | null
           note?: string | null
+          phone_number?: string | null
           status?: string
           updated_at?: string | null
         }
@@ -811,6 +813,7 @@ export type Database = {
           id?: string
           job_id?: string | null
           note?: string | null
+          phone_number?: string | null
           status?: string
           updated_at?: string | null
         }

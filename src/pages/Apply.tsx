@@ -32,6 +32,7 @@ const Apply = () => {
   const [formData, setFormData] = useState({
     candidate_name: '',
     candidate_email: '',
+    phone_number: '',
     note: ''
   });
 
@@ -117,11 +118,11 @@ const Apply = () => {
     console.log('Job ID:', jobId);
     console.log('CV file:', cvFile?.name);
     
-    if (!formData.candidate_name.trim() || !formData.candidate_email.trim() || !jobId) {
+    if (!formData.candidate_name.trim() || !formData.candidate_email.trim() || !formData.phone_number.trim() || !cvFile || !formData.note.trim() || !jobId) {
       console.error('Validation failed - missing required fields');
       toast({
         title: "Validation Error",
-        description: "Please fill in all required fields",
+        description: "Please fill in all required fields including CV and cover letter",
         variant: "destructive"
       });
       return;
@@ -166,7 +167,8 @@ const Apply = () => {
         job_id: jobId,
         candidate_name: formData.candidate_name.trim(),
         candidate_email: formData.candidate_email.trim(),
-        note: formData.note.trim() || undefined,
+        phone_number: formData.phone_number.trim(),
+        note: formData.note.trim(),
         cv_url: cvUrl || undefined
       };
       
@@ -325,7 +327,23 @@ const Apply = () => {
               </div>
 
               <div>
-                <Label htmlFor="cv">Upload CV (Optional)</Label>
+                <Label htmlFor="phone">Phone Number *</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={formData.phone_number}
+                  onChange={(e) => setFormData(prev => ({ 
+                    ...prev, 
+                    phone_number: e.target.value 
+                  }))}
+                  placeholder="Enter your phone number"
+                  required
+                  disabled={submitting}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="cv">Upload CV *</Label>
                 <div className="mt-2">
                   {!cvFile ? (
                     <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
@@ -371,7 +389,7 @@ const Apply = () => {
               </div>
 
               <div>
-                <Label htmlFor="note">Cover Letter / Additional Notes</Label>
+                <Label htmlFor="note">Cover Letter *</Label>
                 <Textarea
                   id="note"
                   value={formData.note}
@@ -381,6 +399,7 @@ const Apply = () => {
                   }))}
                   placeholder="Tell us why you're interested in this position..."
                   rows={4}
+                  required
                   disabled={submitting}
                 />
               </div>

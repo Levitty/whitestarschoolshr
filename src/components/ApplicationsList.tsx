@@ -6,8 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Download, MessageSquare, FileText, User, Mail, Calendar } from 'lucide-react';
-import { useJobApplications } from '@/hooks/useJobApplications';
+import { Download, MessageSquare, FileText, User, Mail, Calendar, Phone, Eye } from 'lucide-react';
+import { useJobApplications, JobApplication } from '@/hooks/useJobApplications';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -15,6 +15,7 @@ export const ApplicationsList = () => {
   const { applications, loading, updateApplicationStatus } = useJobApplications();
   const { toast } = useToast();
   const [selectedApp, setSelectedApp] = useState<string | null>(null);
+  const [viewApp, setViewApp] = useState<JobApplication | null>(null);
   const [statusUpdate, setStatusUpdate] = useState('');
   const [noteUpdate, setNoteUpdate] = useState('');
 
@@ -181,6 +182,12 @@ export const ApplicationsList = () => {
                       <Mail className="h-4 w-4" />
                       {application.candidate_email}
                     </div>
+                    {application.phone_number && (
+                      <div className="flex items-center gap-1">
+                        <Phone className="h-4 w-4" />
+                        {application.phone_number}
+                      </div>
+                    )}
                     <div className="flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
                       Applied {new Date(application.applied_at).toLocaleDateString()}
@@ -201,6 +208,15 @@ export const ApplicationsList = () => {
               )}
 
               <div className="flex gap-2 flex-wrap">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setViewApp(application)}
+                >
+                  <Eye className="h-4 w-4 mr-1" />
+                  View Details
+                </Button>
+                
                 {application.cv_url && (
                   <Button 
                     variant="outline" 
@@ -270,6 +286,80 @@ export const ApplicationsList = () => {
           </CardContent>
         </Card>
       ))}
+
+      {/* View Application Details Dialog */}
+      <Dialog open={!!viewApp} onOpenChange={(open) => !open && setViewApp(null)}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Application Details</DialogTitle>
+          </DialogHeader>
+          {viewApp && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Candidate Name</label>
+                  <p className="text-base font-semibold">{viewApp.candidate_name}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Status</label>
+                  <div className="mt-1">{getStatusBadge(viewApp.status)}</div>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Email</label>
+                  <p className="text-base">{viewApp.candidate_email}</p>
+                </div>
+                {viewApp.phone_number && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Phone</label>
+                    <p className="text-base">{viewApp.phone_number}</p>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-gray-500">Position Applied</label>
+                <p className="text-base font-semibold">{viewApp.job_listings?.title}</p>
+                <p className="text-sm text-gray-600">{viewApp.job_listings?.department}</p>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-gray-500">Applied Date</label>
+                <p className="text-base">{new Date(viewApp.applied_at).toLocaleDateString('en-US', { 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}</p>
+              </div>
+
+              {viewApp.note && (
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Cover Letter</label>
+                  <div className="mt-2 p-4 bg-gray-50 rounded-lg">
+                    <p className="text-base whitespace-pre-wrap">{viewApp.note}</p>
+                  </div>
+                </div>
+              )}
+
+              {viewApp.cv_url && (
+                <div className="pt-4 border-t">
+                  <Button 
+                    onClick={() => downloadCV(viewApp.cv_url!, viewApp.candidate_name)}
+                    className="w-full"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Download CV
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

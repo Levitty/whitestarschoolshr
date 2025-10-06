@@ -7,6 +7,7 @@ export interface JobApplication {
   job_id: string;
   candidate_name: string;
   candidate_email: string;
+  phone_number?: string;
   cv_url?: string;
   note?: string;
   status: 'New' | 'Interview' | 'Rejected' | 'Hired';
@@ -105,6 +106,7 @@ export const useJobApplications = () => {
     job_id: string;
     candidate_name: string;
     candidate_email: string;
+    phone_number?: string;
     cv_url?: string;
     note?: string;
   }) => {
@@ -116,6 +118,7 @@ export const useJobApplications = () => {
         job_id: applicationData.job_id,
         candidate_name: applicationData.candidate_name,
         candidate_email: applicationData.candidate_email,
+        phone_number: applicationData.phone_number || null,
         cv_url: applicationData.cv_url || null,
         note: applicationData.note || null,
         status: 'New' as const

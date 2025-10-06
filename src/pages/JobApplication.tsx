@@ -31,6 +31,7 @@ const JobApplication = () => {
   const [formData, setFormData] = useState({
     candidate_name: '',
     candidate_email: '',
+    phone_number: '',
     note: ''
   });
 
@@ -99,10 +100,10 @@ const JobApplication = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.candidate_name || !formData.candidate_email || !jobId) {
+    if (!formData.candidate_name || !formData.candidate_email || !formData.phone_number || !cvFile || !formData.note || !jobId) {
       toast({
         title: "Validation Error",
-        description: "Please fill in all required fields",
+        description: "Please fill in all required fields including CV and cover letter",
         variant: "destructive"
       });
       return;
@@ -117,6 +118,7 @@ const JobApplication = () => {
           job_id: jobId,
           candidate_name: formData.candidate_name,
           candidate_email: formData.candidate_email,
+          phone_number: formData.phone_number,
           note: formData.note
         }])
         .select()
@@ -267,9 +269,24 @@ const JobApplication = () => {
                 </div>
               </div>
 
+              <div>
+                <Label htmlFor="phone">Phone Number *</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={formData.phone_number}
+                  onChange={(e) => setFormData(prev => ({ 
+                    ...prev, 
+                    phone_number: e.target.value 
+                  }))}
+                  placeholder="Enter your phone number"
+                  required
+                />
+              </div>
+
               {/* CV Upload */}
               <div>
-                <Label htmlFor="cv">Resume/CV</Label>
+                <Label htmlFor="cv">Resume/CV *</Label>
                 <div className="mt-2">
                   {!cvFile ? (
                     <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
@@ -313,7 +330,7 @@ const JobApplication = () => {
               </div>
 
               <div>
-                <Label htmlFor="note">Cover Letter / Additional Notes</Label>
+                <Label htmlFor="note">Cover Letter *</Label>
                 <Textarea
                   id="note"
                   value={formData.note}
@@ -323,6 +340,7 @@ const JobApplication = () => {
                   }))}
                   placeholder="Tell us why you're interested in this position..."
                   rows={4}
+                  required
                 />
               </div>
 
