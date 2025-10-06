@@ -99,6 +99,15 @@ const JobApplication = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
+    
+    console.log('=== JOB APPLICATION SUBMISSION ===');
+    console.log('Device info:', {
+      userAgent: navigator.userAgent,
+      isMobile: /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+    });
+    console.log('Form data:', formData);
+    console.log('CV file:', cvFile?.name);
     
     if (!formData.candidate_name || !formData.candidate_email || !formData.phone_number || !cvFile || !formData.note || !jobId) {
       toast({
@@ -346,9 +355,12 @@ const JobApplication = () => {
 
               <Button 
                 type="submit" 
-                className="w-full" 
+                className="w-full touch-action-manipulation" 
                 disabled={submitting}
                 size="lg"
+                onClick={(e) => {
+                  console.log('Submit button clicked - mobile debug');
+                }}
               >
                 {submitting ? 'Submitting Application...' : 'Submit Application'}
               </Button>

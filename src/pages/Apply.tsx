@@ -112,8 +112,14 @@ const Apply = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     
     console.log('=== STARTING APPLICATION SUBMISSION ===');
+    console.log('Device info:', {
+      userAgent: navigator.userAgent,
+      platform: navigator.platform,
+      isMobile: /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+    });
     console.log('Form data:', formData);
     console.log('Job ID:', jobId);
     console.log('CV file:', cvFile?.name);
@@ -406,9 +412,13 @@ const Apply = () => {
 
               <Button 
                 type="submit" 
-                className="w-full" 
+                className="w-full touch-action-manipulation" 
                 disabled={submitting}
                 size="lg"
+                onClick={(e) => {
+                  // Ensure form submission on mobile
+                  console.log('Button clicked - mobile check');
+                }}
               >
                 {submitting ? 'Submitting Application...' : 'Submit Application'}
               </Button>
