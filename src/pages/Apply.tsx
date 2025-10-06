@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,6 +28,7 @@ const Apply = () => {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [cvFile, setCvFile] = useState<File | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
   
   const [formData, setFormData] = useState({
     candidate_name: '',
@@ -112,7 +113,6 @@ const Apply = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    e.stopPropagation();
     
     console.log('=== STARTING APPLICATION SUBMISSION ===');
     console.log('Device info:', {
@@ -299,7 +299,7 @@ const Apply = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <form noValidate onSubmit={handleSubmit} className="space-y-6">
+            <form noValidate ref={formRef} onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="name">Full Name *</Label>
@@ -411,14 +411,12 @@ const Apply = () => {
               </div>
 
               <Button 
-                type="submit" 
+                type="button" 
                 className="w-full touch-action-manipulation" 
                 disabled={submitting}
                 size="lg"
-                onClick={(e) => {
-                  // Ensure form submission on mobile
-                  console.log('Button clicked - mobile check');
-                }}
+                onClick={() => formRef.current?.requestSubmit()}
+                onTouchEnd={() => formRef.current?.requestSubmit()}
               >
                 {submitting ? 'Submitting Application...' : 'Submit Application'}
               </Button>
