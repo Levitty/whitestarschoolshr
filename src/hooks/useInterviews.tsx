@@ -122,7 +122,7 @@ export const useInterviews = () => {
       await fetchInterviews(); // Refresh the list
       toast({
         title: "Success",
-        description: "Interview scheduled and notification sent"
+        description: "Interview scheduled"
       });
       
       return data;

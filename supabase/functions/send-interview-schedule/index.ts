@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const FROM_ADDRESS = Deno.env.get("RESEND_FROM_EMAIL") || "HR Department <onboarding@resend.dev>";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -50,7 +51,7 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     const emailResponse = await resend.emails.send({
-      from: "HR Department <onboarding@resend.dev>",
+      from: FROM_ADDRESS,
       to: [candidateEmail],
       subject: `Interview Scheduled - ${position} Position`,
       html: `
@@ -96,7 +97,12 @@ const handler = async (req: Request): Promise<Response> => {
       `,
     });
 
-    console.log("Interview schedule notification sent successfully:", emailResponse);
+    if ((emailResponse as any)?.error) {
+      console.error("Resend error (schedule):", (emailResponse as any).error);
+      throw new Error((emailResponse as any).error?.message || "Failed to send interview schedule email");
+    }
+
+    console.log("Interview schedule email sent:", emailResponse);
 
     return new Response(JSON.stringify(emailResponse), {
       status: 200,
