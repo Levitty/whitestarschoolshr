@@ -1560,6 +1560,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_superadmin: {
+        Args: { user_id: string }
+        Returns: boolean
+      }
       send_registration_confirmation: {
         Args: { registration_id_param: string }
         Returns: Json
