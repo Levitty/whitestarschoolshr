@@ -167,6 +167,9 @@ const DocumentsList: React.FC<DocumentsListProps> = ({ employeeId }) => {
   };
 
   const filteredDocuments = documents.filter(doc => {
+    // Cast to any to access enriched properties
+    const enrichedDoc = doc as any;
+    
     // Text search
     const matchesSearch = doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       doc.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -174,12 +177,19 @@ const DocumentsList: React.FC<DocumentsListProps> = ({ employeeId }) => {
     
     // Employee filter by dropdown
     let matchesEmployee = selectedEmployee === 'all';
-    if (!matchesEmployee && selectedEmployee !== 'all') {
-      const employee = getEmployeeForFilter(doc);
-      // Match against both employee_profile.id and profile.id for flexibility
-      matchesEmployee = employee && (
-        employee.id === selectedEmployee || 
-        (doc.employee_id === selectedEmployee)
+    if (selectedEmployee !== 'all') {
+      // Find the selected employee from the employees list to get both id and profile_id
+      const selectedEmp = employees.find(emp => emp.id === selectedEmployee);
+      
+      // Match in multiple ways:
+      // 1. Direct match on document's employee_id with employee_profile.id
+      // 2. Match on document's employee_id with employee's profile_id (for docs linked to profiles table)
+      // 3. Match on enriched employee data
+      matchesEmployee = (
+        doc.employee_id === selectedEmployee || // Direct match with employee_profile.id
+        (selectedEmp?.profile_id && doc.employee_id === selectedEmp.profile_id) || // Match with profile_id
+        (enrichedDoc.employee_profile?.id === selectedEmployee) || // Enriched employee_profile match
+        (enrichedDoc.profile?.id === selectedEmp?.profile_id) // Enriched profile match
       );
     }
     
