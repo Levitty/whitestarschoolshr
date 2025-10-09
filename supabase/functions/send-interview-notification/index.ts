@@ -3,7 +3,8 @@ import { Resend } from "npm:resend@2.0.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 const RAW_FROM = (Deno.env.get("RESEND_FROM_EMAIL") || "").trim();
-const DEFAULT_FROM = "HR Department <noreply@hr.whitestarschools.com>";
+// Use Resend's testing domain by default - users should update RESEND_FROM_EMAIL secret with their verified domain
+const DEFAULT_FROM = "HR Department <onboarding@resend.dev>";
 const getFromAddress = () => {
   const emailOnly = /^[^<>\s@]+@[^<>\s@]+\.[^<>\s@]+$/;
   const nameAndEmail = /^.+<[^<>\s@]+@[^<>\s@]+\.[^<>\s@]+>$/;
