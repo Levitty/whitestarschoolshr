@@ -838,6 +838,7 @@ export type Database = {
           employment_type: string
           id: string
           location: string
+          requirements: string | null
           status: string
           title: string
           updated_at: string | null
@@ -849,6 +850,7 @@ export type Database = {
           employment_type: string
           id?: string
           location: string
+          requirements?: string | null
           status?: string
           title: string
           updated_at?: string | null
@@ -860,6 +862,7 @@ export type Database = {
           employment_type?: string
           id?: string
           location?: string
+          requirements?: string | null
           status?: string
           title?: string
           updated_at?: string | null

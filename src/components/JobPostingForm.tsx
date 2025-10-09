@@ -21,6 +21,7 @@ export const JobPostingForm = ({ onSuccess }: JobPostingFormProps) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
+    requirements: '',
     department: '',
     location: '',
     employment_type: 'Full-time' as 'Full-time' | 'Part-time' | 'Contract'
@@ -79,6 +80,7 @@ export const JobPostingForm = ({ onSuccess }: JobPostingFormProps) => {
       setFormData({
         title: '',
         description: '',
+        requirements: '',
         department: '',
         location: '',
         employment_type: 'Full-time'
@@ -153,6 +155,17 @@ export const JobPostingForm = ({ onSuccess }: JobPostingFormProps) => {
           placeholder="Detailed job description..."
           rows={4}
           required
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="requirements">Requirements</Label>
+        <Textarea
+          id="requirements"
+          value={formData.requirements}
+          onChange={(e) => setFormData(prev => ({ ...prev, requirements: e.target.value }))}
+          placeholder="e.g., 5+ years of experience in software development, Bachelor's degree in Computer Science..."
+          rows={3}
         />
       </div>
       
