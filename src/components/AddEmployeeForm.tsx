@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,6 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Plus, CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
 
 const AddEmployeeForm = () => {
   const [formData, setFormData] = useState({
@@ -37,9 +38,30 @@ const AddEmployeeForm = () => {
   const [contractStartDate, setContractStartDate] = useState<Date>();
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [nextEmployeeNumber, setNextEmployeeNumber] = useState<string>('');
   const { createEmployee } = useEmployees();
   const { departments, loading: departmentsLoading } = useDepartments();
   const { toast } = useToast();
+
+  // Fetch next employee number when dialog opens
+  useEffect(() => {
+    if (open) {
+      fetchNextEmployeeNumber();
+    }
+  }, [open]);
+
+  const fetchNextEmployeeNumber = async () => {
+    try {
+      const { data, error } = await supabase.rpc('get_next_employee_number');
+      if (error) {
+        console.error('Error fetching next employee number:', error);
+      } else {
+        setNextEmployeeNumber(data);
+      }
+    } catch (error) {
+      console.error('Error fetching next employee number:', error);
+    }
+  };
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -154,6 +176,20 @@ const AddEmployeeForm = () => {
                 <CardTitle className="text-lg">Personal Information</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="employee_number">Employee Number</Label>
+                  <Input
+                    id="employee_number"
+                    value={nextEmployeeNumber}
+                    disabled
+                    className="bg-muted"
+                    placeholder="Auto-generated"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    This will be auto-generated when you create the employee
+                  </p>
+                </div>
+
                 <div>
                   <Label htmlFor="contract_type">Contract Type</Label>
                     <Select value={formData.contract_type} onValueChange={(value) => handleInputChange('contract_type', value)}>

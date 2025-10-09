@@ -250,6 +250,7 @@ export type Database = {
           created_at: string | null
           description: string | null
           employee_id: string | null
+          employee_number: string | null
           file_name: string | null
           file_path: string | null
           file_size: number | null
@@ -276,6 +277,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           employee_id?: string | null
+          employee_number?: string | null
           file_name?: string | null
           file_path?: string | null
           file_size?: number | null
@@ -302,6 +304,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           employee_id?: string | null
+          employee_number?: string | null
           file_name?: string | null
           file_path?: string | null
           file_size?: number | null
@@ -1540,6 +1543,10 @@ export type Database = {
       get_event_price: {
         Args: { event_name: string }
         Returns: number
+      }
+      get_next_employee_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
       get_user_permissions: {
         Args: { user_id: string }

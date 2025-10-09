@@ -175,21 +175,19 @@ const DocumentsList: React.FC<DocumentsListProps> = ({ employeeId }) => {
       doc.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       getCategoryLabel(doc.category).toLowerCase().includes(searchTerm.toLowerCase());
     
-    // Employee filter by dropdown
+    // Employee filter by dropdown - now using employee_number as primary identifier
     let matchesEmployee = selectedEmployee === 'all';
     if (selectedEmployee !== 'all') {
-      // Find the selected employee from the employees list to get both id and profile_id
+      // Find the selected employee from the employees list to get employee_number
       const selectedEmp = employees.find(emp => emp.id === selectedEmployee);
       
-      // Match in multiple ways:
-      // 1. Direct match on document's employee_id with employee_profile.id
-      // 2. Match on document's employee_id with employee's profile_id (for docs linked to profiles table)
-      // 3. Match on enriched employee data
+      // Match by employee_number (primary) or fallback to employee_id
       matchesEmployee = (
-        doc.employee_id === selectedEmployee || // Direct match with employee_profile.id
-        (selectedEmp?.profile_id && doc.employee_id === selectedEmp.profile_id) || // Match with profile_id
-        (enrichedDoc.employee_profile?.id === selectedEmployee) || // Enriched employee_profile match
-        (enrichedDoc.profile?.id === selectedEmp?.profile_id) // Enriched profile match
+        (enrichedDoc.employee_number && enrichedDoc.employee_number === selectedEmp?.employee_number) || // Primary: match by employee_number
+        doc.employee_id === selectedEmployee || // Fallback: direct match with employee_profile.id
+        (selectedEmp?.profile_id && doc.employee_id === selectedEmp.profile_id) || // Fallback: match with profile_id
+        (enrichedDoc.employee_profile?.id === selectedEmployee) || // Fallback: enriched employee_profile match
+        (enrichedDoc.profile?.id === selectedEmp?.profile_id) // Fallback: enriched profile match
       );
     }
     
