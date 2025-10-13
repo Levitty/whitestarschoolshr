@@ -12,6 +12,7 @@ interface JobDetail {
   id: string;
   title: string;
   description: string;
+  requirements: string | null;
   department: string;
   location: string;
   employment_type: string;
@@ -161,6 +162,17 @@ const JobDetails = () => {
                 </div>
               </div>
             </div>
+
+            {job.requirements && (
+              <div className="mb-8">
+                <h2 className="text-xl font-semibold mb-4 text-gray-900">Requirements</h2>
+                <div className="prose max-w-none">
+                  <div className="text-gray-700 whitespace-pre-wrap leading-relaxed">
+                    {job.requirements}
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="border-t pt-6">
               <div className="flex flex-col sm:flex-row gap-4">
