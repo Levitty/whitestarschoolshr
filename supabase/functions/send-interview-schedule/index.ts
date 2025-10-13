@@ -4,11 +4,11 @@ import { Resend } from "npm:resend@2.0.0";
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 const RAW_FROM = (Deno.env.get("RESEND_FROM_EMAIL") || "").trim();
 // Use Resend's testing domain by default - users should update RESEND_FROM_EMAIL secret with their verified domain
-const DEFAULT_FROM = "HR Department <onboarding@resend.dev>";
+const DEFAULT_FROM = "Whitestar Schools HR Department <onboarding@resend.dev>";
 const getFromAddress = () => {
   const emailOnly = /^[^<>\s@]+@[^<>\s@]+\.[^<>\s@]+$/;
   const nameAndEmail = /^.+<[^<>\s@]+@[^<>\s@]+\.[^<>\s@]+>$/;
-  if (RAW_FROM && emailOnly.test(RAW_FROM)) return `HR Department <${RAW_FROM}>`;
+  if (RAW_FROM && emailOnly.test(RAW_FROM)) return `Whitestar Schools HR Department <${RAW_FROM}>`;
   if (RAW_FROM && nameAndEmail.test(RAW_FROM)) return RAW_FROM;
   if (!RAW_FROM) return DEFAULT_FROM;
   throw new Error('RESEND_FROM_EMAIL is invalid. Use "hr@yourdomain.com" or "Name <hr@yourdomain.com>".');
@@ -70,7 +70,7 @@ const handler = async (req: Request): Promise<Response> => {
           
           <p>Dear ${candidateName},</p>
           
-          <p>Your interview has been scheduled for the <strong>${position}</strong> position in the ${department} department.</p>
+          <p>Your interview has been scheduled for the <strong>${position}</strong> position at Whitestar Schools in the ${department} department.</p>
           
           <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
             <h3 style="margin-top: 0; color: #1f2937;">Interview Details:</h3>
@@ -88,7 +88,7 @@ const handler = async (req: Request): Promise<Response> => {
           
           <p><strong>Please make sure to:</strong></p>
           <ul>
-            <li>Join the interview 5 minutes before the scheduled time</li>
+            <li>${interviewType === 'Physical' ? 'Arrive at the location 15 minutes before the scheduled time' : 'Join the interview 5 minutes before the scheduled time'}</li>
             <li>Have your CV and relevant documents ready</li>
             <li>Prepare questions you'd like to ask about the role</li>
             ${interviewType === 'Online' ? '<li>Test your internet connection and audio/video settings</li>' : ''}
@@ -101,7 +101,7 @@ const handler = async (req: Request): Promise<Response> => {
           
           <p style="margin-top: 30px;">
             Best regards,<br>
-            <strong>HR Department</strong>
+            <strong>Whitestar Schools HR Department</strong>
           </p>
         </div>
       `,
