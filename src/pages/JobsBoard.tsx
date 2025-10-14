@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -56,8 +57,13 @@ const JobsBoard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5 py-12">
-      <div className="max-w-6xl mx-auto px-4">
+    <>
+      <Helmet>
+        <title>Jobs Board - Whitestar Schools HR</title>
+        <meta name="description" content="Browse and apply for open positions at Whitestar Schools" />
+      </Helmet>
+      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5 py-12">
+        <div className="max-w-6xl mx-auto px-4">
         <div className="text-center mb-12">
           <img 
             src={logo} 
@@ -114,8 +120,9 @@ const JobsBoard = () => {
             ))}
           </div>
         )}
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

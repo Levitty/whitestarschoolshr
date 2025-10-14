@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -281,8 +282,13 @@ const Apply = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="max-w-2xl mx-auto px-4">
+    <>
+      <Helmet>
+        <title>Apply for {job.title} - Whitestar Schools HR</title>
+        <meta name="description" content={`Submit your application for ${job.title} at ${job.department}`} />
+      </Helmet>
+      <div className="min-h-screen bg-gray-50 py-12">
+        <div className="max-w-2xl mx-auto px-4">
         <div className="mb-6">
           <Button variant="ghost" onClick={() => navigate('/jobs-board')} className="mb-4">
             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -423,8 +429,9 @@ const Apply = () => {
             </form>
           </CardContent>
         </Card>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

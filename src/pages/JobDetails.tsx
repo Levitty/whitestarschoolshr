@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -111,8 +112,13 @@ const JobDetails = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="max-w-4xl mx-auto px-4">
+    <>
+      <Helmet>
+        <title>{job.title} - Whitestar Schools HR</title>
+        <meta name="description" content={`Apply for ${job.title} position at ${job.department}, ${job.location}`} />
+      </Helmet>
+      <div className="min-h-screen bg-gray-50 py-12">
+        <div className="max-w-4xl mx-auto px-4">
         <div className="mb-6 flex items-center justify-between">
           <Link to="/jobs-board">
             <Button variant="ghost" className="mb-4">
@@ -189,8 +195,9 @@ const JobDetails = () => {
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
