@@ -61,6 +61,18 @@ const JobsBoard = () => {
       <Helmet>
         <title>Jobs Board - Whitestar Schools HR</title>
         <meta name="description" content="Browse and apply for open positions at Whitestar Schools" />
+        
+        {/* Open Graph tags for social sharing */}
+        <meta property="og:title" content="Whitestar Schools Job Board" />
+        <meta property="og:description" content="Discover exciting career opportunities and join our growing team at Whitestar Schools" />
+        <meta property="og:type" content="website" />
+        <meta property="og:image" content={logo} />
+        
+        {/* Twitter Card tags */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Whitestar Schools Job Board" />
+        <meta name="twitter:description" content="Discover exciting career opportunities and join our growing team at Whitestar Schools" />
+        <meta name="twitter:image" content={logo} />
       </Helmet>
       <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5 py-12">
         <div className="max-w-6xl mx-auto px-4">
