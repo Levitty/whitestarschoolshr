@@ -63,13 +63,20 @@ const Applications = () => {
           *,
           job_listings (
             title,
-            department
+            department,
+            status
           )
         `)
         .order('applied_at', { ascending: false });
 
       if (error) throw error;
-      setApplications(data || []);
+      
+      // Filter out applications for closed jobs
+      const openJobApplications = (data || []).filter(
+        app => app.job_listings?.status === 'Open'
+      );
+      
+      setApplications(openJobApplications);
     } catch (error) {
       console.error('Error fetching applications:', error);
       toast({

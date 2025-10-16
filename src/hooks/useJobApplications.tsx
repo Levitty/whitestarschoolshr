@@ -33,7 +33,8 @@ export const useJobApplications = () => {
           *,
           job_listings (
             title,
-            department
+            department,
+            status
           )
         `)
         .order('applied_at', { ascending: false });
@@ -43,8 +44,13 @@ export const useJobApplications = () => {
         throw error;
       }
       
-      console.log('Applications fetched successfully:', data?.length || 0);
-      setApplications((data || []) as JobApplication[]);
+      // Filter out applications for closed jobs
+      const openJobApplications = (data || []).filter(
+        (app: any) => app.job_listings?.status === 'Open'
+      );
+      
+      console.log('Applications fetched successfully:', openJobApplications.length || 0);
+      setApplications(openJobApplications as JobApplication[]);
     } catch (error) {
       console.error('Error in fetchApplications:', error);
       toast({
