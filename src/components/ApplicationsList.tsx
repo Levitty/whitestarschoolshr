@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Download, MessageSquare, FileText, User, Mail, Calendar, Phone, Eye } from 'lucide-react';
+import { Download, MessageSquare, FileText, User, Mail, Calendar, Phone, Eye, Trash2 } from 'lucide-react';
 import { useJobApplications, JobApplication } from '@/hooks/useJobApplications';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -18,6 +18,8 @@ export const ApplicationsList = () => {
   const [viewApp, setViewApp] = useState<JobApplication | null>(null);
   const [statusUpdate, setStatusUpdate] = useState('');
   const [noteUpdate, setNoteUpdate] = useState('');
+  const [cvPreviewUrl, setCvPreviewUrl] = useState<string | null>(null);
+  const [cvPreviewName, setCvPreviewName] = useState<string>('');
 
   const handleStatusUpdate = async (appId: string, newStatus: any) => {
     try {
@@ -44,13 +46,40 @@ export const ApplicationsList = () => {
     );
   };
 
+  const viewCV = async (cvUrl: string, candidateName: string) => {
+    try {
+      const urlParts = cvUrl.split('/');
+      const bucketIndex = urlParts.findIndex(part => part === 'cv-uploads');
+      if (bucketIndex === -1) {
+        throw new Error('Invalid CV URL format');
+      }
+      
+      const filePath = urlParts.slice(bucketIndex + 1).join('/');
+      
+      const { data, error } = await supabase.storage
+        .from('cv-uploads')
+        .createSignedUrl(filePath, 3600);
+
+      if (error) throw error;
+      if (data?.signedUrl) {
+        setCvPreviewUrl(data.signedUrl);
+        setCvPreviewName(candidateName);
+      }
+    } catch (error) {
+      console.error('Error loading CV:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load CV preview",
+        variant: "destructive"
+      });
+    }
+  };
+
   const downloadCV = async (cvUrl: string, candidateName: string) => {
     try {
       console.log('Downloading CV from:', cvUrl);
       
-      // Check if the URL is a full URL or just a path
       if (cvUrl.startsWith('http')) {
-        // If it's a full URL, try to download directly
         const response = await fetch(cvUrl);
         if (!response.ok) {
           throw new Error('Failed to fetch CV');
@@ -66,7 +95,6 @@ export const ApplicationsList = () => {
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
       } else {
-        // Extract the file path from the URL
         const urlParts = cvUrl.split('/');
         const bucketIndex = urlParts.findIndex(part => part === 'cv-uploads');
         
@@ -77,7 +105,6 @@ export const ApplicationsList = () => {
         const filePath = urlParts.slice(bucketIndex + 1).join('/');
         console.log('File path:', filePath);
         
-        // Get the file from Supabase Storage
         const { data, error } = await supabase.storage
           .from('cv-uploads')
           .download(filePath);
@@ -91,7 +118,6 @@ export const ApplicationsList = () => {
           throw new Error('No file data received');
         }
 
-        // Create blob URL and download
         const blob = new Blob([data]);
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -113,6 +139,33 @@ export const ApplicationsList = () => {
       toast({
         title: "Download Error",
         description: "Failed to download CV. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const deleteApplication = async (applicationId: string) => {
+    if (!confirm('Are you sure you want to delete this application?')) return;
+    
+    try {
+      const { error } = await supabase
+        .from('job_applications')
+        .delete()
+        .eq('id', applicationId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Deleted",
+        description: "Application has been deleted successfully."
+      });
+      
+      window.location.reload();
+    } catch (error) {
+      console.error('Error deleting application:', error);
+      toast({
+        title: "Delete Failed",
+        description: "Failed to delete application",
         variant: "destructive"
       });
     }
@@ -218,14 +271,24 @@ export const ApplicationsList = () => {
                 </Button>
                 
                 {application.cv_url && (
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => downloadCV(application.cv_url!, application.candidate_name)}
-                  >
-                    <Download className="h-4 w-4 mr-1" />
-                    Download CV
-                  </Button>
+                  <>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => viewCV(application.cv_url!, application.candidate_name)}
+                    >
+                      <Eye className="h-4 w-4 mr-1" />
+                      View CV
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => downloadCV(application.cv_url!, application.candidate_name)}
+                    >
+                      <Download className="h-4 w-4 mr-1" />
+                      Download CV
+                    </Button>
+                  </>
                 )}
                 
                 <Dialog>
@@ -280,6 +343,15 @@ export const ApplicationsList = () => {
                     </div>
                   </DialogContent>
                 </Dialog>
+                
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => deleteApplication(application.id)}
+                >
+                  <Trash2 className="h-4 w-4 mr-1" />
+                  Delete
+                </Button>
               </div>
               </div>
             ))}
@@ -358,6 +430,39 @@ export const ApplicationsList = () => {
               )}
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* CV Preview Dialog */}
+      <Dialog open={!!cvPreviewUrl} onOpenChange={(open) => !open && setCvPreviewUrl(null)}>
+        <DialogContent className="max-w-5xl max-h-[90vh] p-0">
+          <DialogHeader className="p-6 pb-4">
+            <div className="flex items-center justify-between">
+              <DialogTitle>{cvPreviewName} - CV</DialogTitle>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const a = document.createElement('a');
+                  a.href = cvPreviewUrl!;
+                  a.download = `${cvPreviewName}_CV.pdf`;
+                  a.click();
+                }}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Download
+              </Button>
+            </div>
+          </DialogHeader>
+          <div className="w-full h-[calc(90vh-100px)] bg-gray-100">
+            {cvPreviewUrl && (
+              <iframe
+                src={cvPreviewUrl}
+                className="w-full h-full border-0"
+                title="CV Preview"
+              />
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </div>

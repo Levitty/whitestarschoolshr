@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Download, Filter, Users, FileText } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Download, Filter, Users, FileText, Eye, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -38,6 +39,8 @@ const Applications = () => {
   const [loading, setLoading] = useState(true);
   const [selectedJob, setSelectedJob] = useState<string>('all');
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
+  const [cvPreviewUrl, setCvPreviewUrl] = useState<string | null>(null);
+  const [cvPreviewName, setCvPreviewName] = useState<string>('');
 
   useEffect(() => {
     fetchApplications();
@@ -126,9 +129,8 @@ const Applications = () => {
     }
   };
 
-  const downloadCV = async (cvUrl: string, candidateName: string) => {
+  const viewCV = async (cvUrl: string, candidateName: string) => {
     try {
-      // Extract the file path from the full URL
       const urlParts = cvUrl.split('/');
       const bucketIndex = urlParts.findIndex(part => part === 'cv-uploads');
       if (bucketIndex === -1) {
@@ -137,7 +139,35 @@ const Applications = () => {
       
       const filePath = urlParts.slice(bucketIndex + 1).join('/');
       
-      // Get the file from Supabase Storage
+      const { data, error } = await supabase.storage
+        .from('cv-uploads')
+        .createSignedUrl(filePath, 3600);
+
+      if (error) throw error;
+      if (data?.signedUrl) {
+        setCvPreviewUrl(data.signedUrl);
+        setCvPreviewName(candidateName);
+      }
+    } catch (error) {
+      console.error('Error loading CV:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load CV preview",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const downloadCV = async (cvUrl: string, candidateName: string) => {
+    try {
+      const urlParts = cvUrl.split('/');
+      const bucketIndex = urlParts.findIndex(part => part === 'cv-uploads');
+      if (bucketIndex === -1) {
+        throw new Error('Invalid CV URL format');
+      }
+      
+      const filePath = urlParts.slice(bucketIndex + 1).join('/');
+      
       const { data, error } = await supabase.storage
         .from('cv-uploads')
         .download(filePath);
@@ -151,7 +181,6 @@ const Applications = () => {
         throw new Error('No file data received');
       }
 
-      // Create blob URL and download
       const blob = new Blob([data], { type: 'application/pdf' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -171,6 +200,32 @@ const Applications = () => {
       toast({
         title: "Download Failed",
         description: "Failed to download CV. The file may not exist or access may be restricted.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const deleteApplication = async (applicationId: string) => {
+    if (!confirm('Are you sure you want to delete this application?')) return;
+    
+    try {
+      const { error } = await supabase
+        .from('job_applications')
+        .delete()
+        .eq('id', applicationId);
+
+      if (error) throw error;
+
+      setApplications(prev => prev.filter(app => app.id !== applicationId));
+      toast({
+        title: "Deleted",
+        description: "Application has been deleted successfully."
+      });
+    } catch (error) {
+      console.error('Error deleting application:', error);
+      toast({
+        title: "Delete Failed",
+        description: "Failed to delete application",
         variant: "destructive"
       });
     }
@@ -356,34 +411,53 @@ const Applications = () => {
                     </TableCell>
                     <TableCell>
                       {application.cv_url ? (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => downloadCV(application.cv_url!, application.candidate_name)}
-                        >
-                          <Download className="h-4 w-4 mr-2" />
-                          Download
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => viewCV(application.cv_url!, application.candidate_name)}
+                          >
+                            <Eye className="h-4 w-4 mr-2" />
+                            View
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => downloadCV(application.cv_url!, application.candidate_name)}
+                          >
+                            <Download className="h-4 w-4 mr-2" />
+                            Download
+                          </Button>
+                        </div>
                       ) : (
                         <span className="text-gray-400">No CV</span>
                       )}
                     </TableCell>
                     <TableCell>
-                      <Select
-                        value={application.status}
-                        onValueChange={(value) => updateApplicationStatus(application.id, value)}
-                        disabled={updatingStatus === application.id}
-                      >
-                        <SelectTrigger className="w-32">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="New">New</SelectItem>
-                          <SelectItem value="Interview">Interview</SelectItem>
-                          <SelectItem value="Rejected">Rejected</SelectItem>
-                          <SelectItem value="Hired">Hired</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <div className="flex gap-2">
+                        <Select
+                          value={application.status}
+                          onValueChange={(value) => updateApplicationStatus(application.id, value)}
+                          disabled={updatingStatus === application.id}
+                        >
+                          <SelectTrigger className="w-32">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="New">New</SelectItem>
+                            <SelectItem value="Interview">Interview</SelectItem>
+                            <SelectItem value="Rejected">Rejected</SelectItem>
+                            <SelectItem value="Hired">Hired</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => deleteApplication(application.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -407,6 +481,39 @@ const Applications = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* CV Preview Dialog */}
+      <Dialog open={!!cvPreviewUrl} onOpenChange={(open) => !open && setCvPreviewUrl(null)}>
+        <DialogContent className="max-w-5xl max-h-[90vh] p-0">
+          <DialogHeader className="p-6 pb-4">
+            <div className="flex items-center justify-between">
+              <DialogTitle>{cvPreviewName} - CV</DialogTitle>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const a = document.createElement('a');
+                  a.href = cvPreviewUrl!;
+                  a.download = `${cvPreviewName}_CV.pdf`;
+                  a.click();
+                }}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Download
+              </Button>
+            </div>
+          </DialogHeader>
+          <div className="w-full h-[calc(90vh-100px)] bg-gray-100">
+            {cvPreviewUrl && (
+              <iframe
+                src={cvPreviewUrl}
+                className="w-full h-full border-0"
+                title="CV Preview"
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
