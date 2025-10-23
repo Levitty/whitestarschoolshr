@@ -175,20 +175,20 @@ const DocumentsList: React.FC<DocumentsListProps> = ({ employeeId }) => {
       doc.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       getCategoryLabel(doc.category).toLowerCase().includes(searchTerm.toLowerCase());
     
-    // Employee filter by dropdown - now using employee_number as primary identifier
+    // Employee filter by dropdown
     let matchesEmployee = selectedEmployee === 'all';
     if (selectedEmployee !== 'all') {
-      // Find the selected employee from the employees list to get employee_number
+      // Find the selected employee from the employees list
       const selectedEmp = employees.find(emp => emp.id === selectedEmployee);
       
-      // Match by employee_number (primary) or fallback to employee_id
-      matchesEmployee = (
-        (enrichedDoc.employee_number && enrichedDoc.employee_number === selectedEmp?.employee_number) || // Primary: match by employee_number
-        doc.employee_id === selectedEmployee || // Fallback: direct match with employee_profile.id
-        (selectedEmp?.profile_id && doc.employee_id === selectedEmp.profile_id) || // Fallback: match with profile_id
-        (enrichedDoc.employee_profile?.id === selectedEmployee) || // Fallback: enriched employee_profile match
-        (enrichedDoc.profile?.id === selectedEmp?.profile_id) // Fallback: enriched profile match
-      );
+      console.log('Filtering for employee:', selectedEmp);
+      console.log('Document employee_id:', doc.employee_id);
+      console.log('Selected employee profile_id:', selectedEmp?.profile_id);
+      
+      // Match by profile_id (documents.employee_id stores the profiles.id)
+      matchesEmployee = !!(selectedEmp?.profile_id && doc.employee_id === selectedEmp.profile_id);
+      
+      console.log('Matches employee:', matchesEmployee);
     }
     
     // Category filter
