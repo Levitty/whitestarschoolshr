@@ -8,7 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { School, Shield } from 'lucide-react';
 import SignInForm from '@/components/auth/SignInForm';
-import SignUpForm from '@/components/auth/SignUpForm';
+import StaffSignUpForm from '@/components/auth/StaffSignUpForm';
 
 const Auth = () => {
   const { user, profile } = useAuth();
@@ -71,7 +71,7 @@ const Auth = () => {
               </TabsContent>
               
               <TabsContent value="signup">
-                <SignUpForm />
+                <StaffSignUpForm />
               </TabsContent>
             </Tabs>
           </CardContent>
