@@ -169,6 +169,8 @@ const DocumentsList: React.FC<DocumentsListProps> = ({ employeeId }) => {
   const filteredDocuments = documents.filter(doc => {
     // Cast to any to access enriched properties
     const enrichedDoc = doc as any;
+
+    const norm = (v?: string | null) => (v ?? '').trim().toLowerCase();
     
     // Text search
     const matchesSearch = doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -178,17 +180,21 @@ const DocumentsList: React.FC<DocumentsListProps> = ({ employeeId }) => {
     // Employee filter by dropdown
     let matchesEmployee = selectedEmployee === 'all';
     if (selectedEmployee !== 'all') {
-      // Find the selected employee from the employees list
       const selectedEmp = employees.find(emp => emp.id === selectedEmployee);
-      
-      console.log('Filtering for employee:', selectedEmp);
-      console.log('Document employee_id:', doc.employee_id);
-      console.log('Selected employee profile_id:', selectedEmp?.profile_id);
-      
-      // Match by profile_id (documents.employee_id stores the profiles.id)
-      matchesEmployee = !!(selectedEmp?.profile_id && doc.employee_id === selectedEmp.profile_id);
-      
-      console.log('Matches employee:', matchesEmployee);
+
+      // Try multiple robust matching strategies:
+      const matchByProfileId = !!(selectedEmp?.profile_id && doc.employee_id === selectedEmp.profile_id);
+      const matchByDirect = doc.employee_id === selectedEmployee; // if dropdown ever passes profile id
+      const matchByEmployeeNumber = !!(enrichedDoc.employee_number && selectedEmp?.employee_number && enrichedDoc.employee_number === selectedEmp.employee_number);
+      const matchByEmail = !!(enrichedDoc.profile?.email && selectedEmp?.email && norm(enrichedDoc.profile.email) === norm(selectedEmp.email));
+      const matchByNameProfile = !!(selectedEmp && enrichedDoc.profile &&
+        norm(enrichedDoc.profile.first_name) === norm(selectedEmp.first_name) &&
+        norm(enrichedDoc.profile.last_name) === norm(selectedEmp.last_name));
+      const matchByNameEmployeeProfile = !!(selectedEmp && enrichedDoc.employee_profile &&
+        norm(enrichedDoc.employee_profile.first_name) === norm(selectedEmp.first_name) &&
+        norm(enrichedDoc.employee_profile.last_name) === norm(selectedEmp.last_name));
+
+      matchesEmployee = matchByProfileId || matchByDirect || matchByEmployeeNumber || matchByEmail || matchByNameProfile || matchByNameEmployeeProfile;
     }
     
     // Category filter
