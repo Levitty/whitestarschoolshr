@@ -1,10 +1,11 @@
-
-import { Home, Users, UserPlus, Briefcase, BarChart, FolderOpen, Calendar, GraduationCap, Settings, LogOut } from "lucide-react";
+import { Home, Users, UserPlus, Briefcase, BarChart, FolderOpen, Calendar, GraduationCap, Settings, LogOut, Menu, X } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { UserRole } from "@/types/auth";
 import { getRoleDisplayName, getRoleColor } from "@/utils/roleUtils";
-
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
 interface NavItem {
   path: string;
   label: string;
@@ -15,6 +16,7 @@ const RoleBasedNavigation = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut, profile } = useAuth();
+  const [isOpen, setIsOpen] = useState(false);
 
   console.log('Current profile:', profile);
 
@@ -24,6 +26,11 @@ const RoleBasedNavigation = () => {
 
   const handleSignOut = async () => {
     await signOut();
+  };
+
+  const handleNavigation = (path: string) => {
+    navigate(path);
+    setIsOpen(false); // Close mobile menu after navigation
   };
 
   const superAdminNavItems: NavItem[] = [
@@ -82,27 +89,11 @@ const RoleBasedNavigation = () => {
   }
 
   if (!profile) {
-    return (
-      <aside className="w-64 bg-gray-900 text-white min-h-screen shadow-xl flex flex-col">
-        <div className="p-6 border-b border-gray-700">
-          <div className="animate-pulse">
-            <div className="h-6 bg-gray-700 rounded mb-2"></div>
-            <div className="h-4 bg-gray-800 rounded w-3/4"></div>
-          </div>
-        </div>
-        <div className="p-4">
-          <div className="animate-pulse space-y-3">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-10 bg-gray-800 rounded"></div>
-            ))}
-          </div>
-        </div>
-      </aside>
-    );
+    return null;
   }
 
-  return (
-    <aside className={`w-64 text-white min-h-screen shadow-xl flex flex-col ${getRoleColor(profile?.role)}`}>
+  const NavigationContent = () => (
+    <div className={`text-white h-full flex flex-col ${getRoleColor(profile?.role)}`}>
       <div className="p-6 border-b border-opacity-20 border-white">
         <h1 className="text-xl font-bold text-white">HR Portal</h1>
         <p className="text-xs text-white/70 mt-1">{getRoleDisplayName(profile?.role)}</p>
@@ -113,7 +104,7 @@ const RoleBasedNavigation = () => {
         {navItems.map((item) => (
           <button
             key={item.path}
-            onClick={() => navigate(item.path)}
+            onClick={() => handleNavigation(item.path)}
             className={`w-full flex items-center space-x-3 rounded-lg p-3 text-sm font-medium transition-all duration-200 text-left ${
               isActive(item.path) 
                 ? "bg-white/20 text-white shadow-md" 
@@ -149,7 +140,32 @@ const RoleBasedNavigation = () => {
           <span>Sign Out</span>
         </button>
       </div>
-    </aside>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Mobile Menu Button - Fixed at top */}
+      <Sheet open={isOpen} onOpenChange={setIsOpen}>
+        <SheetTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="lg:hidden fixed top-4 left-4 z-50 bg-background/80 backdrop-blur-sm"
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="left" className="p-0 w-64">
+          <NavigationContent />
+        </SheetContent>
+      </Sheet>
+
+      {/* Desktop Sidebar */}
+      <aside className="hidden lg:flex w-64 shadow-xl">
+        <NavigationContent />
+      </aside>
+    </>
   );
 };
 

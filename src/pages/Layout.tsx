@@ -9,8 +9,8 @@ const Layout = () => {
     <ProtectedRoute>
       <div className="flex h-screen bg-gray-50">
         <RoleBasedNavigation />
-        <main className="flex-1 overflow-y-auto lg:ml-0">
-          <div className="p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto w-full">
+          <div className="p-6 lg:p-8 pt-16 lg:pt-6">
             <Outlet />
           </div>
         </main>
