@@ -198,11 +198,16 @@ const DocumentsList: React.FC<DocumentsListProps> = ({ employeeId }) => {
     const matchesStatus = selectedStatus === 'all' || doc.status === selectedStatus;
     
     // Filter by specific employee if employeeId is provided (from props)
-    let matchesEmployeeId = !employeeId || doc.employee_id === employeeId;
-    if (!matchesEmployeeId && employeeId) {
-      // Also check if the employee profile data matches
-      const employee = getEmployeeForFilter(doc);
-      matchesEmployeeId = employee && employee.id === employeeId;
+    let matchesEmployeeId = !employeeId;
+    if (employeeId && !matchesEmployeeId) {
+      // Check multiple possible matches for the employee
+      matchesEmployeeId = (
+        doc.employee_id === employeeId || // Direct match with employee_id
+        enrichedDoc.employee_profile?.id === employeeId || // Match with enriched employee_profile
+        enrichedDoc.profile?.id === employeeId || // Match with enriched profile
+        (employees.find(emp => emp.id === employeeId)?.profile_id && 
+         doc.employee_id === employees.find(emp => emp.id === employeeId)?.profile_id) // Match via profile_id
+      );
     }
     
     return matchesSearch && matchesEmployee && matchesCategory && matchesStatus && matchesEmployeeId;
