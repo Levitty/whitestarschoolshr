@@ -162,7 +162,7 @@ export type Database = {
         Row: {
           document_id: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           signature_data: string | null
           signed_at: string | null
           signer_id: string
@@ -170,7 +170,7 @@ export type Database = {
         Insert: {
           document_id: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           signature_data?: string | null
           signed_at?: string | null
           signer_id: string
@@ -178,7 +178,7 @@ export type Database = {
         Update: {
           document_id?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           signature_data?: string | null
           signed_at?: string | null
           signer_id?: string
@@ -1531,7 +1531,7 @@ export type Database = {
     }
     Functions: {
       check_expiring_contracts: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           contract_end_date: string
           days_until_expiry: number
@@ -1539,18 +1539,9 @@ export type Database = {
           employee_name: string
         }[]
       }
-      get_current_user_role: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      get_event_price: {
-        Args: { event_name: string }
-        Returns: number
-      }
-      get_next_employee_number: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      get_current_user_role: { Args: never; Returns: string }
+      get_event_price: { Args: { event_name: string }; Returns: number }
+      get_next_employee_number: { Args: never; Returns: string }
       get_user_permissions: {
         Args: { user_id: string }
         Returns: {
@@ -1570,10 +1561,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      is_superadmin: {
-        Args: { user_id: string }
-        Returns: boolean
-      }
+      is_superadmin: { Args: { user_id: string }; Returns: boolean }
       send_registration_confirmation: {
         Args: { registration_id_param: string }
         Returns: Json
