@@ -9,6 +9,7 @@ import LeaveRequestForm from '@/components/LeaveRequestForm';
 import LeaveApprovalList from '@/components/LeaveApprovalList';
 import MyLeaveRequests from '@/components/MyLeaveRequests';
 import LeaveBalanceManager from '@/components/LeaveBalanceManager';
+import MyLeaveBalance from '@/components/MyLeaveBalance';
 import { Calendar, Users, Clock, TrendingUp } from 'lucide-react';
 
 const Leave = () => {
@@ -115,10 +116,10 @@ const Leave = () => {
         )}
 
         <Tabs defaultValue="my-requests" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className={`grid w-full ${hasRole('head') ? 'grid-cols-3' : 'grid-cols-2'}`}>
             <TabsTrigger value="my-requests">My Requests</TabsTrigger>
             {hasRole('head') && <TabsTrigger value="approvals">Approvals</TabsTrigger>}
-            <TabsTrigger value="balances">Leave Balances</TabsTrigger>
+            <TabsTrigger value="balances">Leave Balance</TabsTrigger>
           </TabsList>
 
           <TabsContent value="my-requests" className="space-y-6">
@@ -135,7 +136,7 @@ const Leave = () => {
           )}
 
           <TabsContent value="balances">
-            <LeaveBalanceManager />
+            {hasRole('head') ? <LeaveBalanceManager /> : <MyLeaveBalance />}
           </TabsContent>
         </Tabs>
       </div>
