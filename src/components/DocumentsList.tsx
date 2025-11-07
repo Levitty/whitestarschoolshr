@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -47,6 +47,39 @@ const DocumentsList: React.FC<DocumentsListProps> = ({ employeeId }) => {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [previewDoc, setPreviewDoc] = useState<DocumentRow | null>(null);
   const isPrivileged = canAccessAdmin() || canAccessSuperAdmin();
+  
+  // Build a combined list of all unique document owners (from both employee_profiles and profiles)
+  const allDocumentOwners = useMemo(() => {
+    const ownerMap = new Map();
+    
+    // Add employees from employee_profiles
+    employees.forEach(emp => {
+      ownerMap.set(emp.profile_id || emp.id, {
+        id: emp.profile_id || emp.id,
+        first_name: emp.first_name,
+        last_name: emp.last_name,
+        email: emp.email,
+        source: 'employee_profiles'
+      });
+    });
+    
+    // Add document owners from profiles (who aren't already in employee_profiles)
+    documents.forEach((doc: any) => {
+      if (doc.profile && !ownerMap.has(doc.profile.id)) {
+        ownerMap.set(doc.profile.id, {
+          id: doc.profile.id,
+          first_name: doc.profile.first_name || doc.profile.email,
+          last_name: doc.profile.last_name || '',
+          email: doc.profile.email,
+          source: 'profiles'
+        });
+      }
+    });
+    
+    return Array.from(ownerMap.values()).sort((a, b) => 
+      `${a.first_name} ${a.last_name}`.localeCompare(`${b.first_name} ${b.last_name}`)
+    );
+  }, [employees, documents]);
 
   const getStatusBadge = (status: string) => {
     const variants = {
@@ -181,21 +214,8 @@ const DocumentsList: React.FC<DocumentsListProps> = ({ employeeId }) => {
     // Employee filter by dropdown
     let matchesEmployee = selectedEmployee === 'all';
     if (selectedEmployee !== 'all') {
-      const selectedEmp = employees.find(emp => emp.id === selectedEmployee);
-
-      // Try multiple robust matching strategies:
-      const matchByProfileId = !!(selectedEmp?.profile_id && doc.employee_id === selectedEmp.profile_id);
-      const matchByDirect = doc.employee_id === selectedEmployee; // if dropdown ever passes profile id
-      const matchByEmployeeNumber = !!(enrichedDoc.employee_number && selectedEmp?.employee_number && enrichedDoc.employee_number === selectedEmp.employee_number);
-      const matchByEmail = !!(enrichedDoc.profile?.email && selectedEmp?.email && norm(enrichedDoc.profile.email) === norm(selectedEmp.email));
-      const matchByNameProfile = !!(selectedEmp && enrichedDoc.profile &&
-        norm(enrichedDoc.profile.first_name) === norm(selectedEmp.first_name) &&
-        norm(enrichedDoc.profile.last_name) === norm(selectedEmp.last_name));
-      const matchByNameEmployeeProfile = !!(selectedEmp && enrichedDoc.employee_profile &&
-        norm(enrichedDoc.employee_profile.first_name) === norm(selectedEmp.first_name) &&
-        norm(enrichedDoc.employee_profile.last_name) === norm(selectedEmp.last_name));
-
-      matchesEmployee = matchByProfileId || matchByDirect || matchByEmployeeNumber || matchByEmail || matchByNameProfile || matchByNameEmployeeProfile;
+      // Match directly by employee_id (which is the profile.id)
+      matchesEmployee = doc.employee_id === selectedEmployee;
     }
     
     // Category filter
@@ -449,9 +469,9 @@ const DocumentsList: React.FC<DocumentsListProps> = ({ employeeId }) => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Employees</SelectItem>
-                  {employees.map((employee) => (
-                    <SelectItem key={employee.id} value={employee.id}>
-                      {employee.first_name} {employee.last_name}
+                  {allDocumentOwners.map((owner) => (
+                    <SelectItem key={owner.id} value={owner.id}>
+                      {owner.first_name} {owner.last_name}
                     </SelectItem>
                   ))}
                 </SelectContent>
