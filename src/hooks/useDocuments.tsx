@@ -117,58 +117,24 @@ export const useDocuments = () => {
       }
 
       // Resolve employee id and employee number
-      let targetEmployeeId = employeeId || null;
+      let targetEmployeeId = employeeId || user.id; // Default to current user
       let targetEmployeeNumber: string | null = null;
-      console.log('Initial targetEmployeeId:', targetEmployeeId);
+      console.log('Target employee ID:', targetEmployeeId);
       
-      // If no employee ID provided, try to find current user's employee profile
-      if (!targetEmployeeId) {
-        console.log('No employeeId provided, looking for current user profile');
-        
-        // Try to find employee profile by profile_id first
-        const { data: empProfile } = await supabase
-          .from('employee_profiles')
-          .select('id, profile_id, employee_number')
-          .eq('profile_id', user.id)
-          .maybeSingle();
-          
-        if (empProfile?.id) {
-          targetEmployeeId = empProfile.id;
-          targetEmployeeNumber = empProfile.employee_number;
-          console.log('Found employee profile ID:', targetEmployeeId, 'Number:', targetEmployeeNumber);
-        } else {
-          // Fallback: use the user's ID directly (for profiles table)
-          targetEmployeeId = user.id;
-          console.log('Using user ID as fallback:', targetEmployeeId);
-        }
-      } else {
-        // If employee ID was provided, fetch the employee number
-        // First try by profile_id (when admin passes profiles.id)
-        const { data: empProfile } = await supabase
-          .from('employee_profiles')
-          .select('employee_number')
-          .eq('profile_id', targetEmployeeId)
-          .maybeSingle();
-        
-        if (empProfile) {
-          targetEmployeeNumber = empProfile.employee_number;
-          console.log('Found employee number for provided profile ID:', targetEmployeeNumber);
-        } else {
-          // Fallback: try by id (when admin passes employee_profiles.id)
-          const { data: empProfileById } = await supabase
-            .from('employee_profiles')
-            .select('employee_number')
-            .eq('id', targetEmployeeId)
-            .maybeSingle();
-          
-          if (empProfileById) {
-            targetEmployeeNumber = empProfileById.employee_number;
-            console.log('Found employee number for provided employee profile ID:', targetEmployeeNumber);
-          }
-        }
+      // Try to fetch employee number from employee_profiles
+      // First try by profile_id (most common case)
+      const { data: empProfile } = await supabase
+        .from('employee_profiles')
+        .select('employee_number')
+        .eq('profile_id', targetEmployeeId)
+        .maybeSingle();
+      
+      if (empProfile) {
+        targetEmployeeNumber = empProfile.employee_number;
+        console.log('Found employee number:', targetEmployeeNumber);
       }
 
-      console.log('Final targetEmployeeId:', targetEmployeeId, 'targetEmployeeNumber:', targetEmployeeNumber);
+      console.log('Inserting document with employee_id:', targetEmployeeId, 'employee_number:', targetEmployeeNumber);
 
       // Create document record
       const { error: documentError } = await supabase
@@ -192,7 +158,7 @@ export const useDocuments = () => {
         return { error: { message: documentError.message } };
       }
 
-      console.log('Document uploaded successfully with employee_id:', targetEmployeeId);
+      console.log('Document uploaded successfully');
       await fetchDocuments();
       return { error: null };
     } catch (error) {

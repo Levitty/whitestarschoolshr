@@ -156,20 +156,24 @@ export const DocumentUpload = ({ onSuccess, employeeId }: DocumentUploadProps) =
     }
 
     // Determine which employee ID to use
-    let finalEmployeeId = '';
+    let finalEmployeeId: string | undefined = undefined;
     
-    if (employeeId && selectedEmployee) {
-      // Use the actual user profile ID, not the employee profile ID
-      finalEmployeeId = selectedEmployee.profile_id || selectedEmployee.id;
-    } else if (!employeeId && (profile?.role === 'superadmin' || profile?.role === 'admin') && formData.employee_id) {
+    if (employeeId) {
+      // Non-admin user uploading for themselves - use their ID directly
+      finalEmployeeId = employeeId;
+      console.log('Using provided employeeId (self-upload):', finalEmployeeId);
+    } else if (profile?.role === 'superadmin' || profile?.role === 'admin') {
+      // Admin user - must select an employee
+      if (!formData.employee_id) {
+        toast({
+          title: "Validation Error", 
+          description: "Please select an employee.",
+          variant: "destructive"
+        });
+        return;
+      }
       finalEmployeeId = formData.employee_id;
-    } else {
-      toast({
-        title: "Validation Error", 
-        description: "Please select an employee.",
-        variant: "destructive"
-      });
-      return;
+      console.log('Using selected employee ID (admin upload):', finalEmployeeId);
     }
 
     console.log('Final employee ID for upload:', finalEmployeeId);
@@ -194,7 +198,7 @@ export const DocumentUpload = ({ onSuccess, employeeId }: DocumentUploadProps) =
       } else {
         toast({
           title: "Success",
-          description: `Document uploaded successfully for ${selectedEmployee?.first_name || 'selected employee'}!`
+          description: `Document uploaded successfully!`
         });
         
         // Reset form
@@ -203,7 +207,7 @@ export const DocumentUpload = ({ onSuccess, employeeId }: DocumentUploadProps) =
           title: '',
           description: '',
           category: 'employment_records',
-          employee_id: selectedEmployee?.id || '',
+          employee_id: '',
           requires_signature: false
         });
         
