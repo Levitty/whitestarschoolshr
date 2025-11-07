@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,12 +9,27 @@ import { ChevronDown, ChevronUp, Star, User, Calendar, FileText, Download } from
 import { useEvaluations } from '@/hooks/useEvaluations';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { useProfile } from '@/hooks/useProfile';
 
 const EvaluationsList = () => {
   const { evaluations, loading } = useEvaluations();
-  const { profile } = useAuth();
+  const { user } = useAuth();
+  const { canAccessAdmin, canAccessSuperAdmin } = useProfile();
   const { toast } = useToast();
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
+  
+  const isPrivileged = canAccessAdmin() || canAccessSuperAdmin();
+  
+  // Filter evaluations based on user role
+  const filteredEvaluations = useMemo(() => {
+    if (!evaluations) return [];
+    
+    // Admins and superadmins can see all evaluations
+    if (isPrivileged) return evaluations;
+    
+    // Non-admins can only see their own evaluations
+    return evaluations.filter(evaluation => evaluation.employee_id === user?.id);
+  }, [evaluations, isPrivileged, user]);
 
   const toggleCard = (id: string) => {
     const newExpanded = new Set(expandedCards);
@@ -117,16 +132,16 @@ const EvaluationsList = () => {
 
   return (
     <div className="space-y-4">
-      {evaluations.length === 0 ? (
+      {filteredEvaluations.length === 0 ? (
         <Card>
           <CardContent className="p-8 text-center">
             <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-600 mb-2">No Evaluations Found</h3>
-            <p className="text-gray-500">Start by creating teacher evaluations to track performance.</p>
+            <p className="text-gray-500">{isPrivileged ? 'Start by creating teacher evaluations to track performance.' : 'No evaluations have been created for you yet.'}</p>
           </CardContent>
         </Card>
       ) : (
-        evaluations.map((evaluation) => (
+        filteredEvaluations.map((evaluation) => (
           <Card key={evaluation.id} className="border-l-4 border-l-blue-500">
             <CardHeader>
               <div className="flex items-center justify-between">

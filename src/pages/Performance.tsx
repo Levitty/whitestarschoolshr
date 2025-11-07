@@ -9,10 +9,13 @@ import EvaluationsList from '@/components/EvaluationsList';
 import EvaluationAnalytics from '@/components/EvaluationAnalytics';
 import EvaluationGoalsSuggestions from '@/components/EvaluationGoalsSuggestions';
 import StudentParentFeedback from '@/components/StudentParentFeedback';
+import { useProfile } from '@/hooks/useProfile';
 
 const Performance = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [selectedTab, setSelectedTab] = useState('evaluations');
+  const { canAccessAdmin, canAccessSuperAdmin } = useProfile();
+  const canCreateEvaluation = canAccessAdmin() || canAccessSuperAdmin();
 
   return (
     <div className="p-6 space-y-6">
@@ -21,10 +24,12 @@ const Performance = () => {
           <h1 className="text-2xl font-bold">Performance Management</h1>
           <p className="text-gray-600">Teacher evaluations and performance tracking</p>
         </div>
-        <Button onClick={() => setShowCreateForm(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          New Evaluation
-        </Button>
+        {canCreateEvaluation && (
+          <Button onClick={() => setShowCreateForm(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            New Evaluation
+          </Button>
+        )}
       </div>
 
       <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
@@ -143,10 +148,12 @@ const Performance = () => {
       </Tabs>
 
       {/* Create Evaluation Form */}
-      <CreateEvaluationForm
-        isOpen={showCreateForm}
-        onClose={() => setShowCreateForm(false)}
-      />
+      {canCreateEvaluation && (
+        <CreateEvaluationForm
+          isOpen={showCreateForm}
+          onClose={() => setShowCreateForm(false)}
+        />
+      )}
     </div>
   );
 };
