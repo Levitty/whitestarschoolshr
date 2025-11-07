@@ -102,10 +102,10 @@ export const useDocuments = () => {
     try {
       console.log('uploadDocument called with employeeId:', employeeId);
       
-      // Upload file
+      // Upload file with user ID in path for RLS
       const fileExt = file.name.split('.').pop() || 'unknown';
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-      const filePath = `documents/${fileName}`;
+      const filePath = `${user.id}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('employee-documents')
