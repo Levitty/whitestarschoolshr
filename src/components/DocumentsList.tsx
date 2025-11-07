@@ -36,7 +36,7 @@ interface DocumentsListProps {
 const DocumentsList: React.FC<DocumentsListProps> = ({ employeeId }) => {
   const { documents, loading, fetchDocuments } = useDocuments();
   const { employees, loading: employeesLoading } = useEmployees();
-  const { canAccessSuperAdmin } = useProfile();
+  const { canAccessSuperAdmin, canAccessAdmin } = useProfile();
   const { user } = useAuth();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
@@ -46,6 +46,7 @@ const DocumentsList: React.FC<DocumentsListProps> = ({ employeeId }) => {
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const [deleting, setDeleting] = useState<string | null>(null);
   const [previewDoc, setPreviewDoc] = useState<DocumentRow | null>(null);
+  const isPrivileged = canAccessAdmin() || canAccessSuperAdmin();
 
   const getStatusBadge = (status: string) => {
     const variants = {
@@ -216,7 +217,11 @@ const DocumentsList: React.FC<DocumentsListProps> = ({ employeeId }) => {
       );
     }
     
-    return matchesSearch && matchesEmployee && matchesCategory && matchesStatus && matchesEmployeeId;
+    const matchesSelfOnly = isPrivileged ? true : (
+      doc.employee_id === user.id || doc.uploaded_by === user.id || doc.recipient_id === user.id
+    );
+    
+    return matchesSearch && matchesEmployee && matchesCategory && matchesStatus && matchesEmployeeId && matchesSelfOnly;
   });
 
   const categories = [
@@ -437,19 +442,21 @@ const DocumentsList: React.FC<DocumentsListProps> = ({ employeeId }) => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filter by Employee" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Employees</SelectItem>
-                {employees.map((employee) => (
-                  <SelectItem key={employee.id} value={employee.id}>
-                    {employee.first_name} {employee.last_name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {isPrivileged && (
+              <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Filter by Employee" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Employees</SelectItem>
+                  {employees.map((employee) => (
+                    <SelectItem key={employee.id} value={employee.id}>
+                      {employee.first_name} {employee.last_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
             
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
               <SelectTrigger>

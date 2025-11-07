@@ -21,7 +21,7 @@ import {
 
 const Records = () => {
   const [activeTab, setActiveTab] = useState('documents');
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, profile } = useAuth();
 
   if (authLoading) {
     return (
@@ -43,7 +43,8 @@ const Records = () => {
     );
   }
 
-  const tabsConfig = [
+  const isAdmin = profile?.role === 'superadmin' || profile?.role === 'admin';
+  const tabsConfig = isAdmin ? [
     { value: 'documents', label: 'Documents', icon: FileText },
     { value: 'upload', label: 'Upload', icon: Camera },
     { value: 'templates', label: 'Letter Templates', icon: PenTool },
@@ -51,6 +52,9 @@ const Records = () => {
     { value: 'letterhead', label: 'Letterhead', icon: Building },
     { value: 'letter-archive', label: 'Letter Archive', icon: Archive },
     { value: 'contracts', label: 'Contracts', icon: AlertTriangle }
+  ] : [
+    { value: 'documents', label: 'Documents', icon: FileText },
+    { value: 'upload', label: 'Upload', icon: Camera }
   ];
 
   return (
@@ -81,28 +85,32 @@ const Records = () => {
         <TabsContent value="upload" className="space-y-6">
           <DocumentUpload onSuccess={() => {
             setActiveTab('documents');
-          }} />
+          }} employeeId={isAdmin ? undefined : user.id} />
         </TabsContent>
 
-        <TabsContent value="templates" className="space-y-6">
-          <DocumentTemplateManager />
-        </TabsContent>
+        {isAdmin && (
+          <>
+            <TabsContent value="templates" className="space-y-6">
+              <DocumentTemplateManager />
+            </TabsContent>
 
-        <TabsContent value="write-letter" className="space-y-6">
-          <LetterWriter />
-        </TabsContent>
+            <TabsContent value="write-letter" className="space-y-6">
+              <LetterWriter />
+            </TabsContent>
 
-        <TabsContent value="letterhead" className="space-y-6">
-          <LetterheadSettings />
-        </TabsContent>
+            <TabsContent value="letterhead" className="space-y-6">
+              <LetterheadSettings />
+            </TabsContent>
 
-        <TabsContent value="letter-archive" className="space-y-6">
-          <EmployeeLetterArchive />
-        </TabsContent>
+            <TabsContent value="letter-archive" className="space-y-6">
+              <EmployeeLetterArchive />
+            </TabsContent>
 
-        <TabsContent value="contracts" className="space-y-6">
-          <ContractExpiry />
-        </TabsContent>
+            <TabsContent value="contracts" className="space-y-6">
+              <ContractExpiry />
+            </TabsContent>
+          </>
+        )}
       </Tabs>
     </div>
   );
