@@ -143,15 +143,28 @@ export const useDocuments = () => {
         }
       } else {
         // If employee ID was provided, fetch the employee number
+        // First try by profile_id (when admin passes profiles.id)
         const { data: empProfile } = await supabase
           .from('employee_profiles')
           .select('employee_number')
-          .eq('id', targetEmployeeId)
+          .eq('profile_id', targetEmployeeId)
           .maybeSingle();
         
         if (empProfile) {
           targetEmployeeNumber = empProfile.employee_number;
-          console.log('Found employee number for provided ID:', targetEmployeeNumber);
+          console.log('Found employee number for provided profile ID:', targetEmployeeNumber);
+        } else {
+          // Fallback: try by id (when admin passes employee_profiles.id)
+          const { data: empProfileById } = await supabase
+            .from('employee_profiles')
+            .select('employee_number')
+            .eq('id', targetEmployeeId)
+            .maybeSingle();
+          
+          if (empProfileById) {
+            targetEmployeeNumber = empProfileById.employee_number;
+            console.log('Found employee number for provided employee profile ID:', targetEmployeeNumber);
+          }
         }
       }
 
@@ -203,11 +216,21 @@ export const useDocuments = () => {
 
     try {
       // Fetch employee number for the given employee ID
-      const { data: empProfile } = await supabase
+      // First try by profile_id (when admin passes profiles.id)
+      let empProfile = await supabase
         .from('employee_profiles')
         .select('employee_number')
-        .eq('id', employeeId)
+        .eq('profile_id', employeeId)
         .maybeSingle();
+      
+      if (!empProfile.data) {
+        // Fallback: try by id (when admin passes employee_profiles.id)
+        empProfile = await supabase
+          .from('employee_profiles')
+          .select('employee_number')
+          .eq('id', employeeId)
+          .maybeSingle();
+      }
 
       const { error } = await supabase
         .from('documents')
@@ -215,7 +238,7 @@ export const useDocuments = () => {
           title,
           category,
           employee_id: employeeId,
-          employee_number: empProfile?.employee_number || null,
+          employee_number: empProfile?.data?.employee_number || null,
           uploaded_by: user.id,
           letter_type: letterType,
           letter_content: content,
