@@ -91,18 +91,26 @@ export const DocumentUpload = ({ onSuccess, employeeId }: DocumentUploadProps) =
         if (!employeeId && isAdmin) {
           console.log('Fetching all employees for admin dropdown');
           
-          const { data: allProfiles, error: allProfilesError } = await supabase
-            .from('profiles')
-            .select('id, first_name, last_name, department, email')
-            .eq('is_active', true)
+          const { data: activeEmployees, error: employeesError } = await supabase
+            .from('employee_profiles')
+            .select('id, profile_id, first_name, last_name, department, email')
+            .eq('status', 'active')
             .order('first_name');
 
-          if (allProfilesError) {
-            console.error('Error fetching all profiles:', allProfilesError);
+          if (employeesError) {
+            console.error('Error fetching active employees:', employeesError);
             setFetchError('Failed to load employees list');
           } else {
-            setEmployees(allProfiles || []);
-            console.log('Fetched employees for dropdown:', allProfiles?.length);
+            // Map to use profile_id as the id for consistency
+            const mappedEmployees = (activeEmployees || []).map(emp => ({
+              id: emp.profile_id || emp.id,
+              first_name: emp.first_name,
+              last_name: emp.last_name,
+              department: emp.department,
+              email: emp.email
+            }));
+            setEmployees(mappedEmployees);
+            console.log('Fetched active employees for dropdown:', mappedEmployees.length);
           }
         }
       } catch (error) {
