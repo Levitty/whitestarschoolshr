@@ -40,44 +40,64 @@ export const useDocuments = () => {
 
       // If we have documents, enrich them with employee data
       if (documentsData && documentsData.length > 0) {
+        // First, get all active employee profile_ids
+        const { data: activeEmployees } = await supabase
+          .from('employee_profiles')
+          .select('profile_id')
+          .eq('status', 'active');
+        
+        const activeEmployeeIds = new Set(
+          (activeEmployees || []).map(emp => emp.profile_id).filter(Boolean)
+        );
+        
+        console.log('Active employee IDs:', Array.from(activeEmployeeIds));
+        
         const enrichedDocuments = await Promise.all(
           documentsData.map(async (doc) => {
             let employeeData = null;
             let isActive = true;
             
             if (doc.employee_id) {
-              // Try to get from employee_profiles first (only active employees)
-              const { data: empProfile } = await supabase
-                .from('employee_profiles')
-                .select('id, profile_id, first_name, last_name, email, department, status')
-                .eq('profile_id', doc.employee_id)
-                .eq('status', 'active')
-                .maybeSingle();
-              
-              if (empProfile) {
-                employeeData = { employee_profile: empProfile };
-                isActive = true;
+              // Check if this employee_id belongs to an active employee
+              if (activeEmployeeIds.has(doc.employee_id)) {
+                // Get employee details
+                const { data: empProfile } = await supabase
+                  .from('employee_profiles')
+                  .select('id, profile_id, first_name, last_name, email, department, status')
+                  .eq('profile_id', doc.employee_id)
+                  .eq('status', 'active')
+                  .maybeSingle();
+                
+                if (empProfile) {
+                  employeeData = { employee_profile: empProfile };
+                  isActive = true;
+                }
               } else {
-                // Check if employee exists but is inactive
-                const { data: inactiveProfile } = await supabase
+                // Check if this was an employee that got deleted/inactivated
+                const { data: anyEmployee } = await supabase
                   .from('employee_profiles')
                   .select('status')
                   .eq('profile_id', doc.employee_id)
                   .maybeSingle();
                 
-                if (inactiveProfile) {
-                  // Employee exists but is inactive - don't include this document
+                if (anyEmployee) {
+                  // Employee exists but is not active - exclude document
                   isActive = false;
                 } else {
-                  // Fallback to profiles table (for users without employee_profiles)
+                  // Not an employee profile, could be admin/system user
+                  // Only include if user is checking their own docs as uploader
                   const { data: profile } = await supabase
                     .from('profiles')
-                    .select('id, first_name, last_name, email, department')
+                    .select('id, first_name, last_name, email, department, role')
                     .eq('id', doc.employee_id)
                     .maybeSingle();
                   
-                  if (profile) {
+                  if (profile && (profile.role === 'superadmin' || profile.role === 'admin')) {
                     employeeData = { profile: profile };
+                    isActive = true;
+                  } else {
+                    // Not an active employee or admin - exclude
+                    isActive = false;
                   }
                 }
               }
@@ -93,7 +113,7 @@ export const useDocuments = () => {
         
         // Filter out documents from inactive/deleted employees
         const activeDocuments = enrichedDocuments.filter((doc: any) => doc.isActive !== false);
-        console.log('Enriched documents with active employee data:', activeDocuments);
+        console.log('Filtered active documents:', activeDocuments.length, 'out of', documentsData.length);
         setDocuments(activeDocuments);
       } else {
         console.log('No documents found');
