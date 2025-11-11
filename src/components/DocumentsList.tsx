@@ -200,6 +200,9 @@ const DocumentsList: React.FC<DocumentsListProps> = ({ employeeId }) => {
     if (selectedEmployee !== 'all') {
       // Match directly by employee_id (which is the profile.id)
       matchesEmployee = doc.employee_id === selectedEmployee;
+    } else {
+      // When viewing All Employees, restrict to documents linked to ACTIVE employee profiles only
+      matchesEmployee = Boolean((enrichedDoc.employee_profile?.status || '').toLowerCase() === 'active');
     }
     
     // Category filter
