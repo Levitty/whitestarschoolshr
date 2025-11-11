@@ -334,6 +334,7 @@ const RoleBasedDashboard = () => {
     
     switch (userRole) {
       case 'superadmin':
+      case 'admin':
         return <SuperAdminDashboard />;
       case 'head':
         return <HeadDashboard />;
