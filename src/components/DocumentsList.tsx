@@ -48,38 +48,22 @@ const DocumentsList: React.FC<DocumentsListProps> = ({ employeeId }) => {
   const [previewDoc, setPreviewDoc] = useState<DocumentRow | null>(null);
   const isPrivileged = canAccessAdmin() || canAccessSuperAdmin();
   
-  // Build a combined list of all unique document owners (from both employee_profiles and profiles)
+  // Build list of active employees only for the filter dropdown
   const allDocumentOwners = useMemo(() => {
-    const ownerMap = new Map();
-    
-    // Add employees from employee_profiles
-    employees.forEach(emp => {
-      ownerMap.set(emp.profile_id || emp.id, {
+    // Only use active employees from employee_profiles
+    return employees
+      .filter(emp => emp.status === 'active')
+      .map(emp => ({
         id: emp.profile_id || emp.id,
         first_name: emp.first_name,
         last_name: emp.last_name,
         email: emp.email,
         source: 'employee_profiles'
-      });
-    });
-    
-    // Add document owners from profiles (who aren't already in employee_profiles)
-    documents.forEach((doc: any) => {
-      if (doc.profile && !ownerMap.has(doc.profile.id)) {
-        ownerMap.set(doc.profile.id, {
-          id: doc.profile.id,
-          first_name: doc.profile.first_name || doc.profile.email,
-          last_name: doc.profile.last_name || '',
-          email: doc.profile.email,
-          source: 'profiles'
-        });
-      }
-    });
-    
-    return Array.from(ownerMap.values()).sort((a, b) => 
-      `${a.first_name} ${a.last_name}`.localeCompare(`${b.first_name} ${b.last_name}`)
-    );
-  }, [employees, documents]);
+      }))
+      .sort((a, b) => 
+        `${a.first_name} ${a.last_name}`.localeCompare(`${b.first_name} ${b.last_name}`)
+      );
+  }, [employees]);
 
   const getStatusBadge = (status: string) => {
     const variants = {

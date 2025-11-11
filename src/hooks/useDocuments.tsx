@@ -50,17 +50,40 @@ export const useDocuments = () => {
           (activeEmployees || []).map(emp => emp.profile_id).filter(Boolean)
         );
         
+        // Get all admin/superadmin user IDs
+        const { data: adminUsers } = await supabase
+          .from('profiles')
+          .select('id')
+          .in('role', ['admin', 'superadmin']);
+        
+        const adminUserIds = new Set(
+          (adminUsers || []).map(user => user.id)
+        );
+        
         console.log('Active employee IDs:', Array.from(activeEmployeeIds));
+        console.log('Admin user IDs:', Array.from(adminUserIds));
         
         const enrichedDocuments = await Promise.all(
           documentsData.map(async (doc) => {
             let employeeData = null;
-            let isActive = true;
+            let isActive = false; // Default to false, will set to true if valid
             
             if (doc.employee_id) {
+              // Check if this is an admin/superadmin document (always show these)
+              if (adminUserIds.has(doc.employee_id)) {
+                const { data: adminProfile } = await supabase
+                  .from('profiles')
+                  .select('id, first_name, last_name, email, department, role')
+                  .eq('id', doc.employee_id)
+                  .maybeSingle();
+                
+                if (adminProfile) {
+                  employeeData = { profile: adminProfile };
+                  isActive = true; // Admin documents always show
+                }
+              } 
               // Check if this employee_id belongs to an active employee
-              if (activeEmployeeIds.has(doc.employee_id)) {
-                // Get employee details
+              else if (activeEmployeeIds.has(doc.employee_id)) {
                 const { data: empProfile } = await supabase
                   .from('employee_profiles')
                   .select('id, profile_id, first_name, last_name, email, department, status')
@@ -72,35 +95,8 @@ export const useDocuments = () => {
                   employeeData = { employee_profile: empProfile };
                   isActive = true;
                 }
-              } else {
-                // Check if this was an employee that got deleted/inactivated
-                const { data: anyEmployee } = await supabase
-                  .from('employee_profiles')
-                  .select('status')
-                  .eq('profile_id', doc.employee_id)
-                  .maybeSingle();
-                
-                if (anyEmployee) {
-                  // Employee exists but is not active - exclude document
-                  isActive = false;
-                } else {
-                  // Not an employee profile, could be admin/system user
-                  // Only include if user is checking their own docs as uploader
-                  const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('id, first_name, last_name, email, department, role')
-                    .eq('id', doc.employee_id)
-                    .maybeSingle();
-                  
-                  if (profile && (profile.role === 'superadmin' || profile.role === 'admin')) {
-                    employeeData = { profile: profile };
-                    isActive = true;
-                  } else {
-                    // Not an active employee or admin - exclude
-                    isActive = false;
-                  }
-                }
               }
+              // Otherwise, it's from a deleted/inactive employee - don't show
             }
             
             return {
@@ -112,7 +108,7 @@ export const useDocuments = () => {
         );
         
         // Filter out documents from inactive/deleted employees
-        const activeDocuments = enrichedDocuments.filter((doc: any) => doc.isActive !== false);
+        const activeDocuments = enrichedDocuments.filter((doc: any) => doc.isActive === true);
         console.log('Filtered active documents:', activeDocuments.length, 'out of', documentsData.length);
         setDocuments(activeDocuments);
       } else {
