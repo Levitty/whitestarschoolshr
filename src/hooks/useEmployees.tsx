@@ -111,12 +111,51 @@ export const useEmployees = () => {
     }
   };
 
+  const inactivateEmployee = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('employee_profiles')
+        .update({ status: 'inactive' })
+        .eq('id', id);
+
+      if (error) {
+        return { error };
+      }
+
+      await fetchEmployees();
+      return { error: null };
+    } catch (error) {
+      return { error };
+    }
+  };
+
+  const deleteEmployee = async (id: string) => {
+    try {
+      // Delete from employee_profiles (cascade will handle related data)
+      const { error } = await supabase
+        .from('employee_profiles')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        return { error };
+      }
+
+      await fetchEmployees();
+      return { error: null };
+    } catch (error) {
+      return { error };
+    }
+  };
+
   return {
     employees,
     loading,
     fetchEmployees,
     createEmployee,
     updateEmployee,
-    getExpiringContracts
+    getExpiringContracts,
+    inactivateEmployee,
+    deleteEmployee
   };
 };

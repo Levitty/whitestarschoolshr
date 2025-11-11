@@ -135,6 +135,10 @@ const Employees = () => {
           <EmployeeProfile
             employee={selectedEmployee}
             onClose={() => setSelectedEmployee(null)}
+            onEmployeeUpdated={() => {
+              setSelectedEmployee(null);
+              window.location.reload();
+            }}
           />
         )}
       </div>

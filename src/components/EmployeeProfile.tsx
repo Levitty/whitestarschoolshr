@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -23,22 +24,29 @@ import {
   Calendar,
   Briefcase,
   Award,
-  AlertCircle
+  AlertCircle,
+  UserX,
+  Trash2
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { DocumentUpload } from '@/components/DocumentUpload';
 import DocumentsList from '@/components/DocumentsList';
+import { useEmployees } from '@/hooks/useEmployees';
 
 interface EmployeeProfileProps {
   employee: any;
   onClose: () => void;
+  onEmployeeUpdated?: () => void;
 }
 
-const EmployeeProfile = ({ employee, onClose }: EmployeeProfileProps) => {
+const EmployeeProfile = ({ employee, onClose, onEmployeeUpdated }: EmployeeProfileProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState(employee);
   const [showDocumentUpload, setShowDocumentUpload] = useState(false);
+  const [showInactivateDialog, setShowInactivateDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const { toast } = useToast();
+  const { inactivateEmployee, deleteEmployee } = useEmployees();
 
   const handleSave = () => {
     // TODO: Implement actual save logic
@@ -62,36 +70,95 @@ const EmployeeProfile = ({ employee, onClose }: EmployeeProfileProps) => {
     });
   };
 
+  const handleInactivate = async () => {
+    const { error } = await inactivateEmployee(employee.id);
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to inactivate employee. Please try again.",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Employee Inactivated",
+        description: "Employee has been marked as inactive. Data is retained.",
+      });
+      setShowInactivateDialog(false);
+      onEmployeeUpdated?.();
+      onClose();
+    }
+  };
+
+  const handleDelete = async () => {
+    const { error } = await deleteEmployee(employee.id);
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete employee. Please try again.",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Employee Deleted",
+        description: "Employee and all related data have been permanently deleted.",
+      });
+      setShowDeleteDialog(false);
+      onEmployeeUpdated?.();
+      onClose();
+    }
+  };
+
   return (
-    <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="flex flex-row items-center justify-between">
-          <DialogTitle className="flex items-center gap-2">
-            <User className="h-5 w-5" />
-            Employee Profile: {employee.first_name} {employee.last_name}
-          </DialogTitle>
-          <div className="flex gap-2">
-            {!isEditing ? (
-              <Button onClick={() => setIsEditing(true)} variant="outline" size="sm">
-                <Edit className="h-4 w-4 mr-2" />
-                Edit
+    <>
+      <Dialog open={true} onOpenChange={onClose}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="flex flex-row items-center justify-between">
+            <DialogTitle className="flex items-center gap-2">
+              <User className="h-5 w-5" />
+              Employee Profile: {employee.first_name} {employee.last_name}
+            </DialogTitle>
+            <div className="flex gap-2">
+              {!isEditing ? (
+                <>
+                  <Button onClick={() => setIsEditing(true)} variant="outline" size="sm">
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit
+                  </Button>
+                  <Button 
+                    onClick={() => setShowInactivateDialog(true)} 
+                    variant="outline" 
+                    size="sm"
+                    className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                  >
+                    <UserX className="h-4 w-4 mr-2" />
+                    Inactivate
+                  </Button>
+                  <Button 
+                    onClick={() => setShowDeleteDialog(true)} 
+                    variant="outline" 
+                    size="sm"
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button onClick={handleSave} size="sm">
+                    <Save className="h-4 w-4 mr-2" />
+                    Save
+                  </Button>
+                  <Button onClick={handleCancel} variant="outline" size="sm">
+                    Cancel
+                  </Button>
+                </>
+              )}
+              <Button onClick={onClose} variant="ghost" size="sm">
+                <X className="h-4 w-4" />
               </Button>
-            ) : (
-              <>
-                <Button onClick={handleSave} size="sm">
-                  <Save className="h-4 w-4 mr-2" />
-                  Save
-                </Button>
-                <Button onClick={handleCancel} variant="outline" size="sm">
-                  Cancel
-                </Button>
-              </>
-            )}
-            <Button onClick={onClose} variant="ghost" size="sm">
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        </DialogHeader>
+            </div>
+          </DialogHeader>
 
         <Tabs defaultValue="profile" className="space-y-6">
           <TabsList className="grid w-full grid-cols-4">
@@ -451,6 +518,56 @@ const EmployeeProfile = ({ employee, onClose }: EmployeeProfileProps) => {
         </Tabs>
       </DialogContent>
     </Dialog>
+
+    <AlertDialog open={showInactivateDialog} onOpenChange={setShowInactivateDialog}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Inactivate Employee</AlertDialogTitle>
+          <AlertDialogDescription>
+            This will mark {employee.first_name} {employee.last_name} as inactive. All their data will be retained for record-keeping purposes. They will no longer appear in active employee lists.
+            <br/><br/>
+            You can reactivate them later if needed.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={handleInactivate} className="bg-orange-600 hover:bg-orange-700">
+            Inactivate Employee
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+
+    <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Delete Employee Permanently</AlertDialogTitle>
+          <AlertDialogDescription className="space-y-2">
+            <p className="font-semibold text-destructive">Warning: This action cannot be undone!</p>
+            <p>
+              This will permanently delete {employee.first_name} {employee.last_name} and ALL associated data including:
+            </p>
+            <ul className="list-disc list-inside space-y-1 text-sm">
+              <li>Employee profile and personal information</li>
+              <li>All uploaded documents</li>
+              <li>Performance evaluations</li>
+              <li>Leave requests and balances</li>
+              <li>Any other related records</li>
+            </ul>
+            <p className="font-medium">
+              Consider using "Inactivate" instead to retain data for records.
+            </p>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
+            Delete Permanently
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 };
 
