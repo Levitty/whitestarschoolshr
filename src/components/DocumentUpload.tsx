@@ -101,9 +101,9 @@ export const DocumentUpload = ({ onSuccess, employeeId }: DocumentUploadProps) =
             console.error('Error fetching active employees:', employeesError);
             setFetchError('Failed to load employees list');
           } else {
-            // Map to use profile_id as the id for consistency
+            // Use employee_profiles.id directly (don't require profile_id)
             const mappedEmployees = (activeEmployees || []).map(emp => ({
-              id: emp.profile_id || emp.id,
+              id: emp.id, // Use employee_profile.id directly
               first_name: emp.first_name,
               last_name: emp.last_name,
               department: emp.department,

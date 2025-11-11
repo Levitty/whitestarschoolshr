@@ -47,9 +47,23 @@ export const useEmployees = () => {
         contractEndDate = startDate.toISOString().split('T')[0];
       }
 
-      // Set default status if not provided
+      // Check if profile exists with this email and link it
+      let profileId = null;
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', employeeData.email)
+        .maybeSingle();
+
+      if (existingProfile) {
+        profileId = existingProfile.id;
+        console.log('Linking to existing profile:', profileId);
+      }
+
+      // Create employee_profile
       const finalEmployeeData = {
         ...employeeData,
+        profile_id: profileId, // Will be null if no profile exists yet
         contract_end_date: contractEndDate,
         status: employeeData.status || 'active'
       };
