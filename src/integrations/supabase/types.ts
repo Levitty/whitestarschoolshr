@@ -1066,6 +1066,42 @@ export type Database = {
         }
         Relationships: []
       }
+      media: {
+        Row: {
+          created_at: string
+          description: string | null
+          file_size: number | null
+          id: string
+          media_type: string
+          media_url: string
+          title: string
+          updated_at: string
+          uploaded_by: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          file_size?: number | null
+          id?: string
+          media_type: string
+          media_url: string
+          title: string
+          updated_at?: string
+          uploaded_by: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          file_size?: number | null
+          id?: string
+          media_type?: string
+          media_url?: string
+          title?: string
+          updated_at?: string
+          uploaded_by?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string | null
