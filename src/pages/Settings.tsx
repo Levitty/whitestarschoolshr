@@ -8,6 +8,7 @@ import SuperAdminSetup from '@/components/SuperAdminSetup';
 import RolePermissionsManager from '@/components/RolePermissionsManager';
 import AccountApprovalManager from '@/components/AccountApprovalManager';
 import DepartmentManager from '@/components/DepartmentManager';
+import { EmployeeProfileLinker } from '@/components/EmployeeProfileLinker';
 
 const Settings = () => {
   return (
@@ -28,11 +29,12 @@ const Settings = () => {
           </div>
 
           <Tabs defaultValue="approvals" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-7">
+            <TabsList className="grid w-full grid-cols-8">
               <TabsTrigger value="approvals">Account Approvals</TabsTrigger>
               <TabsTrigger value="permissions">Role Permissions</TabsTrigger>
               <TabsTrigger value="users">User Management</TabsTrigger>
               <TabsTrigger value="departments">Departments</TabsTrigger>
+              <TabsTrigger value="employee-linking">Employee Linking</TabsTrigger>
               <TabsTrigger value="templates">Templates</TabsTrigger>
               <TabsTrigger value="notifications">Notifications</TabsTrigger>
               <TabsTrigger value="system">System</TabsTrigger>
@@ -52,6 +54,10 @@ const Settings = () => {
 
             <TabsContent value="departments">
               <DepartmentManager />
+            </TabsContent>
+
+            <TabsContent value="employee-linking">
+              <EmployeeProfileLinker />
             </TabsContent>
 
             <TabsContent value="templates">
