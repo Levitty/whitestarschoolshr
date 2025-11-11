@@ -43,39 +43,58 @@ export const useDocuments = () => {
         const enrichedDocuments = await Promise.all(
           documentsData.map(async (doc) => {
             let employeeData = null;
+            let isActive = true;
             
             if (doc.employee_id) {
-              // Try to get from employee_profiles first
+              // Try to get from employee_profiles first (only active employees)
               const { data: empProfile } = await supabase
                 .from('employee_profiles')
-                .select('id, first_name, last_name, email, department')
-                .eq('id', doc.employee_id)
+                .select('id, profile_id, first_name, last_name, email, department, status')
+                .eq('profile_id', doc.employee_id)
+                .eq('status', 'active')
                 .maybeSingle();
               
               if (empProfile) {
                 employeeData = { employee_profile: empProfile };
+                isActive = true;
               } else {
-                // Fallback to profiles table
-                const { data: profile } = await supabase
-                  .from('profiles')
-                  .select('id, first_name, last_name, email, department')
-                  .eq('id', doc.employee_id)
+                // Check if employee exists but is inactive
+                const { data: inactiveProfile } = await supabase
+                  .from('employee_profiles')
+                  .select('status')
+                  .eq('profile_id', doc.employee_id)
                   .maybeSingle();
                 
-                if (profile) {
-                  employeeData = { profile: profile };
+                if (inactiveProfile) {
+                  // Employee exists but is inactive - don't include this document
+                  isActive = false;
+                } else {
+                  // Fallback to profiles table (for users without employee_profiles)
+                  const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('id, first_name, last_name, email, department')
+                    .eq('id', doc.employee_id)
+                    .maybeSingle();
+                  
+                  if (profile) {
+                    employeeData = { profile: profile };
+                  }
                 }
               }
             }
             
             return {
               ...doc,
-              ...employeeData
+              ...employeeData,
+              isActive
             };
           })
         );
-        console.log('Enriched documents with employee data:', enrichedDocuments);
-        setDocuments(enrichedDocuments);
+        
+        // Filter out documents from inactive/deleted employees
+        const activeDocuments = enrichedDocuments.filter((doc: any) => doc.isActive !== false);
+        console.log('Enriched documents with active employee data:', activeDocuments);
+        setDocuments(activeDocuments);
       } else {
         console.log('No documents found');
         setDocuments([]);
