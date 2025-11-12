@@ -50,20 +50,25 @@ const handler = async (req: Request): Promise<Response> => {
     }: InterviewScheduleRequest = await req.json();
 
     console.log('Sending interview schedule to:', candidateEmail);
+    console.log('Raw interview date received:', interviewDate);
 
-    // Parse the date without timezone conversion to preserve the scheduled time
+    // Parse the date string directly without any timezone conversion
+    // Extract the date and time components from the ISO string
     const date = new Date(interviewDate);
+    
+    // Use local time components (not UTC) to preserve the exact scheduled time
     const year = date.getFullYear();
-    const month = date.toLocaleString('en-US', { month: 'long', timeZone: 'UTC' });
-    const day = date.getUTCDate();
-    const weekday = date.toLocaleString('en-US', { weekday: 'long', timeZone: 'UTC' });
-    const hours = date.getUTCHours();
-    const minutes = date.getUTCMinutes();
+    const month = date.toLocaleString('en-US', { month: 'long' });
+    const day = date.getDate();
+    const weekday = date.toLocaleString('en-US', { weekday: 'long' });
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
     const period = hours >= 12 ? 'PM' : 'AM';
     const displayHours = hours % 12 || 12;
     const displayMinutes = minutes.toString().padStart(2, '0');
     
     const formattedDate = `${weekday}, ${month} ${day}, ${year} at ${displayHours}:${displayMinutes} ${period}`;
+    console.log('Formatted date for email:', formattedDate);
 
     const emailResponse = await resend.emails.send({
       from: getFromAddress(),
