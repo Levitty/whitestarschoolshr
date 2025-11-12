@@ -51,14 +51,19 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log('Sending interview schedule to:', candidateEmail);
 
-    const formattedDate = new Date(interviewDate).toLocaleString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    // Parse the date without timezone conversion to preserve the scheduled time
+    const date = new Date(interviewDate);
+    const year = date.getFullYear();
+    const month = date.toLocaleString('en-US', { month: 'long', timeZone: 'UTC' });
+    const day = date.getUTCDate();
+    const weekday = date.toLocaleString('en-US', { weekday: 'long', timeZone: 'UTC' });
+    const hours = date.getUTCHours();
+    const minutes = date.getUTCMinutes();
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours % 12 || 12;
+    const displayMinutes = minutes.toString().padStart(2, '0');
+    
+    const formattedDate = `${weekday}, ${month} ${day}, ${year} at ${displayHours}:${displayMinutes} ${period}`;
 
     const emailResponse = await resend.emails.send({
       from: getFromAddress(),
