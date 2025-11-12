@@ -52,23 +52,55 @@ const handler = async (req: Request): Promise<Response> => {
     console.log('Sending interview schedule to:', candidateEmail);
     console.log('Raw interview date received:', interviewDate);
 
-    // Parse the date string directly without any timezone conversion
-    // Extract the date and time components from the ISO string
-    const date = new Date(interviewDate);
-    
-    // Use local time components (not UTC) to preserve the exact scheduled time
-    const year = date.getFullYear();
-    const month = date.toLocaleString('en-US', { month: 'long' });
-    const day = date.getDate();
-    const weekday = date.toLocaleString('en-US', { weekday: 'long' });
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
-    const period = hours >= 12 ? 'PM' : 'AM';
-    const displayHours = hours % 12 || 12;
-    const displayMinutes = minutes.toString().padStart(2, '0');
-    
-    const formattedDate = `${weekday}, ${month} ${day}, ${year} at ${displayHours}:${displayMinutes} ${period}`;
-    console.log('Formatted date for email:', formattedDate);
+    // Display exactly what the admin selected. If the payload has a timezone (Z or +hh:mm),
+    // format it in Africa/Nairobi. Otherwise, treat the string as a literal local time.
+    const TZ = 'Africa/Nairobi';
+    const hasTZ = /Z$|[+-]\d{2}:?\d{2}$/.test(interviewDate);
+
+    let formattedDate = '';
+
+    if (hasTZ) {
+      const date = new Date(interviewDate);
+      const weekday = date.toLocaleString('en-US', { weekday: 'long', timeZone: TZ });
+      const month = date.toLocaleString('en-US', { month: 'long', timeZone: TZ });
+      const day = new Intl.DateTimeFormat('en-US', { day: 'numeric', timeZone: TZ }).format(date);
+      const year = new Intl.DateTimeFormat('en-US', { year: 'numeric', timeZone: TZ }).format(date);
+
+      const timeParts = new Intl.DateTimeFormat('en-US', {
+        hour: 'numeric', minute: '2-digit', hour12: true, timeZone: TZ,
+      }).formatToParts(date);
+      const displayHours = timeParts.find(p => p.type === 'hour')?.value ?? '12';
+      const displayMinutes = timeParts.find(p => p.type === 'minute')?.value ?? '00';
+      const period = (timeParts.find(p => p.type === 'dayPeriod')?.value ?? 'AM').toUpperCase();
+
+      formattedDate = `${weekday}, ${month} ${day}, ${year} at ${displayHours}:${displayMinutes} ${period}`;
+      console.log('Formatted date for email (TZ-aware):', formattedDate);
+    } else {
+      // Parse without shifting timezones: use the literal local date/time the user selected
+      // Accept both 'YYYY-MM-DDTHH:mm' and 'YYYY-MM-DDTHH:mm:ss'
+      const m = interviewDate.match(/^(\d{4})-(\d{2})-(\d{2})[T\s](\d{2}):(\d{2})(?::(\d{2}))?/);
+      if (!m) {
+        throw new Error(`Invalid interviewDate format: ${interviewDate}`);
+      }
+      const [_, y, mo, d, hh, mm] = m;
+      const year = parseInt(y, 10);
+      const monthIndex = parseInt(mo, 10) - 1;
+      const dayNum = parseInt(d, 10);
+      const hourNum = parseInt(hh, 10);
+      const minutesNum = parseInt(mm, 10);
+
+      // Build weekday and month name in a timezone-agnostic way
+      const dateOnly = new Date(Date.UTC(year, monthIndex, dayNum));
+      const month = dateOnly.toLocaleString('en-US', { month: 'long', timeZone: 'UTC' });
+      const weekday = dateOnly.toLocaleString('en-US', { weekday: 'long', timeZone: 'UTC' });
+
+      const period = hourNum >= 12 ? 'PM' : 'AM';
+      const displayHours = String((hourNum % 12) || 12);
+      const displayMinutes = minutesNum.toString().padStart(2, '0');
+
+      formattedDate = `${weekday}, ${month} ${dayNum}, ${year} at ${displayHours}:${displayMinutes} ${period}`;
+      console.log('Formatted date for email (literal time):', formattedDate);
+    }
 
     const emailResponse = await resend.emails.send({
       from: getFromAddress(),
