@@ -137,7 +137,7 @@ const handler = async (req: Request): Promise<Response> => {
             ${interviewType === 'Physical' ? '<li>Bring a valid ID and original certificates</li>' : ''}
           </ul>
           
-          <p>If you need to reschedule or have any questions, please contact us as soon as possible.</p>
+          <p>If you have any questions, please contact us as soon as possible on 0788182510.</p>
           
           <p>We look forward to meeting you!</p>
           
