@@ -95,9 +95,8 @@ const LeaveRequestForm = ({ onSuccess }: LeaveRequestFormProps) => {
                 <SelectItem value="annual">Annual Leave</SelectItem>
                 <SelectItem value="sick">Sick Leave</SelectItem>
                 <SelectItem value="maternity">Maternity Leave</SelectItem>
-                <SelectItem value="paternity">Paternity Leave</SelectItem>
-                <SelectItem value="personal">Personal Leave</SelectItem>
-                <SelectItem value="emergency">Emergency Leave</SelectItem>
+                <SelectItem value="study">Study Leave</SelectItem>
+                <SelectItem value="unpaid">Unpaid Leave</SelectItem>
               </SelectContent>
             </Select>
           </div>

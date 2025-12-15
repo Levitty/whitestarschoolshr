@@ -54,11 +54,12 @@ const LeaveApprovalList = () => {
         return 'bg-blue-100 text-blue-800';
       case 'sick':
         return 'bg-orange-100 text-orange-800';
-      case 'personal':
-        return 'bg-purple-100 text-purple-800';
       case 'maternity':
-      case 'paternity':
         return 'bg-pink-100 text-pink-800';
+      case 'study':
+        return 'bg-purple-100 text-purple-800';
+      case 'unpaid':
+        return 'bg-gray-100 text-gray-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
