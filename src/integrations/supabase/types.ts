@@ -1166,53 +1166,89 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          birth_date: string | null
           created_at: string | null
           department: string | null
           email: string
           employee_id: string | null
           first_name: string | null
+          gender: string | null
           hire_date: string | null
           id: string
+          id_number: string | null
           is_active: boolean | null
+          kra_pin: string | null
           last_name: string | null
+          next_of_kin_name: string | null
+          next_of_kin_phone: string | null
+          next_of_kin_relationship: string | null
+          nssf_number: string | null
+          onboarding_completed: boolean | null
           phone: string | null
+          physical_address: string | null
           role: string | null
           role_id: string | null
+          sha_number: string | null
           status: string | null
+          tsc_number: string | null
           updated_at: string | null
         }
         Insert: {
           avatar_url?: string | null
+          birth_date?: string | null
           created_at?: string | null
           department?: string | null
           email: string
           employee_id?: string | null
           first_name?: string | null
+          gender?: string | null
           hire_date?: string | null
           id: string
+          id_number?: string | null
           is_active?: boolean | null
+          kra_pin?: string | null
           last_name?: string | null
+          next_of_kin_name?: string | null
+          next_of_kin_phone?: string | null
+          next_of_kin_relationship?: string | null
+          nssf_number?: string | null
+          onboarding_completed?: boolean | null
           phone?: string | null
+          physical_address?: string | null
           role?: string | null
           role_id?: string | null
+          sha_number?: string | null
           status?: string | null
+          tsc_number?: string | null
           updated_at?: string | null
         }
         Update: {
           avatar_url?: string | null
+          birth_date?: string | null
           created_at?: string | null
           department?: string | null
           email?: string
           employee_id?: string | null
           first_name?: string | null
+          gender?: string | null
           hire_date?: string | null
           id?: string
+          id_number?: string | null
           is_active?: boolean | null
+          kra_pin?: string | null
           last_name?: string | null
+          next_of_kin_name?: string | null
+          next_of_kin_phone?: string | null
+          next_of_kin_relationship?: string | null
+          nssf_number?: string | null
+          onboarding_completed?: boolean | null
           phone?: string | null
+          physical_address?: string | null
           role?: string | null
           role_id?: string | null
+          sha_number?: string | null
           status?: string | null
+          tsc_number?: string | null
           updated_at?: string | null
         }
         Relationships: [

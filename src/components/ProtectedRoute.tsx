@@ -1,15 +1,16 @@
-
 import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { Navigate, useLocation } from 'react-router-dom';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { user, loading } = useAuth();
+  const { user, profile, loading } = useAuth();
+  const location = useLocation();
 
-  console.log('ProtectedRoute - loading:', loading, 'user:', user);
+  console.log('ProtectedRoute - loading:', loading, 'user:', user, 'profile:', profile);
 
   if (loading) {
     return (
@@ -24,8 +25,16 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   if (!user) {
     console.log('ProtectedRoute - No user, redirecting to /auth');
-    window.location.href = '/auth';
-    return null;
+    return <Navigate to="/auth" state={{ from: location }} replace />;
+  }
+
+  // Check if onboarding is completed (skip for superadmins and admins)
+  const isSuperAdminOrAdmin = profile?.role === 'superadmin' || profile?.role === 'admin';
+  const onboardingCompleted = (profile as any)?.onboarding_completed;
+  
+  if (profile && !isSuperAdminOrAdmin && !onboardingCompleted && location.pathname !== '/onboarding') {
+    console.log('ProtectedRoute - Onboarding not completed, redirecting to /onboarding');
+    return <Navigate to="/onboarding" replace />;
   }
 
   return <>{children}</>;

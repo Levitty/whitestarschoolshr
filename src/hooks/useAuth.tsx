@@ -44,7 +44,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       is_active: data.is_active,
       status: data.status || 'pending',
       created_at: data.created_at,
-      updated_at: data.updated_at
+      updated_at: data.updated_at,
+      // Onboarding fields
+      id_number: data.id_number,
+      kra_pin: data.kra_pin,
+      birth_date: data.birth_date,
+      gender: data.gender,
+      sha_number: data.sha_number,
+      nssf_number: data.nssf_number,
+      tsc_number: data.tsc_number,
+      next_of_kin_name: data.next_of_kin_name,
+      next_of_kin_phone: data.next_of_kin_phone,
+      next_of_kin_relationship: data.next_of_kin_relationship,
+      physical_address: data.physical_address,
+      onboarding_completed: data.onboarding_completed
     };
   };
 

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -30,6 +29,7 @@ import Settings from '@/pages/Settings';
 import NotFound from '@/pages/NotFound';
 import Layout from '@/pages/Layout';
 import LeaveCalendar from '@/pages/LeaveCalendar';
+import Onboarding from '@/pages/Onboarding';
 
 const queryClient = new QueryClient();
 
@@ -49,7 +49,7 @@ function App() {
             <Route path="/job-details" element={<JobDetails />} />
             <Route path="/apply/:jobId" element={<Apply />} />
             <Route path="/apply" element={<Apply />} />
-            
+            <Route path="/onboarding" element={<Onboarding />} />
             {/* Protected routes with Layout */}
             <Route path="/dashboard" element={<Layout />}>
               <Route index element={<Dashboard />} />
