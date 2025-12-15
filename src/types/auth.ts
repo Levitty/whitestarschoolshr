@@ -19,6 +19,19 @@ export interface Profile {
   status: UserStatus | null;
   created_at: string | null;
   updated_at: string | null;
+  // Onboarding fields
+  id_number: string | null;
+  kra_pin: string | null;
+  birth_date: string | null;
+  gender: string | null;
+  sha_number: string | null;
+  nssf_number: string | null;
+  tsc_number: string | null;
+  next_of_kin_name: string | null;
+  next_of_kin_phone: string | null;
+  next_of_kin_relationship: string | null;
+  physical_address: string | null;
+  onboarding_completed: boolean | null;
 }
 
 export interface AuthContextType {
