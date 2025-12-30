@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Calendar, Clock, TrendingDown } from 'lucide-react';
+import { Calendar, Clock, Heart, BookOpen, Wallet } from 'lucide-react';
 
 interface LeaveBalance {
   id: string;
@@ -13,8 +13,12 @@ interface LeaveBalance {
   annual_leave_used: number;
   sick_leave_total: number;
   sick_leave_used: number;
-  personal_leave_total: number;
-  personal_leave_used: number;
+  maternity_leave_total: number;
+  maternity_leave_used: number;
+  study_leave_total: number;
+  study_leave_used: number;
+  unpaid_leave_total: number;
+  unpaid_leave_used: number;
 }
 
 const MyLeaveBalance = () => {
@@ -126,13 +130,31 @@ const MyLeaveBalance = () => {
       bgColor: 'bg-orange-50',
     },
     {
-      type: 'Personal Leave',
-      total: balance.personal_leave_total,
-      used: balance.personal_leave_used,
-      remaining: balance.personal_leave_total - balance.personal_leave_used,
-      icon: TrendingDown,
-      color: 'text-green-600',
-      bgColor: 'bg-green-50',
+      type: 'Maternity Leave',
+      total: balance.maternity_leave_total,
+      used: balance.maternity_leave_used,
+      remaining: balance.maternity_leave_total - balance.maternity_leave_used,
+      icon: Heart,
+      color: 'text-pink-600',
+      bgColor: 'bg-pink-50',
+    },
+    {
+      type: 'Study Leave',
+      total: balance.study_leave_total,
+      used: balance.study_leave_used,
+      remaining: balance.study_leave_total - balance.study_leave_used,
+      icon: BookOpen,
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-50',
+    },
+    {
+      type: 'Unpaid Leave',
+      total: balance.unpaid_leave_total,
+      used: balance.unpaid_leave_used,
+      remaining: balance.unpaid_leave_total - balance.unpaid_leave_used,
+      icon: Wallet,
+      color: 'text-gray-600',
+      bgColor: 'bg-gray-50',
     },
   ];
 
@@ -143,7 +165,7 @@ const MyLeaveBalance = () => {
         <p className="text-sm text-muted-foreground">View your available leave days</p>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           {leaveTypes.map((leave) => {
             const Icon = leave.icon;
             const percentageUsed = leave.total > 0 ? (leave.used / leave.total) * 100 : 0;

@@ -5,7 +5,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { User, Building, Mail, Lock, UserCheck } from 'lucide-react';
+import { useDepartments } from '@/hooks/useDepartments';
+import { User, Building, Mail, Lock, UserCheck, Loader2 } from 'lucide-react';
 import type { UserRole } from '@/types/auth';
 
 const StaffSignUpForm = () => {
@@ -18,19 +19,7 @@ const StaffSignUpForm = () => {
   
   const { signUp } = useAuth();
   const { toast } = useToast();
-
-  const departments = [
-    'Administration',
-    'Mathematics',
-    'English',
-    'Science',
-    'Social Studies',
-    'Physical Education',
-    'Arts',
-    'Technology',
-    'Special Education',
-    'Counseling'
-  ];
+  const { departments, loading: departmentsLoading } = useDepartments();
 
   // Staff-only roles (no superadmin)
   const staffRoles: { value: UserRole; label: string }[] = [
@@ -135,14 +124,21 @@ const StaffSignUpForm = () => {
         <Label htmlFor="staff-department">Department</Label>
         <div className="relative">
           <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 z-10" />
-          <Select value={department} onValueChange={setDepartment} required>
+          <Select value={department} onValueChange={setDepartment} required disabled={departmentsLoading}>
             <SelectTrigger className="pl-10">
-              <SelectValue placeholder="Select your department" />
+              {departmentsLoading ? (
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Loading...</span>
+                </div>
+              ) : (
+                <SelectValue placeholder="Select your department" />
+              )}
             </SelectTrigger>
             <SelectContent>
               {departments.map((dept) => (
-                <SelectItem key={dept} value={dept}>
-                  {dept}
+                <SelectItem key={dept.id} value={dept.name}>
+                  {dept.name}
                 </SelectItem>
               ))}
             </SelectContent>
