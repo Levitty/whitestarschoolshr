@@ -33,22 +33,22 @@ const Performance = () => {
       </div>
 
       <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="evaluations" className="flex items-center gap-2">
-            <Star className="h-4 w-4" />
-            Evaluations
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-1">
+          <TabsTrigger value="evaluations" className="flex items-center gap-1 text-xs md:text-sm px-2">
+            <Star className="h-3 w-3 md:h-4 md:w-4 flex-shrink-0" />
+            <span className="truncate">Evaluations</span>
           </TabsTrigger>
-          <TabsTrigger value="analytics" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            Analytics
+          <TabsTrigger value="analytics" className="flex items-center gap-1 text-xs md:text-sm px-2">
+            <BarChart3 className="h-3 w-3 md:h-4 md:w-4 flex-shrink-0" />
+            <span className="truncate">Analytics</span>
           </TabsTrigger>
-          <TabsTrigger value="goals" className="flex items-center gap-2">
-            <Target className="h-4 w-4" />
-            Goals & Development
+          <TabsTrigger value="goals" className="flex items-center gap-1 text-xs md:text-sm px-2">
+            <Target className="h-3 w-3 md:h-4 md:w-4 flex-shrink-0" />
+            <span className="truncate">Goals</span>
           </TabsTrigger>
-          <TabsTrigger value="feedback" className="flex items-center gap-2">
-            <MessageCircle className="h-4 w-4" />
-            Student & Parent Feedback
+          <TabsTrigger value="feedback" className="flex items-center gap-1 text-xs md:text-sm px-2">
+            <MessageCircle className="h-3 w-3 md:h-4 md:w-4 flex-shrink-0" />
+            <span className="truncate">Feedback</span>
           </TabsTrigger>
         </TabsList>
 
