@@ -41,19 +41,19 @@ export const getRoleColor = (role: UserRole | null): string => {
     case 'admin':
       return 'bg-red-900 border-red-800';
     case 'head':
-      return 'bg-purple-900 border-purple-800';
+      return 'bg-sky-600 border-sky-500';
     case 'teacher':
-      return 'bg-green-900 border-green-800';
+      return 'bg-sky-600 border-sky-500';
     case 'secretary':
-      return 'bg-pink-900 border-pink-800';
+      return 'bg-sky-600 border-sky-500';
     case 'driver':
-      return 'bg-yellow-900 border-yellow-800';
+      return 'bg-sky-600 border-sky-500';
     case 'support_staff':
-      return 'bg-orange-900 border-orange-800';
+      return 'bg-sky-600 border-sky-500';
     case 'staff':
-      return 'bg-blue-900 border-blue-800';
+      return 'bg-sky-600 border-sky-500';
     default:
-      return 'bg-blue-900 border-blue-800';
+      return 'bg-sky-600 border-sky-500';
   }
 };
 
