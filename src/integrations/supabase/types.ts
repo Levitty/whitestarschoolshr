@@ -869,10 +869,14 @@ export type Database = {
           created_at: string | null
           employee_id: string | null
           id: string
-          personal_leave_total: number | null
-          personal_leave_used: number | null
+          maternity_leave_total: number | null
+          maternity_leave_used: number | null
           sick_leave_total: number | null
           sick_leave_used: number | null
+          study_leave_total: number | null
+          study_leave_used: number | null
+          unpaid_leave_total: number | null
+          unpaid_leave_used: number | null
           updated_at: string | null
           year: number
         }
@@ -882,10 +886,14 @@ export type Database = {
           created_at?: string | null
           employee_id?: string | null
           id?: string
-          personal_leave_total?: number | null
-          personal_leave_used?: number | null
+          maternity_leave_total?: number | null
+          maternity_leave_used?: number | null
           sick_leave_total?: number | null
           sick_leave_used?: number | null
+          study_leave_total?: number | null
+          study_leave_used?: number | null
+          unpaid_leave_total?: number | null
+          unpaid_leave_used?: number | null
           updated_at?: string | null
           year: number
         }
@@ -895,10 +903,14 @@ export type Database = {
           created_at?: string | null
           employee_id?: string | null
           id?: string
-          personal_leave_total?: number | null
-          personal_leave_used?: number | null
+          maternity_leave_total?: number | null
+          maternity_leave_used?: number | null
           sick_leave_total?: number | null
           sick_leave_used?: number | null
+          study_leave_total?: number | null
+          study_leave_used?: number | null
+          unpaid_leave_total?: number | null
+          unpaid_leave_used?: number | null
           updated_at?: string | null
           year?: number
         }
@@ -977,6 +989,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      leave_settings: {
+        Row: {
+          annual_leave_total: number | null
+          created_at: string | null
+          id: string
+          maternity_leave_total: number | null
+          sick_leave_total: number | null
+          study_leave_total: number | null
+          unpaid_leave_total: number | null
+          updated_at: string | null
+          year: number
+        }
+        Insert: {
+          annual_leave_total?: number | null
+          created_at?: string | null
+          id?: string
+          maternity_leave_total?: number | null
+          sick_leave_total?: number | null
+          study_leave_total?: number | null
+          unpaid_leave_total?: number | null
+          updated_at?: string | null
+          year: number
+        }
+        Update: {
+          annual_leave_total?: number | null
+          created_at?: string | null
+          id?: string
+          maternity_leave_total?: number | null
+          sick_leave_total?: number | null
+          study_leave_total?: number | null
+          unpaid_leave_total?: number | null
+          updated_at?: string | null
+          year?: number
+        }
+        Relationships: []
       }
       letter_templates: {
         Row: {
