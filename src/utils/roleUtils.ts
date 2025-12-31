@@ -9,7 +9,7 @@ export const normalizeRole = (role: string | null): UserRole | null => {
   if (role === 'admin') return 'superadmin';
   
   // Validate role is one of the expected values
-  const validRoles: UserRole[] = ['superadmin', 'admin', 'head', 'teacher', 'staff', 'secretary', 'driver', 'support_staff'];
+  const validRoles: UserRole[] = ['superadmin', 'admin', 'head', 'deputy_head', 'teacher', 'staff', 'secretary', 'driver', 'support_staff'];
   return validRoles.includes(role as UserRole) ? (role as UserRole) : null;
 };
 
@@ -20,6 +20,8 @@ export const getRoleDisplayName = (role: UserRole | null): string => {
       return 'Super Administrator';
     case 'head':
       return 'Head Teacher';
+    case 'deputy_head':
+      return 'Deputy Head Teacher';
     case 'teacher':
       return 'Teacher';
     case 'secretary':
@@ -41,25 +43,21 @@ export const getRoleColor = (role: UserRole | null): string => {
     case 'admin':
       return 'bg-red-900 border-red-800';
     case 'head':
-      return 'bg-sky-600 border-sky-500';
+    case 'deputy_head':
     case 'teacher':
-      return 'bg-sky-600 border-sky-500';
     case 'secretary':
-      return 'bg-sky-600 border-sky-500';
     case 'driver':
-      return 'bg-sky-600 border-sky-500';
     case 'support_staff':
-      return 'bg-sky-600 border-sky-500';
     case 'staff':
-      return 'bg-sky-600 border-sky-500';
     default:
       return 'bg-sky-600 border-sky-500';
   }
 };
 
 export const getAvailableRoles = (): { value: UserRole; label: string }[] => [
-  { value: 'teacher', label: 'Teacher' },
   { value: 'head', label: 'Head Teacher' },
+  { value: 'deputy_head', label: 'Deputy Head Teacher' },
+  { value: 'teacher', label: 'Teacher' },
   { value: 'secretary', label: 'Secretary' },
   { value: 'driver', label: 'Driver' },
   { value: 'support_staff', label: 'Support Staff' },

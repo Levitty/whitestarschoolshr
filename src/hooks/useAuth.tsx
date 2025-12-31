@@ -121,7 +121,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signUp = async (email: string, password: string, fullName: string, department: string, role: UserRole) => {
+  const signUp = async (email: string, password: string, fullName: string, department: string, role: UserRole, branch?: string) => {
     setLoading(true);
     
     try {
@@ -141,6 +141,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               last_name: fullName.split(' ').slice(1).join(' ') || '',
               department: department,
               role: role,
+              branch: branch || null,
               is_superadmin: true // Flag to identify superadmin during profile creation
             }
           }
@@ -169,7 +170,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               first_name: fullName.split(' ')[0],
               last_name: fullName.split(' ').slice(1).join(' ') || '',
               department: department,
-              role: role
+              role: role,
+              branch: branch || null
             }
           }
         });
