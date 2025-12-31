@@ -11,6 +11,7 @@ export interface Profile {
   full_name: string | null;
   department: string | null;
   role: UserRole | null;
+  branch: string | null;
   avatar_url: string | null;
   phone: string | null;
   employee_id: string | null;

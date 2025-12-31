@@ -37,6 +37,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       full_name: data.first_name && data.last_name ? `${data.first_name} ${data.last_name}` : data.first_name || data.last_name || null,
       department: data.department,
       role: normalizedRole,
+      branch: data.branch,
       avatar_url: data.avatar_url,
       phone: data.phone,
       employee_id: data.employee_id,
