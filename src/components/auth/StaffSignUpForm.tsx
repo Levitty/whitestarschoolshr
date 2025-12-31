@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useDepartments } from '@/hooks/useDepartments';
-import { User, Building, Mail, Lock, UserCheck, Loader2 } from 'lucide-react';
+import { User, Building, Mail, Lock, UserCheck, Loader2, MapPin } from 'lucide-react';
 import type { UserRole } from '@/types/auth';
 
 const StaffSignUpForm = () => {
@@ -15,6 +15,7 @@ const StaffSignUpForm = () => {
   const [fullName, setFullName] = useState('');
   const [department, setDepartment] = useState('');
   const [role, setRole] = useState<UserRole>('staff');
+  const [branch, setBranch] = useState('');
   const [loading, setLoading] = useState(false);
   
   const { signUp } = useAuth();
@@ -23,29 +24,36 @@ const StaffSignUpForm = () => {
 
   // Staff-only roles (no superadmin)
   const staffRoles: { value: UserRole; label: string }[] = [
-    { value: 'staff', label: 'General Staff' },
+    { value: 'head', label: 'Head Teacher' },
+    { value: 'deputy_head', label: 'Deputy Head Teacher' },
     { value: 'teacher', label: 'Teacher' },
     { value: 'secretary', label: 'Secretary' },
     { value: 'driver', label: 'Driver' },
-    { value: 'support_staff', label: 'Support Staff' }
+    { value: 'support_staff', label: 'Support Staff' },
+    { value: 'staff', label: 'General Staff' }
+  ];
+
+  const branches = [
+    { value: 'langata', label: 'Langata Branch' },
+    { value: 'sabaki', label: 'Sabaki Branch' }
   ];
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!fullName || !department || !role) {
+    if (!fullName || !department || !role || !branch) {
       toast({
         title: "Missing Information",
-        description: "Please fill in all required fields.",
+        description: "Please fill in all required fields including branch.",
         variant: "destructive"
       });
       return;
     }
     
-    console.log('Starting staff signup process for:', { email, role, fullName, department });
+    console.log('Starting staff signup process for:', { email, role, fullName, department, branch });
     setLoading(true);
 
-    const { error } = await signUp(email, password, fullName, department, role);
+    const { error } = await signUp(email, password, fullName, department, role, branch);
     
     if (error) {
       console.error('Signup error:', error);
@@ -78,6 +86,7 @@ const StaffSignUpForm = () => {
       setFullName('');
       setDepartment('');
       setRole('staff');
+      setBranch('');
     }
     
     setLoading(false);
@@ -139,6 +148,25 @@ const StaffSignUpForm = () => {
               {departments.map((dept) => (
                 <SelectItem key={dept.id} value={dept.name}>
                   {dept.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="staff-branch">Branch</Label>
+        <div className="relative">
+          <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 z-10" />
+          <Select value={branch} onValueChange={setBranch} required>
+            <SelectTrigger className="pl-10">
+              <SelectValue placeholder="Select your branch" />
+            </SelectTrigger>
+            <SelectContent>
+              {branches.map((branchOption) => (
+                <SelectItem key={branchOption.value} value={branchOption.value}>
+                  {branchOption.label}
                 </SelectItem>
               ))}
             </SelectContent>

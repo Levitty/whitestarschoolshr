@@ -1215,6 +1215,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           birth_date: string | null
+          branch: string | null
           created_at: string | null
           department: string | null
           email: string
@@ -1244,6 +1245,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           birth_date?: string | null
+          branch?: string | null
           created_at?: string | null
           department?: string | null
           email: string
@@ -1273,6 +1275,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           birth_date?: string | null
+          branch?: string | null
           created_at?: string | null
           department?: string | null
           email?: string
@@ -1694,6 +1697,7 @@ export type Database = {
         | "secretary"
         | "driver"
         | "support_staff"
+        | "deputy_head"
       document_category:
         | "employment_records"
         | "disciplinary_records"
@@ -1844,6 +1848,7 @@ export const Constants = {
         "secretary",
         "driver",
         "support_staff",
+        "deputy_head",
       ],
       document_category: [
         "employment_records",
