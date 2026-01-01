@@ -1,42 +1,15 @@
-import { 
-  Home, 
-  Users, 
-  UserPlus, 
-  Briefcase, 
-  BarChart, 
-  FolderOpen, 
-  Calendar, 
-  GraduationCap, 
-  Settings, 
-  LogOut, 
-  Menu,
-  ChevronDown,
-  Clock,
-  DollarSign,
-  CalendarDays,
-  Ticket
-} from "lucide-react";
+import { Home, Users, UserPlus, Briefcase, BarChart, FolderOpen, Calendar, GraduationCap, Settings, LogOut, Menu, X } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { UserRole } from "@/types/auth";
-import { getRoleDisplayName } from "@/utils/roleUtils";
+import { getRoleDisplayName, getRoleColor } from "@/utils/roleUtils";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { cn } from "@/lib/utils";
-import logoImage from "@/assets/whitestar-logo.png";
-
 interface NavItem {
   path: string;
   label: string;
   icon: any;
-}
-
-interface NavGroup {
-  label: string;
-  icon: any;
-  items: NavItem[];
 }
 
 const RoleBasedNavigation = () => {
@@ -44,7 +17,8 @@ const RoleBasedNavigation = () => {
   const navigate = useNavigate();
   const { signOut, profile } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
-  const [openGroups, setOpenGroups] = useState<string[]>(["Dashboard"]);
+
+  console.log('Current profile:', profile);
 
   const isActive = (path: string) => {
     return location.pathname === path;
@@ -56,170 +30,61 @@ const RoleBasedNavigation = () => {
 
   const handleNavigation = (path: string) => {
     navigate(path);
-    setIsOpen(false);
+    setIsOpen(false); // Close mobile menu after navigation
   };
 
-  const toggleGroup = (label: string) => {
-    setOpenGroups(prev => 
-      prev.includes(label) 
-        ? prev.filter(g => g !== label)
-        : [...prev, label]
-    );
-  };
-
-  const superAdminNavGroups: NavGroup[] = [
-    {
-      label: "Dashboard",
-      icon: Home,
-      items: [
-        { path: "/dashboard", label: "Overview", icon: Home },
-      ]
-    },
-    {
-      label: "Employee Management",
-      icon: Users,
-      items: [
-        { path: "/employees", label: "All Employees", icon: Users },
-        { path: "/recruitment", label: "Recruitment", icon: UserPlus },
-        { path: "/applications", label: "Applications", icon: Briefcase },
-      ]
-    },
-    {
-      label: "Attendance Management",
-      icon: Clock,
-      items: [
-        { path: "/performance", label: "Performance", icon: BarChart },
-        { path: "/upskilling", label: "Training", icon: GraduationCap },
-      ]
-    },
-    {
-      label: "Payroll Management",
-      icon: DollarSign,
-      items: [
-        { path: "/records", label: "Documents", icon: FolderOpen },
-      ]
-    },
-    {
-      label: "Leaves",
-      icon: CalendarDays,
-      items: [
-        { path: "/leave", label: "Leave Management", icon: Calendar },
-      ]
-    },
-    {
-      label: "Settings",
-      icon: Settings,
-      items: [
-        { path: "/tickets", label: "Support Tickets", icon: Ticket },
-        { path: "/settings", label: "System Settings", icon: Settings },
-      ]
-    },
+  const superAdminNavItems: NavItem[] = [
+    { path: "/dashboard", label: "Dashboard", icon: Home },
+    { path: "/employees", label: "Employees", icon: Users },
+    { path: "/recruitment", label: "Recruitment", icon: UserPlus },
+    { path: "/applications", label: "Applications", icon: Briefcase },
+    { path: "/performance", label: "Performance", icon: BarChart },
+    { path: "/records", label: "Documents", icon: FolderOpen },
+    { path: "/leave", label: "Leave Management", icon: Calendar },
+    { path: "/upskilling", label: "Training", icon: GraduationCap },
+    { path: "/tickets", label: "Support Tickets", icon: Settings },
+    { path: "/settings", label: "System Settings", icon: Settings },
   ];
 
-  const headNavGroups: NavGroup[] = [
-    {
-      label: "Dashboard",
-      icon: Home,
-      items: [
-        { path: "/dashboard", label: "Overview", icon: Home },
-      ]
-    },
-    {
-      label: "Team Management",
-      icon: Users,
-      items: [
-        { path: "/employees", label: "My Team", icon: Users },
-        { path: "/recruitment", label: "Recruitment", icon: UserPlus },
-        { path: "/applications", label: "Applications", icon: Briefcase },
-      ]
-    },
-    {
-      label: "Performance",
-      icon: BarChart,
-      items: [
-        { path: "/performance", label: "Team Performance", icon: BarChart },
-        { path: "/upskilling", label: "Team Training", icon: GraduationCap },
-      ]
-    },
-    {
-      label: "Documents",
-      icon: FolderOpen,
-      items: [
-        { path: "/records", label: "Team Documents", icon: FolderOpen },
-      ]
-    },
-    {
-      label: "Leaves",
-      icon: CalendarDays,
-      items: [
-        { path: "/leave", label: "Leave Approvals", icon: Calendar },
-      ]
-    },
-    {
-      label: "Support",
-      icon: Ticket,
-      items: [
-        { path: "/tickets", label: "Support", icon: Ticket },
-      ]
-    },
+  const headNavItems: NavItem[] = [
+    { path: "/dashboard", label: "Dashboard", icon: Home },
+    { path: "/employees", label: "My Team", icon: Users },
+    { path: "/recruitment", label: "Recruitment", icon: UserPlus },
+    { path: "/applications", label: "Applications", icon: Briefcase },
+    { path: "/performance", label: "Team Performance", icon: BarChart },
+    { path: "/records", label: "Team Documents", icon: FolderOpen },
+    { path: "/leave", label: "Leave Approvals", icon: Calendar },
+    { path: "/upskilling", label: "Team Training", icon: GraduationCap },
+    { path: "/tickets", label: "Support", icon: Settings },
   ];
 
-  const teacherStaffNavGroups: NavGroup[] = [
-    {
-      label: "Dashboard",
-      icon: Home,
-      items: [
-        { path: "/dashboard", label: "Overview", icon: Home },
-      ]
-    },
-    {
-      label: "My Profile",
-      icon: Users,
-      items: [
-        { path: "/performance", label: "My Performance", icon: BarChart },
-        { path: "/upskilling", label: "My Training", icon: GraduationCap },
-      ]
-    },
-    {
-      label: "Leave",
-      icon: CalendarDays,
-      items: [
-        { path: "/leave", label: "My Leave", icon: Calendar },
-      ]
-    },
-    {
-      label: "Documents",
-      icon: FolderOpen,
-      items: [
-        { path: "/records", label: "My Documents", icon: FolderOpen },
-      ]
-    },
-    {
-      label: "Support",
-      icon: Ticket,
-      items: [
-        { path: "/tickets", label: "Support", icon: Ticket },
-      ]
-    },
+  const teacherStaffNavItems: NavItem[] = [
+    { path: "/dashboard", label: "Dashboard", icon: Home },
+    { path: "/leave", label: "My Leave", icon: Calendar },
+    { path: "/performance", label: "My Performance", icon: BarChart },
+    { path: "/upskilling", label: "My Training", icon: GraduationCap },
+    { path: "/records", label: "My Documents", icon: FolderOpen },
+    { path: "/tickets", label: "Support", icon: Settings },
   ];
 
-  let navGroups: NavGroup[] = [];
+  let navItems: NavItem[] = [];
 
   const userRole = profile?.role;
+  console.log('User role:', userRole);
 
   switch (userRole) {
     case "superadmin":
-    case "admin":
-      navGroups = superAdminNavGroups;
+    case "admin": // Handle both for backward compatibility
+      navItems = superAdminNavItems;
+      console.log('Assigned superadmin navigation items');
       break;
     case "head":
-    case "deputy_head":
-      navGroups = headNavGroups;
+      navItems = headNavItems;
       break;
     case "teacher":
     case "staff":
     default:
-      navGroups = teacherStaffNavGroups;
+      navItems = teacherStaffNavItems;
       break;
   }
 
@@ -228,76 +93,40 @@ const RoleBasedNavigation = () => {
   }
 
   const NavigationContent = () => (
-    <div className="bg-[hsl(var(--sidebar-background))] text-[hsl(var(--sidebar-foreground))] h-full flex flex-col">
-      {/* Logo Header */}
-      <div className="p-6 border-b border-[hsl(var(--sidebar-border))]">
-        <div className="flex items-center gap-3">
-          <img src={logoImage} alt="Whitestar" className="h-10 w-10 rounded-lg" />
-          <div>
-            <h1 className="text-lg font-bold text-white">Whitestar</h1>
-            <p className="text-xs text-[hsl(var(--sidebar-muted))]">HR Portal</p>
-          </div>
-        </div>
+    <div className={`text-white h-full flex flex-col ${getRoleColor(profile?.role)}`}>
+      <div className="p-6 border-b border-opacity-20 border-white">
+        <h1 className="text-xl font-bold text-white">HR Portal</h1>
+        <p className="text-xs text-white/70 mt-1">{getRoleDisplayName(profile?.role)}</p>
+        <p className="text-xs text-white/50 mt-1">Role: {profile?.role}</p>
       </div>
       
-      {/* Navigation Groups */}
-      <nav className="flex-1 overflow-y-auto py-4">
-        {navGroups.map((group) => (
-          <Collapsible 
-            key={group.label} 
-            open={openGroups.includes(group.label)}
-            onOpenChange={() => toggleGroup(group.label)}
+      <nav className="px-4 py-6 space-y-1 flex-1">
+        {navItems.map((item) => (
+          <button
+            key={item.path}
+            onClick={() => handleNavigation(item.path)}
+            className={`w-full flex items-center space-x-3 rounded-lg p-3 text-sm font-medium transition-all duration-200 text-left ${
+              isActive(item.path) 
+                ? "bg-white/20 text-white shadow-md" 
+                : "text-white/80 hover:bg-white/10 hover:text-white"
+            }`}
           >
-            <CollapsibleTrigger className="w-full">
-              <div className={cn(
-                "flex items-center justify-between px-4 py-2.5 mx-2 rounded-lg text-sm font-medium transition-colors",
-                "hover:bg-[hsl(var(--sidebar-accent))]",
-                openGroups.includes(group.label) && "text-white"
-              )}>
-                <div className="flex items-center gap-3">
-                  <group.icon className="h-5 w-5" />
-                  <span>{group.label}</span>
-                </div>
-                <ChevronDown className={cn(
-                  "h-4 w-4 transition-transform duration-200",
-                  openGroups.includes(group.label) && "rotate-180"
-                )} />
-              </div>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <div className="ml-4 mt-1 space-y-1">
-                {group.items.map((item) => (
-                  <button
-                    key={item.path}
-                    onClick={() => handleNavigation(item.path)}
-                    className={cn(
-                      "w-full flex items-center gap-3 px-4 py-2 mx-2 rounded-lg text-sm transition-colors text-left",
-                      isActive(item.path) 
-                        ? "bg-[hsl(var(--sidebar-primary))] text-white font-medium" 
-                        : "text-[hsl(var(--sidebar-muted))] hover:bg-[hsl(var(--sidebar-accent))] hover:text-white"
-                    )}
-                  >
-                    <item.icon className="h-4 w-4" />
-                    <span>{item.label}</span>
-                  </button>
-                ))}
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
+            <item.icon className="h-5 w-5" />
+            <span>{item.label}</span>
+          </button>
         ))}
       </nav>
       
-      {/* User Profile & Sign Out */}
-      <div className="p-4 border-t border-[hsl(var(--sidebar-border))]">
-        <div className="flex items-center gap-3 mb-3 px-2">
-          <div className="w-10 h-10 bg-[hsl(var(--sidebar-accent))] rounded-full flex items-center justify-center text-white font-medium">
+      <div className="p-4 bg-black/20 border-t border-white/20">
+        <div className="flex items-center space-x-3 mb-3">
+          <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center text-white font-medium text-sm">
             {profile?.full_name?.charAt(0).toUpperCase() || 'U'}
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-white truncate">
               {profile?.full_name || 'User'}
             </p>
-            <p className="text-xs text-[hsl(var(--sidebar-muted))]">
+            <p className="text-xs text-white/70">
               {getRoleDisplayName(profile?.role)}
             </p>
           </div>
@@ -305,9 +134,9 @@ const RoleBasedNavigation = () => {
         
         <button
           onClick={handleSignOut}
-          className="w-full flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium text-[hsl(var(--sidebar-muted))] hover:bg-[hsl(var(--sidebar-accent))] hover:text-white transition-colors"
+          className="w-full flex items-center space-x-3 rounded-lg p-2 text-sm font-medium text-white/80 hover:bg-white/10 hover:text-white transition-all duration-200"
         >
-          <LogOut className="h-5 w-5" />
+          <LogOut className="h-4 w-4" />
           <span>Sign Out</span>
         </button>
       </div>
@@ -316,7 +145,7 @@ const RoleBasedNavigation = () => {
 
   return (
     <>
-      {/* Mobile Menu Button */}
+      {/* Mobile Menu Button - Fixed at top */}
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetTrigger asChild>
           <Button
@@ -327,13 +156,13 @@ const RoleBasedNavigation = () => {
             <Menu className="h-5 w-5" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="p-0 w-64 border-none">
+        <SheetContent side="left" className="p-0 w-64">
           <NavigationContent />
         </SheetContent>
       </Sheet>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex w-64 shadow-xl flex-shrink-0">
+      <aside className="hidden lg:flex w-64 shadow-xl">
         <NavigationContent />
       </aside>
     </>
