@@ -415,85 +415,93 @@ const DocumentsList: React.FC<DocumentsListProps> = ({ employeeId }) => {
           </div>
         </div>
         
-        {/* Search and Filters */}
-        <div className="space-y-4">
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Search documents..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    // Trigger search on Enter key
-                    setSearchTerm(searchTerm);
-                  }
+        {/* Search and Filters - only show if not filtering by specific employee from props */}
+        {!employeeId && (
+          <div className="space-y-4">
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search documents..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      setSearchTerm(searchTerm);
+                    }
+                  }}
+                />
+              </div>
+              <Button 
+                variant="default"
+                onClick={() => setSearchTerm(searchTerm)}
+                className="shrink-0"
+              >
+                <Search className="h-4 w-4 mr-2" />
+                Search
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setSearchTerm('');
+                  setSelectedEmployee('all');
+                  setSelectedCategory('all');
+                  setSelectedStatus('all');
                 }}
-              />
+                className="shrink-0"
+              >
+                Clear Filters
+              </Button>
             </div>
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                // Clear all filters
-                setSearchTerm('');
-                setSelectedEmployee('all');
-                setSelectedCategory('all');
-                setSelectedStatus('all');
-              }}
-              className="shrink-0"
-            >
-              Clear Filters
-            </Button>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {isPrivileged && (
-              <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {isPrivileged && (
+                <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Filter by Employee" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Employees</SelectItem>
+                    {allDocumentOwners.map((owner) => (
+                      <SelectItem key={owner.id} value={owner.id}>
+                        {owner.first_name} {owner.last_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Filter by Employee" />
+                  <SelectValue placeholder="Filter by Category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Employees</SelectItem>
-                  {allDocumentOwners.map((owner) => (
-                    <SelectItem key={owner.id} value={owner.id}>
-                      {owner.first_name} {owner.last_name}
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {categories.map((category) => (
+                    <SelectItem key={category.value} value={category.value}>
+                      {category.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-            )}
-            
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filter by Category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                {categories.map((category) => (
-                  <SelectItem key={category.value} value={category.value}>
-                    {category.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            
-            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filter by Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                {statuses.map((status) => (
-                  <SelectItem key={status.value} value={status.value}>
-                    {status.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              
+              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Filter by Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  {statuses.map((status) => (
+                    <SelectItem key={status.value} value={status.value}>
+                      {status.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-        </div>
+        )}
       </CardHeader>
       <CardContent>
         {filteredDocuments.length === 0 ? (

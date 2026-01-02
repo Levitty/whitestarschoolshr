@@ -26,6 +26,7 @@ const AddEmployeeForm = () => {
     address: '',
     position: '',
     department: '',
+    branch: '',
     hire_date: '',
     salary: '',
     contract_type: 'full-time',
@@ -94,6 +95,7 @@ const AddEmployeeForm = () => {
         address: formData.address || null,
         position: formData.position,
         department: formData.department,
+        branch: formData.branch || null,
         hire_date: formData.hire_date,
         salary: formData.salary ? parseFloat(formData.salary) : null,
         contract_type: formData.contract_type,
@@ -131,6 +133,7 @@ const AddEmployeeForm = () => {
           address: '',
           position: '',
           department: '',
+          branch: '',
           hire_date: '',
           salary: '',
           contract_type: 'full-time',
@@ -288,6 +291,19 @@ const AddEmployeeForm = () => {
                           <SelectItem key={dept.id} value={dept.name}>{dept.name}</SelectItem>
                         ))
                       )}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="branch">Branch</Label>
+                  <Select value={formData.branch} onValueChange={(value) => handleInputChange('branch', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select branch" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="langata">Langata</SelectItem>
+                      <SelectItem value="sabaki">Sabaki</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
