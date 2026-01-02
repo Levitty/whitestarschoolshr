@@ -93,48 +93,60 @@ const RoleBasedNavigation = () => {
   }
 
   const NavigationContent = () => (
-    <div className={`text-white h-full flex flex-col ${getRoleColor(profile?.role)}`}>
-      <div className="p-6 border-b border-opacity-20 border-white">
-        <h1 className="text-xl font-bold text-white">HR Portal</h1>
-        <p className="text-xs text-white/70 mt-1">{getRoleDisplayName(profile?.role)}</p>
-        <p className="text-xs text-white/50 mt-1">Role: {profile?.role}</p>
+    <div className="h-full flex flex-col bg-card border-r border-border">
+      {/* Logo & Brand */}
+      <div className="p-6 border-b border-border">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
+            <span className="text-primary-foreground font-bold text-lg">HR</span>
+          </div>
+          <div>
+            <h1 className="text-lg font-semibold text-foreground">HR Portal</h1>
+            <p className="text-xs text-muted-foreground">{getRoleDisplayName(profile?.role)}</p>
+          </div>
+        </div>
       </div>
       
-      <nav className="px-4 py-6 space-y-1 flex-1">
+      {/* Navigation */}
+      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        <p className="px-3 text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">Menu</p>
         {navItems.map((item) => (
           <button
             key={item.path}
             onClick={() => handleNavigation(item.path)}
-            className={`w-full flex items-center space-x-3 rounded-lg p-3 text-sm font-medium transition-all duration-200 text-left ${
+            className={`w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 text-left ${
               isActive(item.path) 
-                ? "bg-white/20 text-white shadow-md" 
-                : "text-white/80 hover:bg-white/10 hover:text-white"
+                ? "bg-primary text-primary-foreground shadow-sm" 
+                : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
             }`}
           >
-            <item.icon className="h-5 w-5" />
+            <item.icon className="h-5 w-5 flex-shrink-0" />
             <span>{item.label}</span>
           </button>
         ))}
       </nav>
       
-      <div className="p-4 bg-black/20 border-t border-white/20">
-        <div className="flex items-center space-x-3 mb-3">
-          <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center text-white font-medium text-sm">
-            {profile?.full_name?.charAt(0).toUpperCase() || 'U'}
+      {/* User Profile Section */}
+      <div className="p-4 border-t border-border">
+        <div className="flex items-center gap-3 p-2 rounded-lg bg-muted/50">
+          <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
+            <span className="text-primary font-semibold text-sm">
+              {profile?.full_name?.charAt(0).toUpperCase() || 'U'}
+            </span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-white truncate">
+            <p className="text-sm font-medium text-foreground truncate">
               {profile?.full_name || 'User'}
             </p>
-            <p className="text-xs text-white/70">
-              {getRoleDisplayName(profile?.role)}
+            <p className="text-xs text-muted-foreground truncate">
+              {profile?.email}
             </p>
           </div>
         </div>
         
         <button
           onClick={handleSignOut}
-          className="w-full flex items-center space-x-3 rounded-lg p-2 text-sm font-medium text-white/80 hover:bg-white/10 hover:text-white transition-all duration-200"
+          className="w-full flex items-center gap-3 rounded-lg px-3 py-2.5 mt-2 text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all duration-200"
         >
           <LogOut className="h-4 w-4" />
           <span>Sign Out</span>
