@@ -2,13 +2,15 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Settings as SettingsIcon, FileText, Users, Shield, Bell, UserCheck } from 'lucide-react';
+import { Settings as SettingsIcon, FileText, Users, Shield, Bell, UserCheck, Tag } from 'lucide-react';
 import RoleGuard from '@/components/RoleGuard';
 import SuperAdminSetup from '@/components/SuperAdminSetup';
 import RolePermissionsManager from '@/components/RolePermissionsManager';
 import AccountApprovalManager from '@/components/AccountApprovalManager';
 import DepartmentManager from '@/components/DepartmentManager';
 import { EmployeeProfileLinker } from '@/components/EmployeeProfileLinker';
+import LetterCategoryManager from '@/components/LetterCategoryManager';
+import DocumentTemplateManager from '@/components/DocumentTemplateManager';
 
 const Settings = () => {
   return (
@@ -29,14 +31,15 @@ const Settings = () => {
           </div>
 
           <Tabs defaultValue="approvals" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-8">
-              <TabsTrigger value="approvals">Account Approvals</TabsTrigger>
-              <TabsTrigger value="permissions">Role Permissions</TabsTrigger>
-              <TabsTrigger value="users">User Management</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-9">
+              <TabsTrigger value="approvals">Approvals</TabsTrigger>
+              <TabsTrigger value="permissions">Permissions</TabsTrigger>
+              <TabsTrigger value="users">Users</TabsTrigger>
               <TabsTrigger value="departments">Departments</TabsTrigger>
-              <TabsTrigger value="employee-linking">Employee Linking</TabsTrigger>
+              <TabsTrigger value="employee-linking">Linking</TabsTrigger>
               <TabsTrigger value="templates">Templates</TabsTrigger>
-              <TabsTrigger value="notifications">Notifications</TabsTrigger>
+              <TabsTrigger value="categories">Categories</TabsTrigger>
+              <TabsTrigger value="notifications">Alerts</TabsTrigger>
               <TabsTrigger value="system">System</TabsTrigger>
             </TabsList>
 
@@ -61,21 +64,11 @@ const Settings = () => {
             </TabsContent>
 
             <TabsContent value="templates">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <Card className="bg-white/90 backdrop-blur-sm border-blue-200 hover:shadow-lg transition-all duration-200 cursor-pointer hover:scale-105">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-3 text-blue-900">
-                      <FileText className="h-6 w-6 text-blue-600" />
-                      Letter Templates
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-slate-600 text-sm">
-                      Manage document templates for letters, certificates, and other official documents
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
+              <DocumentTemplateManager />
+            </TabsContent>
+
+            <TabsContent value="categories">
+              <LetterCategoryManager />
             </TabsContent>
 
             <TabsContent value="notifications">
