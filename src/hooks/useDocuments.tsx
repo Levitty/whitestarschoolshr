@@ -40,14 +40,18 @@ export const useDocuments = () => {
 
       // If we have documents, enrich them with employee data
       if (documentsData && documentsData.length > 0) {
-        // First, get all active employee profile_ids
+        // First, get all active employees with both id and profile_id
         const { data: activeEmployees } = await supabase
           .from('employee_profiles')
-          .select('profile_id')
+          .select('id, profile_id')
           .eq('status', 'active');
         
-        const activeEmployeeIds = new Set(
+        // Create sets for both employee_profiles.id and profile_id
+        const activeProfileIds = new Set(
           (activeEmployees || []).map(emp => emp.profile_id).filter(Boolean)
+        );
+        const activeEmployeeProfileIds = new Set(
+          (activeEmployees || []).map(emp => emp.id).filter(Boolean)
         );
         
         // Get all admin/superadmin user IDs
@@ -60,7 +64,8 @@ export const useDocuments = () => {
           (adminUsers || []).map(user => user.id)
         );
         
-        console.log('Active employee IDs:', Array.from(activeEmployeeIds));
+        console.log('Active profile IDs:', Array.from(activeProfileIds));
+        console.log('Active employee profile IDs:', Array.from(activeEmployeeProfileIds));
         console.log('Admin user IDs:', Array.from(adminUserIds));
         
         const enrichedDocuments = await Promise.all(
@@ -82,8 +87,22 @@ export const useDocuments = () => {
                   isActive = true; // Admin documents always show
                 }
               } 
-              // Check if this employee_id belongs to an active employee
-              else if (activeEmployeeIds.has(doc.employee_id)) {
+              // Check if this employee_id is an employee_profiles.id (direct reference)
+              else if (activeEmployeeProfileIds.has(doc.employee_id)) {
+                const { data: empProfile } = await supabase
+                  .from('employee_profiles')
+                  .select('id, profile_id, first_name, last_name, email, department, status')
+                  .eq('id', doc.employee_id)
+                  .eq('status', 'active')
+                  .maybeSingle();
+                
+                if (empProfile) {
+                  employeeData = { employee_profile: empProfile };
+                  isActive = true;
+                }
+              }
+              // Check if this employee_id belongs to an active employee via profile_id
+              else if (activeProfileIds.has(doc.employee_id)) {
                 const { data: empProfile } = await supabase
                   .from('employee_profiles')
                   .select('id, profile_id, first_name, last_name, email, department, status')
