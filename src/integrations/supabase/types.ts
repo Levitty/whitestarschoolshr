@@ -361,6 +361,7 @@ export type Database = {
         Row: {
           address: string | null
           avatar_url: string | null
+          branch: string | null
           contract_duration_months: number | null
           contract_end_date: string | null
           contract_reminder_sent: boolean | null
@@ -387,6 +388,7 @@ export type Database = {
         Insert: {
           address?: string | null
           avatar_url?: string | null
+          branch?: string | null
           contract_duration_months?: number | null
           contract_end_date?: string | null
           contract_reminder_sent?: boolean | null
@@ -413,6 +415,7 @@ export type Database = {
         Update: {
           address?: string | null
           avatar_url?: string | null
+          branch?: string | null
           contract_duration_months?: number | null
           contract_end_date?: string | null
           contract_reminder_sent?: boolean | null
