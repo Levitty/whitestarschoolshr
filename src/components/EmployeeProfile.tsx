@@ -337,11 +337,94 @@ const EmployeeProfile = ({ employee, onClose, onEmployeeUpdated }: EmployeeProfi
 
                   <div>
                     <Label>Employee Number</Label>
-                    <p className="text-sm text-gray-600">{employee.employee_number}</p>
+                    <p className="text-sm text-muted-foreground">{employee.employee_number}</p>
                   </div>
+
+                  {employee.branch && (
+                    <div>
+                      <Label>Branch</Label>
+                      <p className="text-sm text-muted-foreground">{employee.branch}</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
+
+            {/* Statutory Information (from onboarding) */}
+            {employee.profile_data && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    Statutory Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <Label>ID Number</Label>
+                      <p className="text-sm text-muted-foreground">{employee.profile_data.id_number || 'Not provided'}</p>
+                    </div>
+                    <div>
+                      <Label>KRA PIN</Label>
+                      <p className="text-sm text-muted-foreground">{employee.profile_data.kra_pin || 'Not provided'}</p>
+                    </div>
+                    <div>
+                      <Label>SHA Number</Label>
+                      <p className="text-sm text-muted-foreground">{employee.profile_data.sha_number || 'Not provided'}</p>
+                    </div>
+                    <div>
+                      <Label>NSSF Number</Label>
+                      <p className="text-sm text-muted-foreground">{employee.profile_data.nssf_number || 'Not provided'}</p>
+                    </div>
+                    <div>
+                      <Label>TSC Number</Label>
+                      <p className="text-sm text-muted-foreground">{employee.profile_data.tsc_number || 'Not provided'}</p>
+                    </div>
+                    <div>
+                      <Label>Date of Birth</Label>
+                      <p className="text-sm text-muted-foreground">{employee.profile_data.birth_date || 'Not provided'}</p>
+                    </div>
+                    <div>
+                      <Label>Gender</Label>
+                      <p className="text-sm text-muted-foreground">{employee.profile_data.gender || 'Not provided'}</p>
+                    </div>
+                    <div className="md:col-span-2">
+                      <Label>Physical Address</Label>
+                      <p className="text-sm text-muted-foreground">{employee.profile_data.physical_address || 'Not provided'}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Next of Kin (from onboarding) */}
+            {employee.profile_data && (employee.profile_data.next_of_kin_name || employee.profile_data.next_of_kin_phone) && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <User className="h-5 w-5" />
+                    Next of Kin
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <Label>Name</Label>
+                      <p className="text-sm text-muted-foreground">{employee.profile_data.next_of_kin_name || 'Not provided'}</p>
+                    </div>
+                    <div>
+                      <Label>Relationship</Label>
+                      <p className="text-sm text-muted-foreground">{employee.profile_data.next_of_kin_relationship || 'Not provided'}</p>
+                    </div>
+                    <div>
+                      <Label>Phone</Label>
+                      <p className="text-sm text-muted-foreground">{employee.profile_data.next_of_kin_phone || 'Not provided'}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Emergency Contact */}
             <Card>
@@ -361,7 +444,7 @@ const EmployeeProfile = ({ employee, onClose, onEmployeeUpdated }: EmployeeProfi
                         onChange={(e) => setEditData(prev => ({ ...prev, emergency_contact_name: e.target.value }))}
                       />
                     ) : (
-                      <p className="text-sm text-gray-600">{employee.emergency_contact_name || 'Not provided'}</p>
+                      <p className="text-sm text-muted-foreground">{employee.emergency_contact_name || 'Not provided'}</p>
                     )}
                   </div>
                   <div>
@@ -372,7 +455,7 @@ const EmployeeProfile = ({ employee, onClose, onEmployeeUpdated }: EmployeeProfi
                         onChange={(e) => setEditData(prev => ({ ...prev, emergency_contact_relationship: e.target.value }))}
                       />
                     ) : (
-                      <p className="text-sm text-gray-600">{employee.emergency_contact_relationship || 'Not provided'}</p>
+                      <p className="text-sm text-muted-foreground">{employee.emergency_contact_relationship || 'Not provided'}</p>
                     )}
                   </div>
                   <div>
@@ -383,7 +466,7 @@ const EmployeeProfile = ({ employee, onClose, onEmployeeUpdated }: EmployeeProfi
                         onChange={(e) => setEditData(prev => ({ ...prev, emergency_contact_phone: e.target.value }))}
                       />
                     ) : (
-                      <p className="text-sm text-gray-600">{employee.emergency_contact_phone || 'Not provided'}</p>
+                      <p className="text-sm text-muted-foreground">{employee.emergency_contact_phone || 'Not provided'}</p>
                     )}
                   </div>
                 </div>

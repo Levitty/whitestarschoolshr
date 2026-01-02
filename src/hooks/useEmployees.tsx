@@ -5,9 +5,15 @@ import { Database } from '@/integrations/supabase/types';
 
 type EmployeeProfile = Database['public']['Tables']['employee_profiles']['Row'];
 type EmployeeProfileInsert = Database['public']['Tables']['employee_profiles']['Insert'];
+type Profile = Database['public']['Tables']['profiles']['Row'];
+
+// Extended type that includes profile data
+export type EmployeeWithProfile = EmployeeProfile & {
+  profile_data?: Partial<Profile> | null;
+};
 
 export const useEmployees = () => {
-  const [employees, setEmployees] = useState<EmployeeProfile[]>([]);
+  const [employees, setEmployees] = useState<EmployeeWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -24,10 +30,28 @@ export const useEmployees = () => {
 
       if (error) {
         console.error('Error fetching employees:', error);
-      } else {
-        console.log('Fetched employees:', data?.length || 0);
-        setEmployees(data || []);
+        setLoading(false);
+        return;
       }
+
+      // Enrich with profile data for onboarding info
+      const enrichedEmployees: EmployeeWithProfile[] = await Promise.all(
+        (data || []).map(async (emp) => {
+          if (emp.profile_id) {
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('id_number, kra_pin, sha_number, nssf_number, tsc_number, birth_date, gender, next_of_kin_name, next_of_kin_phone, next_of_kin_relationship, physical_address')
+              .eq('id', emp.profile_id)
+              .maybeSingle();
+            
+            return { ...emp, profile_data: profileData };
+          }
+          return { ...emp, profile_data: null };
+        })
+      );
+
+      console.log('Fetched employees:', enrichedEmployees?.length || 0);
+      setEmployees(enrichedEmployees);
     } catch (error) {
       console.error('Error fetching employees:', error);
     } finally {

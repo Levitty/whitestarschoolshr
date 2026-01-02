@@ -62,6 +62,49 @@ export const useDocumentTemplates = () => {
     }
   };
 
+  const updateTemplate = async (id: string, template: Partial<Omit<DocumentTemplateInsert, 'id' | 'created_at' | 'created_by'>>) => {
+    if (!user) return { error: 'No user found' };
+
+    try {
+      const { error } = await supabase
+        .from('document_templates')
+        .update({
+          ...template,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id);
+
+      if (error) {
+        return { error };
+      }
+
+      await fetchTemplates();
+      return { error: null };
+    } catch (error) {
+      return { error };
+    }
+  };
+
+  const deleteTemplate = async (id: string) => {
+    if (!user) return { error: 'No user found' };
+
+    try {
+      const { error } = await supabase
+        .from('document_templates')
+        .update({ is_active: false })
+        .eq('id', id);
+
+      if (error) {
+        return { error };
+      }
+
+      await fetchTemplates();
+      return { error: null };
+    } catch (error) {
+      return { error };
+    }
+  };
+
   const generateDocument = async (
     templateId: string, 
     variables: Record<string, string>,
@@ -117,6 +160,8 @@ export const useDocumentTemplates = () => {
     loading,
     fetchTemplates,
     createTemplate,
+    updateTemplate,
+    deleteTemplate,
     generateDocument
   };
 };
