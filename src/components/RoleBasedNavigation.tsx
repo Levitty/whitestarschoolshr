@@ -1,11 +1,13 @@
-import { Home, Users, UserPlus, Briefcase, BarChart, FolderOpen, Calendar, GraduationCap, Settings, LogOut, Menu, X } from "lucide-react";
+import { Home, Users, UserPlus, Briefcase, BarChart, FolderOpen, Calendar, GraduationCap, Settings, LogOut, Menu, X, Crown } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { UserRole } from "@/types/auth";
 import { getRoleDisplayName, getRoleColor } from "@/utils/roleUtils";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+
 interface NavItem {
   path: string;
   label: string;
@@ -15,8 +17,22 @@ interface NavItem {
 const RoleBasedNavigation = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { signOut, profile } = useAuth();
+  const { signOut, profile, user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const [isSaasAdmin, setIsSaasAdmin] = useState(false);
+
+  useEffect(() => {
+    const checkSaasAdmin = async () => {
+      if (!user) return;
+      const { data } = await supabase
+        .from('saas_admins')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      setIsSaasAdmin(!!data);
+    };
+    checkSaasAdmin();
+  }, [user]);
 
   console.log('Current profile:', profile);
 
@@ -124,6 +140,24 @@ const RoleBasedNavigation = () => {
             <span>{item.label}</span>
           </button>
         ))}
+        {/* SaaS Admin Link */}
+        {isSaasAdmin && (
+          <>
+            <div className="my-4 border-t border-border"></div>
+            <p className="px-3 text-xs font-medium text-amber-600 uppercase tracking-wider mb-3">Platform Admin</p>
+            <button
+              onClick={() => handleNavigation('/saas-admin')}
+              className={`w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 text-left ${
+                location.pathname === '/saas-admin'
+                  ? "bg-amber-500 text-white shadow-sm" 
+                  : "text-amber-600 hover:bg-amber-50"
+              }`}
+            >
+              <Crown className="h-5 w-5 flex-shrink-0" />
+              <span>SaaS Admin</span>
+            </button>
+          </>
+        )}
       </nav>
       
       {/* User Profile Section */}
