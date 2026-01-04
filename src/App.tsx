@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from '@/hooks/useAuth';
+import { TenantProvider } from '@/contexts/TenantContext';
 
 // Import pages
 import Index from '@/pages/Index';
@@ -30,6 +31,8 @@ import NotFound from '@/pages/NotFound';
 import Layout from '@/pages/Layout';
 import LeaveCalendar from '@/pages/LeaveCalendar';
 import Onboarding from '@/pages/Onboarding';
+import SaasAdmin from '@/pages/SaasAdmin';
+import TenantRegister from '@/pages/TenantRegister';
 
 const queryClient = new QueryClient();
 
@@ -38,18 +41,23 @@ function App() {
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <Router>
-            <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/admin-auth" element={<SuperAdminAuth />} />
-            <Route path="/jobs" element={<Jobs />} />
-            <Route path="/jobs-board" element={<JobsBoard />} />
-            <Route path="/jobs/:id" element={<JobDetail />} />
-            <Route path="/job-details" element={<JobDetails />} />
-            <Route path="/apply/:jobId" element={<Apply />} />
-            <Route path="/apply" element={<Apply />} />
-            <Route path="/onboarding" element={<Onboarding />} />
+          <TenantProvider>
+            <Router>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/admin-auth" element={<SuperAdminAuth />} />
+                <Route path="/jobs" element={<Jobs />} />
+                <Route path="/jobs-board" element={<JobsBoard />} />
+                <Route path="/jobs/:id" element={<JobDetail />} />
+                <Route path="/job-details" element={<JobDetails />} />
+                <Route path="/apply/:jobId" element={<Apply />} />
+                <Route path="/apply" element={<Apply />} />
+                <Route path="/onboarding" element={<Onboarding />} />
+                
+                {/* SaaS Admin Routes */}
+                <Route path="/saas-admin" element={<SaasAdmin />} />
+                <Route path="/register-institution" element={<TenantRegister />} />
             {/* Protected routes with Layout */}
             <Route path="/dashboard" element={<Layout />}>
               <Route index element={<Dashboard />} />
@@ -99,14 +107,15 @@ function App() {
               <Route index element={<Upskilling />} />
             </Route>
             
-            <Route path="/settings" element={<Layout />}>
-              <Route index element={<Settings />} />
-            </Route>
-            
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+              <Route path="/settings" element={<Layout />}>
+                <Route index element={<Settings />} />
+              </Route>
+              
+              <Route path="*" element={<NotFound />} />
+            </Routes>
             <Toaster position="top-right" />
           </Router>
+        </TenantProvider>
         </AuthProvider>
       </QueryClientProvider>
     </HelmetProvider>
