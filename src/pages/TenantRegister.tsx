@@ -9,7 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Building2, User, Mail, Lock, ArrowRight, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { SUBSCRIPTION_TIERS } from '@/types/tenant';
-import logoImage from '@/assets/whitestar-logo.png';
+import TutagoraLogo from '@/components/TutagoraLogo';
+import { PLATFORM_BRAND } from '@/constants/branding';
 
 const TenantRegister = () => {
   const navigate = useNavigate();
@@ -195,9 +196,11 @@ const TenantRegister = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
       <div className="w-full max-w-lg">
         <div className="text-center mb-8">
-          <img src={logoImage} alt="Logo" className="h-16 mx-auto mb-4" />
+          <div className="flex justify-center mb-4">
+            <TutagoraLogo size="lg" />
+          </div>
           <h1 className="text-3xl font-bold text-white mb-2">Register Your Institution</h1>
-          <p className="text-slate-400">Get started with our HR management platform</p>
+          <p className="text-slate-400">{PLATFORM_BRAND.tagline}</p>
         </div>
 
         <Card>

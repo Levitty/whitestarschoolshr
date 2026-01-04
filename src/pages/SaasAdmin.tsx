@@ -25,7 +25,8 @@ import {
   Search
 } from 'lucide-react';
 import { toast } from 'sonner';
-import logoImage from '@/assets/whitestar-logo.png';
+import TutagoraLogo from '@/components/TutagoraLogo';
+import { PLATFORM_BRAND } from '@/constants/branding';
 
 const SaasAdmin = () => {
   const navigate = useNavigate();
@@ -139,10 +140,10 @@ const SaasAdmin = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
-              <img src={logoImage} alt="Logo" className="h-10 w-auto" />
-              <div className="flex items-center gap-2">
+              <TutagoraLogo size="sm" />
+              <div className="flex items-center gap-2 ml-2 pl-2 border-l border-slate-200">
                 <Crown className="h-5 w-5 text-amber-500" />
-                <span className="font-semibold text-lg">SaaS Admin</span>
+                <span className="font-semibold text-lg">Admin</span>
               </div>
             </div>
             <div className="flex items-center gap-4">
