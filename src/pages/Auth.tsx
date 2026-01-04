@@ -6,9 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { School } from 'lucide-react';
 import SignInForm from '@/components/auth/SignInForm';
 import StaffSignUpForm from '@/components/auth/StaffSignUpForm';
+import TutagoraLogo from '@/components/TutagoraLogo';
+import { PLATFORM_BRAND } from '@/constants/branding';
 
 const Auth = () => {
   const { user, profile } = useAuth();
@@ -45,12 +46,11 @@ const Auth = () => {
       <div className="w-full max-w-md space-y-6">
         {/* Header */}
         <div className="text-center">
-          <div className="flex justify-center items-center gap-2 mb-4">
-            <School className="h-8 w-8 text-blue-600" />
-            <h1 className="text-2xl font-bold text-slate-900">School HR Portal</h1>
+          <div className="flex justify-center mb-4">
+            <TutagoraLogo size="lg" />
           </div>
           <p className="text-slate-600">
-            Comprehensive Human Resources Management System
+            {PLATFORM_BRAND.tagline}
           </p>
         </div>
 
