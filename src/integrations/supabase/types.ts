@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      athlete_intents: {
+        Row: {
+          age: number
+          created_at: string
+          disciplines: string[]
+          email: string
+          first_name: string
+          gender: string
+          goals: string
+          id: string
+          last_name: string
+          phone: string
+          updated_at: string
+        }
+        Insert: {
+          age: number
+          created_at?: string
+          disciplines?: string[]
+          email: string
+          first_name: string
+          gender: string
+          goals: string
+          id?: string
+          last_name: string
+          phone: string
+          updated_at?: string
+        }
+        Update: {
+          age?: number
+          created_at?: string
+          disciplines?: string[]
+          email?: string
+          first_name?: string
+          gender?: string
+          goals?: string
+          id?: string
+          last_name?: string
+          phone?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       audits: {
         Row: {
           action: string
