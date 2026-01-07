@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -6,10 +6,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useDepartments } from '@/hooks/useDepartments';
+import { supabase } from '@/integrations/supabase/client';
 import { User, Building, Mail, Lock, UserCheck, Loader2, MapPin } from 'lucide-react';
 import type { UserRole } from '@/types/auth';
 
-const StaffSignUpForm = () => {
+interface StaffSignUpFormProps {
+  tenantId?: string;
+  tenantName?: string;
+}
+
+interface Branch {
+  value: string;
+  label: string;
+}
+
+const StaffSignUpForm = ({ tenantId, tenantName }: StaffSignUpFormProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
@@ -17,10 +28,43 @@ const StaffSignUpForm = () => {
   const [role, setRole] = useState<UserRole>('staff');
   const [branch, setBranch] = useState('');
   const [loading, setLoading] = useState(false);
+  const [branches, setBranches] = useState<Branch[]>([]);
+  const [branchesLoading, setBranchesLoading] = useState(false);
   
   const { signUp } = useAuth();
   const { toast } = useToast();
-  const { departments, loading: departmentsLoading } = useDepartments();
+  const { departments, loading: departmentsLoading } = useDepartments(tenantId);
+
+  // Fetch branches for the tenant
+  useEffect(() => {
+    const fetchBranches = async () => {
+      if (!tenantId) {
+        // Default branches for platform-level signup
+        setBranches([
+          { value: 'main', label: 'Main Branch' }
+        ]);
+        return;
+      }
+      
+      setBranchesLoading(true);
+      // For now, we'll use a simple approach - fetch unique branches from employee_profiles
+      const { data } = await supabase
+        .from('employee_profiles')
+        .select('branch')
+        .eq('tenant_id', tenantId)
+        .not('branch', 'is', null);
+      
+      if (data && data.length > 0) {
+        const uniqueBranches = [...new Set(data.map(e => e.branch).filter(Boolean))];
+        setBranches(uniqueBranches.map(b => ({ value: b!, label: b! })));
+      } else {
+        setBranches([{ value: 'main', label: 'Main Branch' }]);
+      }
+      setBranchesLoading(false);
+    };
+    
+    fetchBranches();
+  }, [tenantId]);
 
   // Staff-only roles (no superadmin)
   const staffRoles: { value: UserRole; label: string }[] = [
@@ -31,11 +75,6 @@ const StaffSignUpForm = () => {
     { value: 'driver', label: 'Driver' },
     { value: 'support_staff', label: 'Support Staff' },
     { value: 'staff', label: 'General Staff' }
-  ];
-
-  const branches = [
-    { value: 'langata', label: 'Langata Branch' },
-    { value: 'sabaki', label: 'Sabaki Branch' }
   ];
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -159,9 +198,16 @@ const StaffSignUpForm = () => {
         <Label htmlFor="staff-branch">Branch</Label>
         <div className="relative">
           <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 z-10" />
-          <Select value={branch} onValueChange={setBranch} required>
+          <Select value={branch} onValueChange={setBranch} required disabled={branchesLoading}>
             <SelectTrigger className="pl-10">
-              <SelectValue placeholder="Select your branch" />
+              {branchesLoading ? (
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Loading...</span>
+                </div>
+              ) : (
+                <SelectValue placeholder="Select your branch" />
+              )}
             </SelectTrigger>
             <SelectContent>
               {branches.map((branchOption) => (

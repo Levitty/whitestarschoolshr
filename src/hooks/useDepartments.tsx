@@ -9,20 +9,26 @@ type Department = {
   updated_at: string;
 };
 
-export const useDepartments = () => {
+export const useDepartments = (tenantId?: string) => {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchDepartments();
-  }, []);
+  }, [tenantId]);
 
   const fetchDepartments = async () => {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('departments')
         .select('*')
         .order('name');
+      
+      if (tenantId) {
+        query = query.eq('tenant_id', tenantId);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error('Error fetching departments:', error);

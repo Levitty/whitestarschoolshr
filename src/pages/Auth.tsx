@@ -1,8 +1,6 @@
-
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -10,11 +8,53 @@ import SignInForm from '@/components/auth/SignInForm';
 import StaffSignUpForm from '@/components/auth/StaffSignUpForm';
 import TutagoraLogo from '@/components/TutagoraLogo';
 import { PLATFORM_BRAND } from '@/constants/branding';
+import { supabase } from '@/integrations/supabase/client';
+import { Loader2 } from 'lucide-react';
+
+interface Tenant {
+  id: string;
+  name: string;
+  slug: string;
+  logo_url: string | null;
+  primary_color: string | null;
+}
 
 const Auth = () => {
   const { user, profile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const tenantSlug = searchParams.get('tenant');
+  
+  const [currentTenant, setCurrentTenant] = useState<Tenant | null>(null);
+  const [tenantLoading, setTenantLoading] = useState(false);
+
+  // Fetch tenant if slug is provided
+  useEffect(() => {
+    const fetchTenant = async () => {
+      if (!tenantSlug) {
+        setCurrentTenant(null);
+        return;
+      }
+      
+      setTenantLoading(true);
+      const { data, error } = await supabase
+        .from('tenants')
+        .select('id, name, slug, logo_url, primary_color')
+        .eq('slug', tenantSlug)
+        .eq('is_active', true)
+        .maybeSingle();
+      
+      if (error) {
+        console.error('Error fetching tenant:', error);
+      } else if (data) {
+        setCurrentTenant(data);
+      }
+      setTenantLoading(false);
+    };
+    
+    fetchTenant();
+  }, [tenantSlug]);
 
   useEffect(() => {
     if (user && profile) {
@@ -41,23 +81,55 @@ const Auth = () => {
     }
   }, [user, profile, navigate]);
 
+  if (tenantLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-6">
-        {/* Header */}
+        {/* Header - Show tenant branding if available */}
         <div className="text-center">
-          <div className="flex justify-center mb-4">
-            <TutagoraLogo size="lg" />
-          </div>
-          <p className="text-slate-600">
-            {PLATFORM_BRAND.tagline}
-          </p>
+          {currentTenant ? (
+            <>
+              {currentTenant.logo_url ? (
+                <img 
+                  src={currentTenant.logo_url} 
+                  alt={currentTenant.name} 
+                  className="h-16 mx-auto mb-4"
+                />
+              ) : (
+                <div className="h-16 w-16 mx-auto mb-4 bg-primary rounded-full flex items-center justify-center">
+                  <span className="text-2xl font-bold text-primary-foreground">
+                    {currentTenant.name.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+              )}
+              <h1 className="text-2xl font-bold text-slate-800">{currentTenant.name}</h1>
+              <p className="text-slate-600">Staff Portal</p>
+            </>
+          ) : (
+            <>
+              <div className="flex justify-center mb-4">
+                <TutagoraLogo size="lg" />
+              </div>
+              <p className="text-slate-600">
+                {PLATFORM_BRAND.tagline}
+              </p>
+            </>
+          )}
         </div>
 
         {/* Auth Forms */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-center">Welcome</CardTitle>
+            <CardTitle className="text-center">
+              {currentTenant ? `Welcome to ${currentTenant.name}` : 'Welcome'}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="signin" className="space-y-4">
@@ -71,7 +143,7 @@ const Auth = () => {
               </TabsContent>
               
               <TabsContent value="signup">
-                <StaffSignUpForm />
+                <StaffSignUpForm tenantId={currentTenant?.id} tenantName={currentTenant?.name} />
               </TabsContent>
             </Tabs>
           </CardContent>
@@ -79,7 +151,11 @@ const Auth = () => {
 
         {/* Footer */}
         <div className="text-center text-sm text-slate-600">
-          <p>Secure, compliant, and user-friendly HR management</p>
+          {currentTenant ? (
+            <p>Powered by <span className="font-semibold">TUTAGORA</span></p>
+          ) : (
+            <p>Secure, compliant, and user-friendly HR management</p>
+          )}
         </div>
       </div>
     </div>
