@@ -92,6 +92,19 @@ const TenantRegister = () => {
 
     setLoading(true);
     try {
+      // Check if email already exists in profiles
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', formData.adminEmail)
+        .maybeSingle();
+
+      if (existingProfile) {
+        toast.error('An account with this email already exists. Please use a different email or sign in to your existing account.');
+        setLoading(false);
+        return;
+      }
+
       // Check if slug is available
       const { data: existingTenant } = await supabase
         .from('tenants')
@@ -129,7 +142,7 @@ const TenantRegister = () => {
         email: formData.adminEmail,
         password: formData.adminPassword,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth`,
+          emailRedirectTo: `${window.location.origin}/auth?tenant=${formData.slug}`,
           data: {
             full_name: formData.adminName,
             first_name: formData.adminName.split(' ')[0],
@@ -171,6 +184,8 @@ const TenantRegister = () => {
   };
 
   if (success) {
+    const tenantLoginUrl = `/auth?tenant=${formData.slug}`;
+    
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
@@ -179,11 +194,19 @@ const TenantRegister = () => {
               <CheckCircle className="h-8 w-8 text-green-600" />
             </div>
             <h2 className="text-2xl font-bold mb-2">Registration Successful!</h2>
-            <p className="text-muted-foreground mb-6">
-              We've sent a confirmation email to <strong>{formData.adminEmail}</strong>. 
-              Please verify your email to activate your account.
+            <p className="text-muted-foreground mb-4">
+              Your institution <strong>{formData.institutionName}</strong> has been registered.
             </p>
-            <Button onClick={() => navigate('/auth')} className="w-full">
+            <p className="text-muted-foreground mb-4">
+              Please check your email at <strong>{formData.adminEmail}</strong> to verify your account.
+            </p>
+            <div className="bg-muted p-4 rounded-lg mb-4">
+              <p className="text-sm text-muted-foreground mb-2">Your institution's login URL:</p>
+              <code className="text-primary font-mono text-sm break-all">
+                {window.location.origin}{tenantLoginUrl}
+              </code>
+            </div>
+            <Button onClick={() => navigate(tenantLoginUrl)} className="w-full">
               Go to Login
             </Button>
           </CardContent>
