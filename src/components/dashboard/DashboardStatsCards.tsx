@@ -25,14 +25,12 @@ const DashboardStatsCards = () => {
 
   const fetchStats = async () => {
     try {
-      // Fetch employee counts
       const { data: employees, error: empError } = await supabase
         .from('employee_profiles')
         .select('status');
 
       if (empError) throw empError;
 
-      // Fetch departments count
       const { data: departments, error: deptError } = await supabase
         .from('departments')
         .select('id');
@@ -58,35 +56,42 @@ const DashboardStatsCards = () => {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="h-24 bg-muted animate-pulse rounded-lg" />
+          <div key={i} className="h-[140px] bg-card animate-pulse rounded-xl shadow-sm" />
         ))}
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
       <DashboardStatsCard
         title="Total Employees"
         value={stats.totalEmployees}
         icon={Users}
+        accentColor="blue"
+        trend={{ value: 12, label: 'compared to last month' }}
       />
       <DashboardStatsCard
         title="Active Employees"
         value={stats.activeEmployees}
         icon={UserCheck}
+        accentColor="emerald"
+        trend={{ value: 8, label: 'compared to last month' }}
       />
       <DashboardStatsCard
-        title="Inactive Employees"
+        title="On Leave / Inactive"
         value={stats.inactiveEmployees}
         icon={UserX}
+        accentColor="amber"
+        trend={{ value: -3, label: 'compared to last month' }}
       />
       <DashboardStatsCard
         title="Departments"
         value={stats.departments}
         icon={Building2}
+        accentColor="violet"
       />
     </div>
   );
