@@ -1,4 +1,4 @@
-import { Home, Users, UserPlus, Briefcase, BarChart, FolderOpen, Calendar, GraduationCap, Settings, LogOut, Menu, X, Crown, ChevronRight } from "lucide-react";
+import { Home, Users, UserPlus, Briefcase, BarChart, FolderOpen, Calendar, GraduationCap, Settings, LogOut, Menu, X, Crown, ChevronRight, ClipboardList } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { UserRole } from "@/types/auth";
@@ -56,6 +56,7 @@ const RoleBasedNavigation = () => {
     { path: "/performance", label: "Performance", icon: BarChart },
     { path: "/records", label: "Documents", icon: FolderOpen },
     { path: "/leave", label: "Leave Management", icon: Calendar },
+    { path: "/tasks", label: "Tasks", icon: ClipboardList },
     { path: "/upskilling", label: "Training", icon: GraduationCap },
     { path: "/tickets", label: "Support Tickets", icon: Settings },
     { path: "/settings", label: "System Settings", icon: Settings },
@@ -69,6 +70,7 @@ const RoleBasedNavigation = () => {
     { path: "/performance", label: "Team Performance", icon: BarChart },
     { path: "/records", label: "Team Documents", icon: FolderOpen },
     { path: "/leave", label: "Leave Approvals", icon: Calendar },
+    { path: "/tasks", label: "Tasks", icon: ClipboardList },
     { path: "/upskilling", label: "Team Training", icon: GraduationCap },
     { path: "/tickets", label: "Support", icon: Settings },
   ];
@@ -76,6 +78,7 @@ const RoleBasedNavigation = () => {
   const teacherStaffNavItems: NavItem[] = [
     { path: "/dashboard", label: "Dashboard", icon: Home },
     { path: "/leave", label: "My Leave", icon: Calendar },
+    { path: "/tasks", label: "My Tasks", icon: ClipboardList },
     { path: "/performance", label: "My Performance", icon: BarChart },
     { path: "/upskilling", label: "My Training", icon: GraduationCap },
     { path: "/records", label: "My Documents", icon: FolderOpen },

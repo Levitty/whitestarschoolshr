@@ -35,6 +35,7 @@ import LeaveCalendar from '@/pages/LeaveCalendar';
 import Onboarding from '@/pages/Onboarding';
 import SaasAdmin from '@/pages/SaasAdmin';
 import TenantRegister from '@/pages/TenantRegister';
+import Tasks from '@/pages/Tasks';
 
 const queryClient = new QueryClient();
 
@@ -114,6 +115,10 @@ function App() {
             
             <Route path="/upskilling" element={<Layout />}>
               <Route index element={<Upskilling />} />
+            </Route>
+
+            <Route path="/tasks" element={<Layout />}>
+              <Route index element={<Tasks />} />
             </Route>
             
               <Route path="/settings" element={<Layout />}>
