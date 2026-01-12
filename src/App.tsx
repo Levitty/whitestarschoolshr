@@ -5,6 +5,7 @@ import { Toaster } from 'sonner';
 import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from '@/hooks/useAuth';
 import { TenantProvider } from '@/contexts/TenantContext';
+import DynamicFavicon from '@/components/DynamicFavicon';
 
 // Import pages
 import Index from '@/pages/Index';
@@ -42,6 +43,7 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <TenantProvider>
+            <DynamicFavicon />
             <Router>
               <Routes>
                 <Route path="/" element={<Index />} />
