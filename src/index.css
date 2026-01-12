@@ -6,7 +6,7 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    --background: 210 20% 98%;
     --foreground: 222.2 84% 4.9%;
 
     --card: 0 0% 100%;
@@ -36,21 +36,16 @@
 
     --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Sidebar - Warm teal/slate gradient feel */
+    --sidebar-background: 168 30% 18%;
+    --sidebar-foreground: 165 20% 90%;
+    --sidebar-primary: 168 50% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 168 25% 25%;
+    --sidebar-accent-foreground: 165 20% 95%;
+    --sidebar-border: 168 20% 25%;
+    --sidebar-ring: 168 50% 45%;
+    --sidebar-muted: 168 15% 35%;
   }
 
   .dark {
@@ -81,14 +76,16 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    
+    --sidebar-background: 168 30% 12%;
+    --sidebar-foreground: 165 20% 90%;
+    --sidebar-primary: 168 50% 45%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 168 25% 20%;
+    --sidebar-accent-foreground: 165 20% 95%;
+    --sidebar-border: 168 20% 18%;
+    --sidebar-ring: 168 50% 45%;
+    --sidebar-muted: 168 15% 25%;
   }
 }
 
@@ -99,5 +96,33 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Glassmorphism utilities */
+@layer utilities {
+  .glass {
+    @apply bg-white/70 backdrop-blur-xl border border-white/20 shadow-lg;
+  }
+  
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-lg border border-white/30 shadow-xl;
+  }
+  
+  .glass-subtle {
+    @apply bg-white/60 backdrop-blur-md border border-white/20;
+  }
+  
+  .glass-dark {
+    @apply bg-black/10 backdrop-blur-lg border border-white/10;
+  }
+  
+  .sidebar-glass {
+    background: linear-gradient(
+      135deg,
+      hsl(var(--sidebar-background)) 0%,
+      hsl(168 28% 22%) 50%,
+      hsl(var(--sidebar-background)) 100%
+    );
   }
 }

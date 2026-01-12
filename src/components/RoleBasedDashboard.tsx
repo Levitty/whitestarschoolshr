@@ -68,12 +68,13 @@ const RoleBasedDashboard = () => {
       {/* Quick Actions Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card 
-          className="bg-card border border-border hover:shadow-md transition-all cursor-pointer group" 
+          variant="glass"
+          className="hover:shadow-xl hover:bg-white/80 transition-all cursor-pointer group" 
           onClick={() => navigate('/leave')}
         >
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-emerald-100 rounded-lg group-hover:bg-emerald-200 transition-colors">
+              <div className="p-2.5 bg-emerald-100/80 rounded-lg group-hover:bg-emerald-200 transition-colors">
                 <Calendar className="h-5 w-5 text-emerald-600" />
               </div>
               <div>
@@ -85,12 +86,13 @@ const RoleBasedDashboard = () => {
         </Card>
 
         <Card 
-          className="bg-card border border-border hover:shadow-md transition-all cursor-pointer group" 
+          variant="glass"
+          className="hover:shadow-xl hover:bg-white/80 transition-all cursor-pointer group" 
           onClick={() => navigate('/recruitment')}
         >
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-orange-100 rounded-lg group-hover:bg-orange-200 transition-colors">
+              <div className="p-2.5 bg-orange-100/80 rounded-lg group-hover:bg-orange-200 transition-colors">
                 <UserPlus className="h-5 w-5 text-orange-600" />
               </div>
               <div>
@@ -102,12 +104,13 @@ const RoleBasedDashboard = () => {
         </Card>
 
         <Card 
-          className="bg-card border border-border hover:shadow-md transition-all cursor-pointer group" 
+          variant="glass"
+          className="hover:shadow-xl hover:bg-white/80 transition-all cursor-pointer group" 
           onClick={() => navigate('/performance')}
         >
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-amber-100 rounded-lg group-hover:bg-amber-200 transition-colors">
+              <div className="p-2.5 bg-amber-100/80 rounded-lg group-hover:bg-amber-200 transition-colors">
                 <BarChart className="h-5 w-5 text-amber-600" />
               </div>
               <div>
@@ -119,12 +122,13 @@ const RoleBasedDashboard = () => {
         </Card>
 
         <Card 
-          className="bg-card border border-border hover:shadow-md transition-all cursor-pointer group" 
+          variant="glass"
+          className="hover:shadow-xl hover:bg-white/80 transition-all cursor-pointer group" 
           onClick={() => navigate('/records')}
         >
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-teal-100 rounded-lg group-hover:bg-teal-200 transition-colors">
+              <div className="p-2.5 bg-teal-100/80 rounded-lg group-hover:bg-teal-200 transition-colors">
                 <FolderOpen className="h-5 w-5 text-teal-600" />
               </div>
               <div>
@@ -152,12 +156,13 @@ const RoleBasedDashboard = () => {
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <Card 
-          className="bg-card border border-border hover:shadow-md transition-all cursor-pointer group" 
+          variant="glass"
+          className="hover:shadow-xl hover:bg-white/80 transition-all cursor-pointer group" 
           onClick={() => navigate('/employees')}
         >
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
+              <div className="p-2.5 bg-blue-100/80 rounded-lg group-hover:bg-blue-200 transition-colors">
                 <Users className="h-5 w-5 text-blue-600" />
               </div>
               <div>
@@ -169,12 +174,13 @@ const RoleBasedDashboard = () => {
         </Card>
 
         <Card 
-          className="bg-card border border-border hover:shadow-md transition-all cursor-pointer group" 
+          variant="glass"
+          className="hover:shadow-xl hover:bg-white/80 transition-all cursor-pointer group" 
           onClick={() => navigate('/leave')}
         >
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-emerald-100 rounded-lg group-hover:bg-emerald-200 transition-colors">
+              <div className="p-2.5 bg-emerald-100/80 rounded-lg group-hover:bg-emerald-200 transition-colors">
                 <Calendar className="h-5 w-5 text-emerald-600" />
               </div>
               <div>
@@ -186,12 +192,13 @@ const RoleBasedDashboard = () => {
         </Card>
 
         <Card 
-          className="bg-card border border-border hover:shadow-md transition-all cursor-pointer group" 
+          variant="glass"
+          className="hover:shadow-xl hover:bg-white/80 transition-all cursor-pointer group" 
           onClick={() => navigate('/performance')}
         >
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-amber-100 rounded-lg group-hover:bg-amber-200 transition-colors">
+              <div className="p-2.5 bg-amber-100/80 rounded-lg group-hover:bg-amber-200 transition-colors">
                 <BarChart className="h-5 w-5 text-amber-600" />
               </div>
               <div>
@@ -203,12 +210,13 @@ const RoleBasedDashboard = () => {
         </Card>
 
         <Card 
-          className="bg-card border border-border hover:shadow-md transition-all cursor-pointer group" 
+          variant="glass"
+          className="hover:shadow-xl hover:bg-white/80 transition-all cursor-pointer group" 
           onClick={() => navigate('/upskilling')}
         >
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-indigo-100 rounded-lg group-hover:bg-indigo-200 transition-colors">
+              <div className="p-2.5 bg-indigo-100/80 rounded-lg group-hover:bg-indigo-200 transition-colors">
                 <GraduationCap className="h-5 w-5 text-indigo-600" />
               </div>
               <div>
@@ -220,12 +228,13 @@ const RoleBasedDashboard = () => {
         </Card>
 
         <Card 
-          className="bg-card border border-border hover:shadow-md transition-all cursor-pointer group" 
+          variant="glass"
+          className="hover:shadow-xl hover:bg-white/80 transition-all cursor-pointer group" 
           onClick={() => navigate('/records')}
         >
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-teal-100 rounded-lg group-hover:bg-teal-200 transition-colors">
+              <div className="p-2.5 bg-teal-100/80 rounded-lg group-hover:bg-teal-200 transition-colors">
                 <FolderOpen className="h-5 w-5 text-teal-600" />
               </div>
               <div>
@@ -237,12 +246,13 @@ const RoleBasedDashboard = () => {
         </Card>
 
         <Card 
-          className="bg-card border border-border hover:shadow-md transition-all cursor-pointer group" 
+          variant="glass"
+          className="hover:shadow-xl hover:bg-white/80 transition-all cursor-pointer group" 
           onClick={() => navigate('/tickets')}
         >
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-rose-100 rounded-lg group-hover:bg-rose-200 transition-colors">
+              <div className="p-2.5 bg-rose-100/80 rounded-lg group-hover:bg-rose-200 transition-colors">
                 <MessageSquare className="h-5 w-5 text-rose-600" />
               </div>
               <div>
@@ -270,12 +280,13 @@ const RoleBasedDashboard = () => {
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <Card 
-          className="bg-card border border-border hover:shadow-md transition-all cursor-pointer group" 
+          variant="glass"
+          className="hover:shadow-xl hover:bg-white/80 transition-all cursor-pointer group" 
           onClick={() => navigate('/leave')}
         >
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-emerald-100 rounded-lg group-hover:bg-emerald-200 transition-colors">
+              <div className="p-2.5 bg-emerald-100/80 rounded-lg group-hover:bg-emerald-200 transition-colors">
                 <Calendar className="h-5 w-5 text-emerald-600" />
               </div>
               <div>
@@ -287,12 +298,13 @@ const RoleBasedDashboard = () => {
         </Card>
 
         <Card 
-          className="bg-card border border-border hover:shadow-md transition-all cursor-pointer group" 
+          variant="glass"
+          className="hover:shadow-xl hover:bg-white/80 transition-all cursor-pointer group" 
           onClick={() => navigate('/performance')}
         >
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-amber-100 rounded-lg group-hover:bg-amber-200 transition-colors">
+              <div className="p-2.5 bg-amber-100/80 rounded-lg group-hover:bg-amber-200 transition-colors">
                 <BarChart className="h-5 w-5 text-amber-600" />
               </div>
               <div>
@@ -304,12 +316,13 @@ const RoleBasedDashboard = () => {
         </Card>
 
         <Card 
-          className="bg-card border border-border hover:shadow-md transition-all cursor-pointer group" 
+          variant="glass"
+          className="hover:shadow-xl hover:bg-white/80 transition-all cursor-pointer group" 
           onClick={() => navigate('/upskilling')}
         >
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-indigo-100 rounded-lg group-hover:bg-indigo-200 transition-colors">
+              <div className="p-2.5 bg-indigo-100/80 rounded-lg group-hover:bg-indigo-200 transition-colors">
                 <GraduationCap className="h-5 w-5 text-indigo-600" />
               </div>
               <div>
@@ -321,12 +334,13 @@ const RoleBasedDashboard = () => {
         </Card>
 
         <Card 
-          className="bg-card border border-border hover:shadow-md transition-all cursor-pointer group" 
+          variant="glass"
+          className="hover:shadow-xl hover:bg-white/80 transition-all cursor-pointer group" 
           onClick={() => navigate('/records')}
         >
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-teal-100 rounded-lg group-hover:bg-teal-200 transition-colors">
+              <div className="p-2.5 bg-teal-100/80 rounded-lg group-hover:bg-teal-200 transition-colors">
                 <FolderOpen className="h-5 w-5 text-teal-600" />
               </div>
               <div>
@@ -338,12 +352,13 @@ const RoleBasedDashboard = () => {
         </Card>
 
         <Card 
-          className="bg-card border border-border hover:shadow-md transition-all cursor-pointer group" 
+          variant="glass"
+          className="hover:shadow-xl hover:bg-white/80 transition-all cursor-pointer group" 
           onClick={() => navigate('/tickets')}
         >
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-rose-100 rounded-lg group-hover:bg-rose-200 transition-colors">
+              <div className="p-2.5 bg-rose-100/80 rounded-lg group-hover:bg-rose-200 transition-colors">
                 <MessageSquare className="h-5 w-5 text-rose-600" />
               </div>
               <div>
