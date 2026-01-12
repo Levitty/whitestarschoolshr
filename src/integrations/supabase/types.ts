@@ -1790,6 +1790,76 @@ export type Database = {
         }
         Relationships: []
       }
+      tasks: {
+        Row: {
+          assigned_by: string | null
+          assigned_to: string | null
+          category: string | null
+          completed_at: string | null
+          created_at: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          priority: string | null
+          status: string | null
+          tenant_id: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_by?: string | null
+          assigned_to?: string | null
+          category?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string | null
+          status?: string | null
+          tenant_id?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_by?: string | null
+          assigned_to?: string | null
+          category?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string | null
+          status?: string | null
+          tenant_id?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenant_users: {
         Row: {
           created_at: string | null
