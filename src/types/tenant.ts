@@ -3,6 +3,7 @@ export interface Tenant {
   name: string;
   slug: string;
   logo_url: string | null;
+  favicon_url: string | null;
   primary_color: string;
   settings: Record<string, any>;
   subscription_tier: 'trial' | 'basic' | 'professional' | 'enterprise';
