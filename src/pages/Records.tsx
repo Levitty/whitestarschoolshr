@@ -27,7 +27,7 @@ const Records = () => {
     return (
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         <div className="flex items-center justify-center min-h-[400px]">
-          <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
         </div>
       </div>
     );
@@ -37,7 +37,7 @@ const Records = () => {
     return (
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         <div className="text-center">
-          <p className="text-gray-500">Please sign in to access documents.</p>
+          <p className="text-muted-foreground">Please sign in to access documents.</p>
         </div>
       </div>
     );
@@ -60,10 +60,10 @@ const Records = () => {
   return (
     <div className="container mx-auto px-4 py-6 max-w-7xl">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900">
+        <h1 className="text-3xl font-bold text-foreground">
           Document Management
         </h1>
-        <p className="text-slate-600 mt-2">
+        <p className="text-muted-foreground mt-2">
           Manage all documents, contracts, templates, and employee records
         </p>
       </div>
