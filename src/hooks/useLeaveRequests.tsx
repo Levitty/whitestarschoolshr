@@ -5,7 +5,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
 
 type LeaveRequest = Database['public']['Tables']['leave_requests']['Row'];
-type LeaveRequestInsert = Database['public']['Tables']['leave_requests']['Insert'];
 
 // Extended type for leave requests with employee data
 interface EnrichedLeaveRequest extends LeaveRequest {
@@ -43,7 +42,7 @@ export const useLeaveRequests = () => {
     try {
       console.log('Fetching leave requests...');
       
-      // First get all leave requests
+      // Fetch all leave requests with workflow fields
       const { data: leaveRequestsData, error } = await supabase
         .from('leave_requests')
         .select('*')
@@ -90,7 +89,7 @@ export const useLeaveRequests = () => {
             return {
               ...request,
               ...employeeData
-            };
+            } as EnrichedLeaveRequest;
           })
         );
         console.log('Enriched leave requests with employee data:', enrichedRequests);
@@ -120,19 +119,18 @@ export const useLeaveRequests = () => {
       const end = new Date(endDate);
       const daysRequested = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
 
-      const requestData: LeaveRequestInsert = {
-        employee_id: user.id,
-        leave_type: leaveType,
-        start_date: startDate,
-        end_date: endDate,
-        days_requested: daysRequested,
-        reason,
-        status: 'pending'
-      };
-
       const { error } = await supabase
         .from('leave_requests')
-        .insert(requestData);
+        .insert({
+          employee_id: user.id,
+          leave_type: leaveType,
+          start_date: startDate,
+          end_date: endDate,
+          days_requested: daysRequested,
+          reason,
+          status: 'pending',
+          workflow_stage: 'pending_head'
+        } as any);
 
       if (error) {
         return { error };
@@ -145,18 +143,24 @@ export const useLeaveRequests = () => {
     }
   };
 
-  const approveLeaveRequest = async (requestId: string, comments?: string) => {
+  // Head Teacher forwards request to HR with recommendation and internal notes
+  const forwardToHR = async (
+    requestId: string,
+    recommendation: 'recommend_approve' | 'recommend_reject' | 'neutral',
+    internalNotes: string
+  ) => {
     if (!user) return { error: 'No user found' };
 
     try {
       const { error } = await supabase
         .from('leave_requests')
         .update({
-          status: 'approved',
-          approved_by: user.id,
-          decision_at: new Date().toISOString(),
-          comments
-        })
+          workflow_stage: 'pending_hr',
+          head_reviewed_by: user.id,
+          head_reviewed_at: new Date().toISOString(),
+          head_recommendation: recommendation,
+          head_internal_notes: internalNotes
+        } as any)
         .eq('id', requestId);
 
       if (error) {
@@ -170,6 +174,34 @@ export const useLeaveRequests = () => {
     }
   };
 
+  // HR/Admin approves leave request (final decision)
+  const approveLeaveRequest = async (requestId: string, comments?: string) => {
+    if (!user) return { error: 'No user found' };
+
+    try {
+      const { error } = await supabase
+        .from('leave_requests')
+        .update({
+          status: 'approved',
+          workflow_stage: 'approved',
+          approved_by: user.id,
+          decision_at: new Date().toISOString(),
+          comments
+        } as any)
+        .eq('id', requestId);
+
+      if (error) {
+        return { error };
+      }
+
+      await fetchLeaveRequests();
+      return { error: null };
+    } catch (error) {
+      return { error };
+    }
+  };
+
+  // HR/Admin rejects leave request (final decision)
   const rejectLeaveRequest = async (requestId: string, comments?: string) => {
     if (!user) return { error: 'No user found' };
 
@@ -178,10 +210,11 @@ export const useLeaveRequests = () => {
         .from('leave_requests')
         .update({
           status: 'rejected',
+          workflow_stage: 'rejected',
           approved_by: user.id,
           decision_at: new Date().toISOString(),
           comments
-        })
+        } as any)
         .eq('id', requestId);
 
       if (error) {
@@ -200,6 +233,7 @@ export const useLeaveRequests = () => {
     loading,
     fetchLeaveRequests,
     createLeaveRequest,
+    forwardToHR,
     approveLeaveRequest,
     rejectLeaveRequest
   };
