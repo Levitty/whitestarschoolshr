@@ -1081,6 +1081,10 @@ export type Database = {
           decision_at: string | null
           employee_id: string
           end_date: string
+          head_internal_notes: string | null
+          head_recommendation: string | null
+          head_reviewed_at: string | null
+          head_reviewed_by: string | null
           id: string
           leave_type: string
           reason: string | null
@@ -1088,6 +1092,7 @@ export type Database = {
           status: string | null
           tenant_id: string | null
           updated_at: string | null
+          workflow_stage: string | null
         }
         Insert: {
           approved_at?: string | null
@@ -1098,6 +1103,10 @@ export type Database = {
           decision_at?: string | null
           employee_id: string
           end_date: string
+          head_internal_notes?: string | null
+          head_recommendation?: string | null
+          head_reviewed_at?: string | null
+          head_reviewed_by?: string | null
           id?: string
           leave_type: string
           reason?: string | null
@@ -1105,6 +1114,7 @@ export type Database = {
           status?: string | null
           tenant_id?: string | null
           updated_at?: string | null
+          workflow_stage?: string | null
         }
         Update: {
           approved_at?: string | null
@@ -1115,6 +1125,10 @@ export type Database = {
           decision_at?: string | null
           employee_id?: string
           end_date?: string
+          head_internal_notes?: string | null
+          head_recommendation?: string | null
+          head_reviewed_at?: string | null
+          head_reviewed_by?: string | null
           id?: string
           leave_type?: string
           reason?: string | null
@@ -1122,6 +1136,7 @@ export type Database = {
           status?: string | null
           tenant_id?: string | null
           updated_at?: string | null
+          workflow_stage?: string | null
         }
         Relationships: [
           {
@@ -1134,6 +1149,13 @@ export type Database = {
           {
             foreignKeyName: "leave_requests_employee_id_fkey"
             columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_requests_head_reviewed_by_fkey"
+            columns: ["head_reviewed_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -2107,6 +2129,37 @@ export type Database = {
       }
       get_current_user_role: { Args: never; Returns: string }
       get_event_price: { Args: { event_name: string }; Returns: number }
+      get_leave_requests_for_role: {
+        Args: never
+        Returns: {
+          approved_at: string | null
+          approved_by: string | null
+          comments: string | null
+          created_at: string | null
+          days_requested: number
+          decision_at: string | null
+          employee_id: string
+          end_date: string
+          head_internal_notes: string | null
+          head_recommendation: string | null
+          head_reviewed_at: string | null
+          head_reviewed_by: string | null
+          id: string
+          leave_type: string
+          reason: string | null
+          start_date: string
+          status: string | null
+          tenant_id: string | null
+          updated_at: string | null
+          workflow_stage: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "leave_requests"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       get_next_employee_number: { Args: never; Returns: string }
       get_user_permissions: {
         Args: { user_id: string }
