@@ -120,15 +120,15 @@ const TicketSystem = () => {
   };
 
   if (loading) {
-    return <div className="text-center py-8 text-muted-foreground">Loading tickets...</div>;
+    return <div className="text-center py-8">Loading tickets...</div>;
   }
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Support Tickets</h2>
-          <p className="text-muted-foreground">Manage employee complaints and support requests</p>
+          <h2 className="text-2xl font-bold text-slate-900">Support Tickets</h2>
+          <p className="text-slate-600">Manage employee complaints and support requests</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
@@ -211,12 +211,12 @@ const TicketSystem = () => {
 
       <div className="grid gap-4">
         {tickets.map((ticket) => (
-          <Card key={ticket.id} className="bg-card">
+          <Card key={ticket.id}>
             <CardContent className="p-6">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
-                    <h3 className="font-semibold text-lg text-foreground">{ticket.title}</h3>
+                    <h3 className="font-semibold text-lg">{ticket.title}</h3>
                     <Badge variant={getStatusColor(ticket.status || 'open')}>
                       <div className="flex items-center gap-1">
                         {getStatusIcon(ticket.status || 'open')}
@@ -227,8 +227,8 @@ const TicketSystem = () => {
                       {ticket.priority || 'medium'} priority
                     </Badge>
                   </div>
-                  <p className="text-muted-foreground mb-4">{ticket.description}</p>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                  <p className="text-gray-600 mb-4">{ticket.description}</p>
+                  <div className="flex items-center gap-4 text-sm text-gray-500">
                     <span>Category: {ticket.category}</span>
                     <span>Created: {new Date(ticket.created_at || '').toLocaleDateString()}</span>
                   </div>
@@ -256,11 +256,11 @@ const TicketSystem = () => {
       </div>
 
       {tickets.length === 0 && (
-        <Card className="bg-card">
+        <Card>
           <CardContent className="text-center py-8">
-            <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-foreground mb-2">No Tickets</h3>
-            <p className="text-muted-foreground">No support tickets have been created yet.</p>
+            <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No Tickets</h3>
+            <p className="text-gray-600">No support tickets have been created yet.</p>
           </CardContent>
         </Card>
       )}

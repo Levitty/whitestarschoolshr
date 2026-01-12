@@ -32,7 +32,7 @@ const LeaveCalendar = () => {
     return (
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         <div className="text-center">
-          <p className="text-muted-foreground">You do not have permission to view this page.</p>
+          <p className="text-gray-500">You don't have permission to view this page.</p>
         </div>
       </div>
     );
@@ -113,16 +113,16 @@ const LeaveCalendar = () => {
   const getLeaveTypeColor = (type: string) => {
     switch (type.toLowerCase()) {
       case 'annual':
-        return 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800';
+        return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'sick':
-        return 'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800';
+        return 'bg-orange-100 text-orange-800 border-orange-200';
       case 'personal':
-        return 'bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-800';
+        return 'bg-purple-100 text-purple-800 border-purple-200';
       case 'maternity':
       case 'paternity':
-        return 'bg-pink-100 text-pink-800 border-pink-200 dark:bg-pink-900/30 dark:text-pink-400 dark:border-pink-800';
+        return 'bg-pink-100 text-pink-800 border-pink-200';
       default:
-        return 'bg-muted text-muted-foreground border-border';
+        return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
@@ -137,7 +137,7 @@ const LeaveCalendar = () => {
     return (
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         <div className="flex items-center justify-center min-h-[400px]">
-          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
         </div>
       </div>
     );
@@ -148,18 +148,18 @@ const LeaveCalendar = () => {
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Leave Calendar</h1>
-            <p className="text-muted-foreground mt-1">View approved leave requests in calendar format</p>
+            <h1 className="text-3xl font-bold text-slate-900">Leave Calendar</h1>
+            <p className="text-slate-600 mt-1">View approved leave requests in calendar format</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Calendar */}
           <div className="lg:col-span-3">
-            <Card className="bg-card">
+            <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2 text-foreground">
+                  <CardTitle className="flex items-center gap-2">
                     <Calendar className="h-5 w-5" />
                     {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
                   </CardTitle>
@@ -200,11 +200,11 @@ const LeaveCalendar = () => {
                     return (
                       <div
                         key={day}
-                        className={`p-1 h-24 border border-border ${
-                          isToday ? 'bg-primary/10' : 'bg-card'
-                        } hover:bg-muted/50 transition-colors`}
+                        className={`p-1 h-24 border border-gray-200 ${
+                          isToday ? 'bg-blue-50' : 'bg-white'
+                        } hover:bg-gray-50 transition-colors`}
                       >
-                        <div className={`text-sm font-medium ${isToday ? 'text-primary' : 'text-foreground'}`}>
+                        <div className={`text-sm font-medium ${isToday ? 'text-blue-600' : ''}`}>
                           {day}
                         </div>
                         <div className="space-y-1 mt-1">
@@ -234,9 +234,9 @@ const LeaveCalendar = () => {
 
           {/* Event Details Sidebar */}
           <div className="lg:col-span-1">
-            <Card className="bg-card">
+            <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-foreground">
+                <CardTitle className="flex items-center gap-2">
                   <User className="h-5 w-5" />
                   Leave Details
                 </CardTitle>
@@ -245,7 +245,7 @@ const LeaveCalendar = () => {
                 {selectedEvent ? (
                   <div className="space-y-4">
                     <div>
-                      <h3 className="font-semibold text-foreground">{selectedEvent.employee_name}</h3>
+                      <h3 className="font-semibold">{selectedEvent.employee_name}</h3>
                       <Badge className={getLeaveTypeColor(selectedEvent.leave_type)}>
                         {selectedEvent.leave_type}
                       </Badge>
@@ -253,23 +253,23 @@ const LeaveCalendar = () => {
                     
                     <div className="space-y-2 text-sm">
                       <div>
-                        <span className="font-medium text-foreground">Start Date:</span>
-                        <p className="text-muted-foreground">{new Date(selectedEvent.start_date).toLocaleDateString()}</p>
+                        <span className="font-medium">Start Date:</span>
+                        <p>{new Date(selectedEvent.start_date).toLocaleDateString()}</p>
                       </div>
                       <div>
-                        <span className="font-medium text-foreground">End Date:</span>
-                        <p className="text-muted-foreground">{new Date(selectedEvent.end_date).toLocaleDateString()}</p>
+                        <span className="font-medium">End Date:</span>
+                        <p>{new Date(selectedEvent.end_date).toLocaleDateString()}</p>
                       </div>
                       {selectedEvent.reason && (
                         <div>
-                          <span className="font-medium text-foreground">Reason:</span>
+                          <span className="font-medium">Reason:</span>
                           <p className="text-muted-foreground">{selectedEvent.reason}</p>
                         </div>
                       )}
                       {selectedEvent.approved_by && (
                         <div>
-                          <span className="font-medium text-foreground">Approved by:</span>
-                          <p className="text-muted-foreground">{selectedEvent.approved_by}</p>
+                          <span className="font-medium">Approved by:</span>
+                          <p>{selectedEvent.approved_by}</p>
                         </div>
                       )}
                     </div>
@@ -284,27 +284,27 @@ const LeaveCalendar = () => {
             </Card>
 
             {/* Legend */}
-            <Card className="mt-4 bg-card">
+            <Card className="mt-4">
               <CardHeader>
-                <CardTitle className="text-sm text-foreground">Leave Types</CardTitle>
+                <CardTitle className="text-sm">Leave Types</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded bg-blue-100 border border-blue-200 dark:bg-blue-900/30 dark:border-blue-800"></div>
-                    <span className="text-sm text-foreground">Annual Leave</span>
+                    <div className="w-4 h-4 rounded bg-blue-100 border border-blue-200"></div>
+                    <span className="text-sm">Annual Leave</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded bg-orange-100 border border-orange-200 dark:bg-orange-900/30 dark:border-orange-800"></div>
-                    <span className="text-sm text-foreground">Sick Leave</span>
+                    <div className="w-4 h-4 rounded bg-orange-100 border border-orange-200"></div>
+                    <span className="text-sm">Sick Leave</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded bg-purple-100 border border-purple-200 dark:bg-purple-900/30 dark:border-purple-800"></div>
-                    <span className="text-sm text-foreground">Personal Leave</span>
+                    <div className="w-4 h-4 rounded bg-purple-100 border border-purple-200"></div>
+                    <span className="text-sm">Personal Leave</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded bg-pink-100 border border-pink-200 dark:bg-pink-900/30 dark:border-pink-800"></div>
-                    <span className="text-sm text-foreground">Maternity/Paternity</span>
+                    <div className="w-4 h-4 rounded bg-pink-100 border border-pink-200"></div>
+                    <span className="text-sm">Maternity/Paternity</span>
                   </div>
                 </div>
               </CardContent>

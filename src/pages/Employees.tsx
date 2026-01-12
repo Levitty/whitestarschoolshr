@@ -33,8 +33,8 @@ const Employees = () => {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading employees...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-slate-600">Loading employees...</p>
         </div>
       </div>
     );
@@ -83,7 +83,7 @@ const Employees = () => {
           </TabsList>
 
           <TabsContent value="employees" className="space-y-6">
-            <Card className="border-border bg-card">
+            <Card className="border-border">
               <CardContent className="p-4">
                 <EmployeeSearch 
                   searchTerm={searchTerm}
@@ -110,23 +110,23 @@ const Employees = () => {
 
           <TabsContent value="documents" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="border-border bg-card overflow-hidden">
+              <Card className="border-border overflow-hidden">
                 <DocumentUpload onSuccess={() => window.location.reload()} />
               </Card>
-              <Card className="border-border bg-card overflow-hidden">
+              <Card className="border-border overflow-hidden">
                 <DocumentsList />
               </Card>
             </div>
           </TabsContent>
 
           <TabsContent value="recruitment" className="space-y-6">
-            <Card className="border-border bg-card overflow-hidden">
+            <Card className="border-border overflow-hidden">
               <RecruitmentStats employees={employees} />
             </Card>
           </TabsContent>
 
           <TabsContent value="contracts" className="space-y-6">
-            <Card className="border-border bg-card overflow-hidden">
+            <Card className="border-border overflow-hidden">
               <ContractExpiry />
             </Card>
           </TabsContent>
