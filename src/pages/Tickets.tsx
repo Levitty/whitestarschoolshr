@@ -69,56 +69,56 @@ const Tickets = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Support Tickets</h1>
-          <p className="text-slate-600 mt-1">Manage employee complaints and support requests</p>
+          <h1 className="text-3xl font-bold text-foreground">Support Tickets</h1>
+          <p className="text-muted-foreground mt-1">Manage employee complaints and support requests</p>
         </div>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
+        <Card className="bg-card">
           <CardContent className="p-6">
             <div className="flex items-center">
               <Users className="h-8 w-8 text-blue-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Tickets</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalTickets}</p>
+                <p className="text-sm font-medium text-muted-foreground">Total Tickets</p>
+                <p className="text-2xl font-bold text-foreground">{stats.totalTickets}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-card">
           <CardContent className="p-6">
             <div className="flex items-center">
               <AlertCircle className="h-8 w-8 text-red-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Open</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.openTickets}</p>
+                <p className="text-sm font-medium text-muted-foreground">Open</p>
+                <p className="text-2xl font-bold text-foreground">{stats.openTickets}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-card">
           <CardContent className="p-6">
             <div className="flex items-center">
               <Clock className="h-8 w-8 text-orange-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">In Progress</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.inProgressTickets}</p>
+                <p className="text-sm font-medium text-muted-foreground">In Progress</p>
+                <p className="text-2xl font-bold text-foreground">{stats.inProgressTickets}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-card">
           <CardContent className="p-6">
             <div className="flex items-center">
               <CheckCircle className="h-8 w-8 text-green-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Closed</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.closedTickets}</p>
+                <p className="text-sm font-medium text-muted-foreground">Closed</p>
+                <p className="text-2xl font-bold text-foreground">{stats.closedTickets}</p>
               </div>
             </div>
           </CardContent>
@@ -133,12 +133,12 @@ const Tickets = () => {
 
         {/* Tickets List */}
         <div className="lg:col-span-2">
-          <Card>
+          <Card className="bg-card">
             <CardHeader>
-              <CardTitle>All Tickets</CardTitle>
+              <CardTitle className="text-foreground">All Tickets</CardTitle>
               <div className="flex flex-col sm:flex-row gap-4">
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                   <Input
                     placeholder="Search tickets..."
                     value={searchTerm}
@@ -174,16 +174,16 @@ const Tickets = () => {
             <CardContent>
               <div className="space-y-4">
                 {filteredTickets.map((ticket) => (
-                  <div key={ticket.id} className="p-4 border rounded-lg hover:bg-slate-50 transition-colors">
+                  <div key={ticket.id} className="p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors">
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-medium">{ticket.title}</h3>
+                          <h3 className="font-medium text-foreground">{ticket.title}</h3>
                           {getStatusBadge(ticket.status || 'open')}
                           {getPriorityBadge(ticket.priority || 'medium')}
                         </div>
-                        <p className="text-sm text-slate-600 mb-2">{ticket.description}</p>
-                        <div className="flex items-center gap-4 text-xs text-slate-500">
+                        <p className="text-sm text-muted-foreground mb-2">{ticket.description}</p>
+                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
                           <span>Category: {ticket.category}</span>
                           <span>Created: {formatDate(ticket.created_at || '')}</span>
                         </div>
@@ -204,7 +204,7 @@ const Tickets = () => {
               </div>
 
               {filteredTickets.length === 0 && (
-                <div className="text-center py-8 text-slate-500">
+                <div className="text-center py-8 text-muted-foreground">
                   <AlertCircle className="h-12 w-12 mx-auto mb-4" />
                   <p>No tickets found matching your criteria.</p>
                 </div>

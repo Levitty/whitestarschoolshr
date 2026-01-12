@@ -75,10 +75,10 @@ const Upskilling = () => {
 
   const getLevelColor = (level: string) => {
     switch (level) {
-      case 'Beginner': return 'bg-green-100 text-green-800';
-      case 'Intermediate': return 'bg-yellow-100 text-yellow-800';
-      case 'Advanced': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'Beginner': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
+      case 'Intermediate': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
+      case 'Advanced': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
+      default: return 'bg-muted text-muted-foreground';
     }
   };
 
@@ -87,22 +87,22 @@ const Upskilling = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Upskilling Center</h1>
-          <p className="text-slate-600 mt-1">Enhance your skills with our comprehensive training programs</p>
+          <h1 className="text-3xl font-bold text-foreground">Upskilling Center</h1>
+          <p className="text-muted-foreground mt-1">Enhance your skills with our comprehensive training programs</p>
         </div>
-        <Button className="mt-4 sm:mt-0 bg-blue-600 hover:bg-blue-700">
+        <Button className="mt-4 sm:mt-0">
           Create Course
         </Button>
       </div>
 
       {/* Tabs */}
-      <div className="flex space-x-1 bg-slate-100 p-1 rounded-lg w-fit">
+      <div className="flex space-x-1 bg-muted p-1 rounded-lg w-fit">
         <button
           onClick={() => setActiveTab('courses')}
           className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
             activeTab === 'courses' 
-              ? 'bg-white text-slate-900 shadow-sm' 
-              : 'text-slate-600 hover:text-slate-900'
+              ? 'bg-background text-foreground shadow-sm' 
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           All Courses
@@ -111,8 +111,8 @@ const Upskilling = () => {
           onClick={() => setActiveTab('progress')}
           className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
             activeTab === 'progress' 
-              ? 'bg-white text-slate-900 shadow-sm' 
-              : 'text-slate-600 hover:text-slate-900'
+              ? 'bg-background text-foreground shadow-sm' 
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           My Progress
@@ -123,7 +123,7 @@ const Upskilling = () => {
         <>
           {/* Search */}
           <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
               placeholder="Search courses..."
               value={searchTerm}
@@ -135,12 +135,12 @@ const Upskilling = () => {
           {/* Courses Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {filteredCourses.map((course) => (
-              <Card key={course.id} className="hover:shadow-lg transition-shadow">
+              <Card key={course.id} className="hover:shadow-lg transition-shadow bg-card">
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <CardTitle className="text-lg">{course.title}</CardTitle>
-                      <p className="text-sm text-slate-600 mt-1">{course.description}</p>
+                      <CardTitle className="text-lg text-foreground">{course.title}</CardTitle>
+                      <p className="text-sm text-muted-foreground mt-1">{course.description}</p>
                     </div>
                     <Badge className={getLevelColor(course.level)}>
                       {course.level}
@@ -149,7 +149,7 @@ const Upskilling = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between text-sm text-slate-600">
+                    <div className="flex items-center justify-between text-sm text-muted-foreground">
                       <div className="flex items-center">
                         <Clock className="mr-1 h-4 w-4" />
                         {course.duration}
@@ -165,12 +165,12 @@ const Upskilling = () => {
                     </div>
 
                     <div>
-                      <p className="text-sm text-slate-600 mb-2">Instructor: {course.instructor}</p>
+                      <p className="text-sm text-muted-foreground mb-2">Instructor: {course.instructor}</p>
                       {course.progress > 0 && (
                         <div>
                           <div className="flex justify-between text-sm mb-1">
-                            <span>Progress</span>
-                            <span>{course.progress}%</span>
+                            <span className="text-foreground">Progress</span>
+                            <span className="text-foreground">{course.progress}%</span>
                           </div>
                           <Progress value={course.progress} className="h-2" />
                         </div>
@@ -179,12 +179,12 @@ const Upskilling = () => {
 
                     <div className="flex space-x-2">
                       {course.progress > 0 ? (
-                        <Button className="flex-1 bg-blue-600 hover:bg-blue-700">
+                        <Button className="flex-1">
                           <Play className="mr-2 h-4 w-4" />
                           Continue
                         </Button>
                       ) : (
-                        <Button className="flex-1 bg-blue-600 hover:bg-blue-700">
+                        <Button className="flex-1">
                           Enroll Now
                         </Button>
                       )}
@@ -202,23 +202,23 @@ const Upskilling = () => {
 
       {activeTab === 'progress' && (
         <div className="space-y-6">
-          <Card>
+          <Card className="bg-card">
             <CardHeader>
-              <CardTitle>My Learning Progress</CardTitle>
+              <CardTitle className="text-foreground">My Learning Progress</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {myProgress.map((item, index) => (
-                  <div key={index} className="p-4 border border-slate-200 rounded-lg">
+                  <div key={index} className="p-4 border border-border rounded-lg">
                     <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-medium text-slate-900">{item.course}</h4>
-                      <span className="text-sm text-slate-600">Due: {item.nextDeadline}</span>
+                      <h4 className="font-medium text-foreground">{item.course}</h4>
+                      <span className="text-sm text-muted-foreground">Due: {item.nextDeadline}</span>
                     </div>
                     <div className="flex items-center space-x-4">
                       <div className="flex-1">
                         <Progress value={item.progress} className="h-2" />
                       </div>
-                      <span className="text-sm font-medium text-slate-900">{item.progress}%</span>
+                      <span className="text-sm font-medium text-foreground">{item.progress}%</span>
                     </div>
                   </div>
                 ))}
