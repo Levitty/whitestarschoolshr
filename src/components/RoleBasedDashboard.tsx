@@ -2,12 +2,18 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Users, Calendar, Briefcase, BarChart, GraduationCap, FolderOpen, MessageSquare, UserPlus, Download } from 'lucide-react';
+import { 
+  Users, Calendar, Briefcase, BarChart, GraduationCap, 
+  FolderOpen, MessageSquare, UserPlus, Download, FileText 
+} from 'lucide-react';
 import DashboardStatsCards from '@/components/dashboard/DashboardStatsCards';
 import NewHiresChart from '@/components/dashboard/NewHiresChart';
 import EmployeeTable from '@/components/dashboard/EmployeeTable';
+import WelcomeHeader from '@/components/dashboard/WelcomeHeader';
+import QuickActionCard from '@/components/dashboard/QuickActionCard';
+import TaskCard from '@/components/dashboard/TaskCard';
+import ActivityFeed from '@/components/dashboard/ActivityFeed';
 import HeadDashboardSummary from '@/components/HeadDashboardSummary';
 import StaffDashboardSummary from '@/components/StaffDashboardSummary';
 
@@ -33,25 +39,33 @@ const RoleBasedDashboard = () => {
     );
   }
 
-  // Super Admin Dashboard - New Modern Design
+  // Super Admin Dashboard
   const SuperAdminDashboard = () => (
     <div className="space-y-6">
-      {/* Page Header */}
+      {/* Welcome Header */}
+      <WelcomeHeader 
+        firstName={profile?.first_name}
+        lastName={profile?.last_name}
+        avatarUrl={profile?.avatar_url}
+        role={profile?.role}
+      />
+
+      {/* Page Actions */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Employee Overview</h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Manage and monitor your workforce
+          <h2 className="text-xl font-semibold text-foreground">Overview</h2>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Monitor and manage your workforce at a glance
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline" className="gap-2">
+          <Button variant="outline" className="gap-2 shadow-sm border-0 bg-white">
             <Download className="h-4 w-4" />
             Export
           </Button>
-          <Button className="gap-2" onClick={() => navigate('/employees')}>
+          <Button className="gap-2 shadow-sm" onClick={() => navigate('/employees')}>
             <UserPlus className="h-4 w-4" />
-            New Employee
+            Add Employee
           </Button>
         </div>
       </div>
@@ -59,85 +73,62 @@ const RoleBasedDashboard = () => {
       {/* Stats Cards */}
       <DashboardStatsCards />
 
-      {/* Chart Section */}
-      <NewHiresChart />
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Chart - Takes 2 columns */}
+        <div className="lg:col-span-2">
+          <NewHiresChart />
+        </div>
 
-      {/* Employee Table */}
-      <EmployeeTable />
+        {/* Activity Feed */}
+        <div className="lg:col-span-1">
+          <ActivityFeed />
+        </div>
+      </div>
+
+      {/* Tasks and Employee Table */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-1">
+          <TaskCard />
+        </div>
+        <div className="lg:col-span-2">
+          <EmployeeTable />
+        </div>
+      </div>
 
       {/* Quick Actions Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card 
-          variant="glass"
-          className="hover:shadow-xl hover:bg-white/80 transition-all cursor-pointer group" 
-          onClick={() => navigate('/leave')}
-        >
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-emerald-100/80 rounded-lg group-hover:bg-emerald-200 transition-colors">
-                <Calendar className="h-5 w-5 text-emerald-600" />
-              </div>
-              <div>
-                <h3 className="font-medium text-foreground">Leave Management</h3>
-                <p className="text-xs text-muted-foreground">Handle leave requests</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card 
-          variant="glass"
-          className="hover:shadow-xl hover:bg-white/80 transition-all cursor-pointer group" 
-          onClick={() => navigate('/recruitment')}
-        >
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-orange-100/80 rounded-lg group-hover:bg-orange-200 transition-colors">
-                <UserPlus className="h-5 w-5 text-orange-600" />
-              </div>
-              <div>
-                <h3 className="font-medium text-foreground">Recruitment</h3>
-                <p className="text-xs text-muted-foreground">Manage job postings</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card 
-          variant="glass"
-          className="hover:shadow-xl hover:bg-white/80 transition-all cursor-pointer group" 
-          onClick={() => navigate('/performance')}
-        >
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-amber-100/80 rounded-lg group-hover:bg-amber-200 transition-colors">
-                <BarChart className="h-5 w-5 text-amber-600" />
-              </div>
-              <div>
-                <h3 className="font-medium text-foreground">Performance</h3>
-                <p className="text-xs text-muted-foreground">Track evaluations</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card 
-          variant="glass"
-          className="hover:shadow-xl hover:bg-white/80 transition-all cursor-pointer group" 
-          onClick={() => navigate('/records')}
-        >
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-teal-100/80 rounded-lg group-hover:bg-teal-200 transition-colors">
-                <FolderOpen className="h-5 w-5 text-teal-600" />
-              </div>
-              <div>
-                <h3 className="font-medium text-foreground">Documents</h3>
-                <p className="text-xs text-muted-foreground">Access records</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      <div>
+        <h3 className="text-lg font-semibold text-foreground mb-4">Quick Actions</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <QuickActionCard
+            title="Leave Management"
+            description="Review and approve requests"
+            icon={Calendar}
+            accentColor="emerald"
+            onClick={() => navigate('/leave')}
+          />
+          <QuickActionCard
+            title="Recruitment"
+            description="Manage job postings"
+            icon={UserPlus}
+            accentColor="orange"
+            onClick={() => navigate('/recruitment')}
+          />
+          <QuickActionCard
+            title="Performance"
+            description="Track evaluations"
+            icon={BarChart}
+            accentColor="amber"
+            onClick={() => navigate('/performance')}
+          />
+          <QuickActionCard
+            title="Documents"
+            description="Access all records"
+            icon={FolderOpen}
+            accentColor="teal"
+            onClick={() => navigate('/records')}
+          />
+        </div>
       </div>
     </div>
   );
@@ -145,123 +136,85 @@ const RoleBasedDashboard = () => {
   // Head Dashboard
   const HeadDashboard = () => (
     <div className="space-y-6">
+      <WelcomeHeader 
+        firstName={profile?.first_name}
+        lastName={profile?.last_name}
+        avatarUrl={profile?.avatar_url}
+        role={profile?.role}
+      />
+      
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Team Overview</h1>
-        <p className="text-muted-foreground text-sm mt-1">
+        <h2 className="text-xl font-semibold text-foreground">Team Overview</h2>
+        <p className="text-sm text-muted-foreground mt-0.5">
           Manage your team and track their progress
         </p>
       </div>
       
       <HeadDashboardSummary />
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <TaskCard 
+            title="Pending Approvals"
+            tasks={[
+              { id: '1', title: 'Review Sarah\'s leave request', status: 'pending', time: '1d' },
+              { id: '2', title: 'Complete John\'s evaluation', status: 'in_progress', time: '2d' },
+              { id: '3', title: 'Approve training budget', status: 'pending', time: '3d' },
+              { id: '4', title: 'Review weekly reports', status: 'completed', time: '1h' },
+            ]}
+          />
+        </div>
+        <div className="lg:col-span-1">
+          <ActivityFeed />
+        </div>
+      </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <Card 
-          variant="glass"
-          className="hover:shadow-xl hover:bg-white/80 transition-all cursor-pointer group" 
-          onClick={() => navigate('/employees')}
-        >
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-blue-100/80 rounded-lg group-hover:bg-blue-200 transition-colors">
-                <Users className="h-5 w-5 text-blue-600" />
-              </div>
-              <div>
-                <h3 className="font-medium text-foreground">My Team</h3>
-                <p className="text-xs text-muted-foreground">View team members</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card 
-          variant="glass"
-          className="hover:shadow-xl hover:bg-white/80 transition-all cursor-pointer group" 
-          onClick={() => navigate('/leave')}
-        >
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-emerald-100/80 rounded-lg group-hover:bg-emerald-200 transition-colors">
-                <Calendar className="h-5 w-5 text-emerald-600" />
-              </div>
-              <div>
-                <h3 className="font-medium text-foreground">Leave Approvals</h3>
-                <p className="text-xs text-muted-foreground">Review requests</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card 
-          variant="glass"
-          className="hover:shadow-xl hover:bg-white/80 transition-all cursor-pointer group" 
-          onClick={() => navigate('/performance')}
-        >
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-amber-100/80 rounded-lg group-hover:bg-amber-200 transition-colors">
-                <BarChart className="h-5 w-5 text-amber-600" />
-              </div>
-              <div>
-                <h3 className="font-medium text-foreground">Team Performance</h3>
-                <p className="text-xs text-muted-foreground">Monitor evaluations</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card 
-          variant="glass"
-          className="hover:shadow-xl hover:bg-white/80 transition-all cursor-pointer group" 
-          onClick={() => navigate('/upskilling')}
-        >
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-indigo-100/80 rounded-lg group-hover:bg-indigo-200 transition-colors">
-                <GraduationCap className="h-5 w-5 text-indigo-600" />
-              </div>
-              <div>
-                <h3 className="font-medium text-foreground">Team Training</h3>
-                <p className="text-xs text-muted-foreground">Manage development</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card 
-          variant="glass"
-          className="hover:shadow-xl hover:bg-white/80 transition-all cursor-pointer group" 
-          onClick={() => navigate('/records')}
-        >
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-teal-100/80 rounded-lg group-hover:bg-teal-200 transition-colors">
-                <FolderOpen className="h-5 w-5 text-teal-600" />
-              </div>
-              <div>
-                <h3 className="font-medium text-foreground">Team Documents</h3>
-                <p className="text-xs text-muted-foreground">Access files</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card 
-          variant="glass"
-          className="hover:shadow-xl hover:bg-white/80 transition-all cursor-pointer group" 
-          onClick={() => navigate('/tickets')}
-        >
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-rose-100/80 rounded-lg group-hover:bg-rose-200 transition-colors">
-                <MessageSquare className="h-5 w-5 text-rose-600" />
-              </div>
-              <div>
-                <h3 className="font-medium text-foreground">Support</h3>
-                <p className="text-xs text-muted-foreground">Handle requests</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      <div>
+        <h3 className="text-lg font-semibold text-foreground mb-4">Quick Actions</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <QuickActionCard
+            title="My Team"
+            description="View team members"
+            icon={Users}
+            accentColor="blue"
+            onClick={() => navigate('/employees')}
+          />
+          <QuickActionCard
+            title="Leave Approvals"
+            description="Review requests"
+            icon={Calendar}
+            accentColor="emerald"
+            onClick={() => navigate('/leave')}
+          />
+          <QuickActionCard
+            title="Team Performance"
+            description="Monitor evaluations"
+            icon={BarChart}
+            accentColor="amber"
+            onClick={() => navigate('/performance')}
+          />
+          <QuickActionCard
+            title="Team Training"
+            description="Manage development"
+            icon={GraduationCap}
+            accentColor="indigo"
+            onClick={() => navigate('/upskilling')}
+          />
+          <QuickActionCard
+            title="Team Documents"
+            description="Access files"
+            icon={FolderOpen}
+            accentColor="teal"
+            onClick={() => navigate('/records')}
+          />
+          <QuickActionCard
+            title="Support Tickets"
+            description="Handle requests"
+            icon={MessageSquare}
+            accentColor="rose"
+            onClick={() => navigate('/tickets')}
+          />
+        </div>
       </div>
     </div>
   );
@@ -269,105 +222,78 @@ const RoleBasedDashboard = () => {
   // Teacher/Staff Dashboard
   const TeacherStaffDashboard = () => (
     <div className="space-y-6">
+      <WelcomeHeader 
+        firstName={profile?.first_name}
+        lastName={profile?.last_name}
+        avatarUrl={profile?.avatar_url}
+        role={profile?.role}
+      />
+      
       <div>
-        <h1 className="text-2xl font-bold text-foreground">My Dashboard</h1>
-        <p className="text-muted-foreground text-sm mt-1">
+        <h2 className="text-xl font-semibold text-foreground">My Dashboard</h2>
+        <p className="text-sm text-muted-foreground mt-0.5">
           Access your personal information and requests
         </p>
       </div>
       
       <StaffDashboardSummary />
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <TaskCard 
+            title="My Tasks"
+            tasks={[
+              { id: '1', title: 'Complete self-evaluation', status: 'in_progress', time: '2d' },
+              { id: '2', title: 'Submit weekly report', status: 'pending', time: '1d' },
+              { id: '3', title: 'Update profile information', status: 'completed', time: '30m' },
+              { id: '4', title: 'Complete training module', status: 'in_progress', time: '5h' },
+            ]}
+          />
+        </div>
+        <div className="lg:col-span-1">
+          <ActivityFeed />
+        </div>
+      </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <Card 
-          variant="glass"
-          className="hover:shadow-xl hover:bg-white/80 transition-all cursor-pointer group" 
-          onClick={() => navigate('/leave')}
-        >
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-emerald-100/80 rounded-lg group-hover:bg-emerald-200 transition-colors">
-                <Calendar className="h-5 w-5 text-emerald-600" />
-              </div>
-              <div>
-                <h3 className="font-medium text-foreground">My Leave</h3>
-                <p className="text-xs text-muted-foreground">Request time off</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card 
-          variant="glass"
-          className="hover:shadow-xl hover:bg-white/80 transition-all cursor-pointer group" 
-          onClick={() => navigate('/performance')}
-        >
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-amber-100/80 rounded-lg group-hover:bg-amber-200 transition-colors">
-                <BarChart className="h-5 w-5 text-amber-600" />
-              </div>
-              <div>
-                <h3 className="font-medium text-foreground">My Performance</h3>
-                <p className="text-xs text-muted-foreground">View evaluations</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card 
-          variant="glass"
-          className="hover:shadow-xl hover:bg-white/80 transition-all cursor-pointer group" 
-          onClick={() => navigate('/upskilling')}
-        >
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-indigo-100/80 rounded-lg group-hover:bg-indigo-200 transition-colors">
-                <GraduationCap className="h-5 w-5 text-indigo-600" />
-              </div>
-              <div>
-                <h3 className="font-medium text-foreground">My Training</h3>
-                <p className="text-xs text-muted-foreground">Access courses</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card 
-          variant="glass"
-          className="hover:shadow-xl hover:bg-white/80 transition-all cursor-pointer group" 
-          onClick={() => navigate('/records')}
-        >
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-teal-100/80 rounded-lg group-hover:bg-teal-200 transition-colors">
-                <FolderOpen className="h-5 w-5 text-teal-600" />
-              </div>
-              <div>
-                <h3 className="font-medium text-foreground">My Documents</h3>
-                <p className="text-xs text-muted-foreground">View your files</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card 
-          variant="glass"
-          className="hover:shadow-xl hover:bg-white/80 transition-all cursor-pointer group" 
-          onClick={() => navigate('/tickets')}
-        >
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-rose-100/80 rounded-lg group-hover:bg-rose-200 transition-colors">
-                <MessageSquare className="h-5 w-5 text-rose-600" />
-              </div>
-              <div>
-                <h3 className="font-medium text-foreground">Support</h3>
-                <p className="text-xs text-muted-foreground">Get help</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      <div>
+        <h3 className="text-lg font-semibold text-foreground mb-4">Quick Actions</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <QuickActionCard
+            title="My Leave"
+            description="Request time off"
+            icon={Calendar}
+            accentColor="emerald"
+            onClick={() => navigate('/leave')}
+          />
+          <QuickActionCard
+            title="My Performance"
+            description="View evaluations"
+            icon={BarChart}
+            accentColor="amber"
+            onClick={() => navigate('/performance')}
+          />
+          <QuickActionCard
+            title="My Training"
+            description="Access courses"
+            icon={GraduationCap}
+            accentColor="indigo"
+            onClick={() => navigate('/upskilling')}
+          />
+          <QuickActionCard
+            title="My Documents"
+            description="View your files"
+            icon={FolderOpen}
+            accentColor="teal"
+            onClick={() => navigate('/records')}
+          />
+          <QuickActionCard
+            title="Get Support"
+            description="Submit a ticket"
+            icon={MessageSquare}
+            accentColor="rose"
+            onClick={() => navigate('/tickets')}
+          />
+        </div>
       </div>
     </div>
   );
@@ -389,20 +315,8 @@ const RoleBasedDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-6 max-w-7xl space-y-6">
-        {/* Welcome Message */}
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-muted-foreground">
-              {profile
-                ? `Welcome back, ${profile.first_name}!`
-                : 'Loading...'}
-            </p>
-          </div>
-        </div>
-
-        {/* Role-based Dashboard Content */}
+    <div className="min-h-screen bg-muted/30">
+      <div className="container mx-auto px-4 py-6 max-w-7xl">
         {getDashboardContent()}
       </div>
     </div>
