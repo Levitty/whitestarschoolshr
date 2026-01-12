@@ -106,37 +106,58 @@ const RoleBasedNavigation = () => {
 
   const NavigationContent = ({ isMobile = false }: { isMobile?: boolean }) => (
     <div className={cn(
-      "h-full flex flex-col bg-card overflow-hidden",
-      !isMobile && "rounded-2xl shadow-xl border border-border/50"
-    )}>
+      "h-full flex flex-col overflow-hidden",
+      !isMobile && "rounded-2xl shadow-xl"
+    )} style={{
+      backgroundColor: 'hsl(var(--sidebar-background))',
+      color: 'hsl(var(--sidebar-foreground))',
+      borderWidth: '1px',
+      borderStyle: 'solid',
+      borderColor: 'hsl(var(--sidebar-border))'
+    }}>
       {/* Logo & Brand */}
-      <div className="p-5 border-b border-border/50">
+      <div className="p-5" style={{ borderBottom: '1px solid hsl(var(--sidebar-border))' }}>
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg shadow-primary/20">
-            <span className="text-primary-foreground font-bold text-lg">HR</span>
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg" style={{
+            background: 'linear-gradient(135deg, hsl(var(--sidebar-primary)), hsl(var(--sidebar-primary) / 0.8))',
+            boxShadow: '0 4px 12px hsl(var(--sidebar-primary) / 0.3)'
+          }}>
+            <span style={{ color: 'hsl(var(--sidebar-primary-foreground))' }} className="font-bold text-lg">HR</span>
           </div>
           <div>
-            <h1 className="text-base font-semibold text-foreground">HR Portal</h1>
-            <p className="text-xs text-muted-foreground">{getRoleDisplayName(profile?.role)}</p>
+            <h1 className="text-base font-semibold" style={{ color: 'hsl(var(--sidebar-foreground))' }}>HR Portal</h1>
+            <p className="text-xs" style={{ color: 'hsl(var(--sidebar-muted))' }}>{getRoleDisplayName(profile?.role)}</p>
           </div>
         </div>
       </div>
       
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        <p className="px-3 text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-3">Menu</p>
+        <p className="px-3 text-[10px] font-semibold uppercase tracking-widest mb-3" style={{ color: 'hsl(var(--sidebar-muted))' }}>Menu</p>
         {navItems.map((item) => {
           const active = isActive(item.path);
           return (
             <button
               key={item.path}
               onClick={() => handleNavigation(item.path)}
-              className={cn(
-                "w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 text-left group",
-                active 
-                  ? "bg-primary text-primary-foreground shadow-md shadow-primary/25" 
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
-              )}
+              className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 text-left group"
+              style={{
+                backgroundColor: active ? 'hsl(var(--sidebar-primary))' : 'transparent',
+                color: active ? 'hsl(var(--sidebar-primary-foreground))' : 'hsl(var(--sidebar-muted))',
+                boxShadow: active ? '0 4px 12px hsl(var(--sidebar-primary) / 0.3)' : 'none'
+              }}
+              onMouseEnter={(e) => {
+                if (!active) {
+                  e.currentTarget.style.backgroundColor = 'hsl(var(--sidebar-accent))';
+                  e.currentTarget.style.color = 'hsl(var(--sidebar-accent-foreground))';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!active) {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = 'hsl(var(--sidebar-muted))';
+                }
+              }}
             >
               <item.icon className={cn(
                 "h-[18px] w-[18px] flex-shrink-0 transition-transform duration-200",
@@ -153,15 +174,15 @@ const RoleBasedNavigation = () => {
         {/* SaaS Admin Link */}
         {isSaasAdmin && (
           <>
-            <div className="my-4 border-t border-border/50"></div>
-            <p className="px-3 text-[10px] font-semibold text-amber-600 uppercase tracking-widest mb-3">Platform Admin</p>
+            <div className="my-4" style={{ borderTop: '1px solid hsl(var(--sidebar-border))' }}></div>
+            <p className="px-3 text-[10px] font-semibold text-amber-500 uppercase tracking-widest mb-3">Platform Admin</p>
             <button
               onClick={() => handleNavigation('/saas-admin')}
               className={cn(
                 "w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 text-left",
                 location.pathname === '/saas-admin'
                   ? "bg-amber-500 text-white shadow-md shadow-amber-500/25" 
-                  : "text-amber-600 hover:bg-amber-50"
+                  : "text-amber-500 hover:bg-amber-500/10"
               )}
             >
               <Crown className="h-[18px] w-[18px] flex-shrink-0" />
@@ -172,18 +193,21 @@ const RoleBasedNavigation = () => {
       </nav>
       
       {/* User Profile Section */}
-      <div className="p-3 border-t border-border/50">
-        <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center ring-2 ring-primary/20">
-            <span className="text-primary font-semibold text-sm">
+      <div className="p-3" style={{ borderTop: '1px solid hsl(var(--sidebar-border))' }}>
+        <div className="flex items-center gap-3 p-3 rounded-xl" style={{ backgroundColor: 'hsl(var(--sidebar-accent))' }}>
+          <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{
+            background: 'linear-gradient(135deg, hsl(var(--sidebar-primary) / 0.3), hsl(var(--sidebar-primary) / 0.1))',
+            boxShadow: '0 0 0 2px hsl(var(--sidebar-primary) / 0.3)'
+          }}>
+            <span className="font-semibold text-sm" style={{ color: 'hsl(var(--sidebar-primary))' }}>
               {profile?.first_name?.charAt(0).toUpperCase() || profile?.full_name?.charAt(0).toUpperCase() || 'U'}
             </span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground truncate">
+            <p className="text-sm font-medium truncate" style={{ color: 'hsl(var(--sidebar-foreground))' }}>
               {profile?.first_name ? `${profile.first_name} ${profile.last_name || ''}` : profile?.full_name || 'User'}
             </p>
-            <p className="text-xs text-muted-foreground truncate">
+            <p className="text-xs truncate" style={{ color: 'hsl(var(--sidebar-muted))' }}>
               {profile?.email}
             </p>
           </div>
@@ -191,7 +215,8 @@ const RoleBasedNavigation = () => {
         
         <button
           onClick={handleSignOut}
-          className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 mt-2 text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all duration-200"
+          className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 mt-2 text-sm font-medium transition-all duration-200 hover:bg-red-500/10 hover:text-red-500"
+          style={{ color: 'hsl(var(--sidebar-muted))' }}
         >
           <LogOut className="h-4 w-4" />
           <span>Sign Out</span>

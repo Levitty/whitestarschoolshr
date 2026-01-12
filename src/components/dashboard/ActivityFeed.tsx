@@ -1,8 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatDistanceToNow } from 'date-fns';
-import { FileText, UserPlus, Calendar, Award, MessageSquare } from 'lucide-react';
+import { FileText, UserPlus, Calendar, Award, MessageSquare, Loader2 } from 'lucide-react';
 import { LucideIcon } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Activity {
   id: string;
@@ -17,10 +19,6 @@ interface Activity {
   timestamp: Date;
 }
 
-interface ActivityFeedProps {
-  activities?: Activity[];
-}
-
 const iconMap: Record<Activity['type'], { icon: LucideIcon; color: string }> = {
   document: { icon: FileText, color: 'text-blue-500' },
   employee: { icon: UserPlus, color: 'text-emerald-500' },
@@ -29,88 +27,207 @@ const iconMap: Record<Activity['type'], { icon: LucideIcon; color: string }> = {
   message: { icon: MessageSquare, color: 'text-rose-500' },
 };
 
-const defaultActivities: Activity[] = [
-  {
-    id: '1',
-    user: { name: 'Sarah Johnson', initials: 'SJ' },
-    action: 'submitted a leave request',
-    target: 'Annual Leave',
-    type: 'leave',
-    timestamp: new Date(Date.now() - 1000 * 60 * 15),
-  },
-  {
-    id: '2',
-    user: { name: 'Michael Chen', initials: 'MC' },
-    action: 'uploaded a document',
-    target: 'Q4 Report.pdf',
-    type: 'document',
-    timestamp: new Date(Date.now() - 1000 * 60 * 45),
-  },
-  {
-    id: '3',
-    user: { name: 'Emily Davis', initials: 'ED' },
-    action: 'completed evaluation for',
-    target: 'James Wilson',
-    type: 'performance',
-    timestamp: new Date(Date.now() - 1000 * 60 * 120),
-  },
-  {
-    id: '4',
-    user: { name: 'HR System', initials: 'HR' },
-    action: 'added new employee',
-    target: 'Alex Thompson',
-    type: 'employee',
-    timestamp: new Date(Date.now() - 1000 * 60 * 180),
-  },
-];
+const ActivityFeed = () => {
+  // Fetch real leave requests
+  const { data: leaveRequests } = useQuery({
+    queryKey: ['recent-leave-requests'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('leave_requests')
+        .select(`
+          id,
+          leave_type,
+          created_at,
+          employee:profiles!leave_requests_employee_id_fkey(first_name, last_name, avatar_url)
+        `)
+        .order('created_at', { ascending: false })
+        .limit(3);
+      
+      if (error) throw error;
+      return data;
+    }
+  });
 
-const ActivityFeed = ({ activities = defaultActivities }: ActivityFeedProps) => {
+  // Fetch real document uploads
+  const { data: documents } = useQuery({
+    queryKey: ['recent-documents'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('documents')
+        .select(`
+          id,
+          title,
+          created_at,
+          uploader:profiles!documents_uploaded_by_fkey(first_name, last_name, avatar_url)
+        `)
+        .order('created_at', { ascending: false })
+        .limit(3);
+      
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  // Fetch recent evaluations
+  const { data: evaluations } = useQuery({
+    queryKey: ['recent-evaluations'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('evaluations')
+        .select(`
+          id,
+          period,
+          created_at,
+          employee:employee_profiles!evaluations_employee_id_fkey(first_name, last_name)
+        `)
+        .order('created_at', { ascending: false })
+        .limit(2);
+      
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  // Fetch recent employee additions
+  const { data: employees } = useQuery({
+    queryKey: ['recent-employees'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('employee_profiles')
+        .select('id, first_name, last_name, created_at')
+        .order('created_at', { ascending: false })
+        .limit(2);
+      
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  // Build activities from real data
+  const activities: Activity[] = [];
+
+  leaveRequests?.forEach((req: any) => {
+    const firstName = req.employee?.first_name || 'Unknown';
+    const lastName = req.employee?.last_name || '';
+    activities.push({
+      id: `leave-${req.id}`,
+      user: {
+        name: `${firstName} ${lastName}`.trim(),
+        initials: `${firstName[0] || ''}${lastName[0] || ''}`.toUpperCase(),
+        avatar: req.employee?.avatar_url
+      },
+      action: 'submitted a leave request',
+      target: req.leave_type,
+      type: 'leave',
+      timestamp: new Date(req.created_at)
+    });
+  });
+
+  documents?.forEach((doc: any) => {
+    const firstName = doc.uploader?.first_name || 'System';
+    const lastName = doc.uploader?.last_name || '';
+    activities.push({
+      id: `doc-${doc.id}`,
+      user: {
+        name: `${firstName} ${lastName}`.trim(),
+        initials: `${firstName[0] || 'S'}${lastName[0] || ''}`.toUpperCase(),
+        avatar: doc.uploader?.avatar_url
+      },
+      action: 'uploaded a document',
+      target: doc.title,
+      type: 'document',
+      timestamp: new Date(doc.created_at)
+    });
+  });
+
+  evaluations?.forEach((ev: any) => {
+    const firstName = ev.employee?.first_name || 'Unknown';
+    const lastName = ev.employee?.last_name || '';
+    activities.push({
+      id: `eval-${ev.id}`,
+      user: {
+        name: 'HR System',
+        initials: 'HR'
+      },
+      action: 'completed evaluation for',
+      target: `${firstName} ${lastName}`.trim(),
+      type: 'performance',
+      timestamp: new Date(ev.created_at)
+    });
+  });
+
+  employees?.forEach((emp: any) => {
+    activities.push({
+      id: `emp-${emp.id}`,
+      user: {
+        name: 'HR System',
+        initials: 'HR'
+      },
+      action: 'added new employee',
+      target: `${emp.first_name} ${emp.last_name}`.trim(),
+      type: 'employee',
+      timestamp: new Date(emp.created_at)
+    });
+  });
+
+  // Sort by timestamp and take top 6
+  const sortedActivities = activities
+    .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+    .slice(0, 6);
+
+  const isLoading = !leaveRequests && !documents && !evaluations && !employees;
+
   return (
     <Card className="border-0 shadow-sm bg-card">
       <CardHeader className="pb-4">
         <CardTitle className="text-lg font-semibold">Recent Activity</CardTitle>
       </CardHeader>
       <CardContent className="pt-0">
-        <div className="space-y-4">
-          {activities.map((activity, index) => {
-            const { icon: TypeIcon, color } = iconMap[activity.type];
-            
-            return (
-              <div key={activity.id} className="flex gap-3">
-                <div className="relative">
-                  <Avatar className="h-9 w-9">
-                    <AvatarImage src={activity.user.avatar} />
-                    <AvatarFallback className="text-xs bg-muted">
-                      {activity.user.initials}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className={`absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-white flex items-center justify-center`}>
-                    <TypeIcon className={`h-2.5 w-2.5 ${color}`} />
+        {isLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : sortedActivities.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-8">No recent activity</p>
+        ) : (
+          <div className="space-y-4">
+            {sortedActivities.map((activity) => {
+              const { icon: TypeIcon, color } = iconMap[activity.type];
+              
+              return (
+                <div key={activity.id} className="flex gap-3">
+                  <div className="relative">
+                    <Avatar className="h-9 w-9">
+                      <AvatarImage src={activity.user.avatar} />
+                      <AvatarFallback className="text-xs bg-muted">
+                        {activity.user.initials}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-white flex items-center justify-center">
+                      <TypeIcon className={`h-2.5 w-2.5 ${color}`} />
+                    </div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm">
+                      <span className="font-medium text-foreground">{activity.user.name}</span>
+                      {' '}
+                      <span className="text-muted-foreground">{activity.action}</span>
+                      {activity.target && (
+                        <>
+                          {' '}
+                          <span className="font-medium text-foreground">{activity.target}</span>
+                        </>
+                      )}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {formatDistanceToNow(activity.timestamp, { addSuffix: true })}
+                    </p>
                   </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm">
-                    <span className="font-medium text-foreground">{activity.user.name}</span>
-                    {' '}
-                    <span className="text-muted-foreground">{activity.action}</span>
-                    {activity.target && (
-                      <>
-                        {' '}
-                        <span className="font-medium text-foreground">{activity.target}</span>
-                      </>
-                    )}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {formatDistanceToNow(activity.timestamp, { addSuffix: true })}
-                  </p>
-                </div>
-                {index < activities.length - 1 && (
-                  <div className="absolute left-[18px] top-10 bottom-0 w-px bg-border" />
-                )}
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
