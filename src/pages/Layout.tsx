@@ -7,7 +7,7 @@ import { Toaster } from '@/components/ui/toaster';
 const Layout = () => {
   return (
     <ProtectedRoute>
-      <div className="flex h-screen bg-gray-50">
+      <div className="flex h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-teal-50/20">
         <RoleBasedNavigation />
         <main className="flex-1 overflow-y-auto w-full">
           <div className="p-6 lg:p-8 pt-16 lg:pt-6">
