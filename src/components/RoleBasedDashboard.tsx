@@ -154,15 +154,7 @@ const RoleBasedDashboard = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <TaskCard 
-            title="Pending Approvals"
-            tasks={[
-              { id: '1', title: 'Review Sarah\'s leave request', status: 'pending', time: '1d' },
-              { id: '2', title: 'Complete John\'s evaluation', status: 'in_progress', time: '2d' },
-              { id: '3', title: 'Approve training budget', status: 'pending', time: '3d' },
-              { id: '4', title: 'Review weekly reports', status: 'completed', time: '1h' },
-            ]}
-          />
+          <TaskCard title="Pending Approvals" />
         </div>
         <div className="lg:col-span-1">
           <ActivityFeed />
@@ -240,15 +232,7 @@ const RoleBasedDashboard = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <TaskCard 
-            title="My Tasks"
-            tasks={[
-              { id: '1', title: 'Complete self-evaluation', status: 'in_progress', time: '2d' },
-              { id: '2', title: 'Submit weekly report', status: 'pending', time: '1d' },
-              { id: '3', title: 'Update profile information', status: 'completed', time: '30m' },
-              { id: '4', title: 'Complete training module', status: 'in_progress', time: '5h' },
-            ]}
-          />
+          <TaskCard title="My Tasks" />
         </div>
         <div className="lg:col-span-1">
           <ActivityFeed />
