@@ -80,53 +80,61 @@ const Recruitment = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Recruitment Management</h1>
-          <p className="text-slate-600 mt-1">Manage job postings, applications, and hiring process</p>
+          <h1 className="text-2xl font-bold text-foreground">Recruitment Management</h1>
+          <p className="text-muted-foreground mt-1">Manage job postings, applications, and hiring process</p>
         </div>
       </div>
 
       {/* Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <FileText className="h-8 w-8 text-blue-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Active Jobs</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.activeJobs}</p>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card className="border-0 shadow-sm bg-card">
+          <CardContent className="p-5">
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                <FileText className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Active Jobs</p>
+                <p className="text-2xl font-bold text-foreground">{stats.activeJobs}</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <Users className="h-8 w-8 text-green-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Applications</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalApplications}</p>
+        <Card className="border-0 shadow-sm bg-card">
+          <CardContent className="p-5">
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                <Users className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Applications</p>
+                <p className="text-2xl font-bold text-foreground">{stats.totalApplications}</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <Calendar className="h-8 w-8 text-purple-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Interviews</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.scheduledInterviews}</p>
+        <Card className="border-0 shadow-sm bg-card">
+          <CardContent className="p-5">
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-12 rounded-xl bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center">
+                <Calendar className="h-6 w-6 text-violet-600 dark:text-violet-400" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Interviews</p>
+                <p className="text-2xl font-bold text-foreground">{stats.scheduledInterviews}</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <TrendingUp className="h-8 w-8 text-orange-600" />
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Hired</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.hiredCandidates}</p>
+        <Card className="border-0 shadow-sm bg-card">
+          <CardContent className="p-5">
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-12 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                <TrendingUp className="h-6 w-6 text-amber-600 dark:text-amber-400" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Hired</p>
+                <p className="text-2xl font-bold text-foreground">{stats.hiredCandidates}</p>
               </div>
             </div>
           </CardContent>
@@ -134,17 +142,17 @@ const Recruitment = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="postings">Job Postings</TabsTrigger>
-          <TabsTrigger value="applications">Applications</TabsTrigger>
-          <TabsTrigger value="interviews">Interviews</TabsTrigger>
-          <TabsTrigger value="assessments">Assessments</TabsTrigger>
-          <TabsTrigger value="reports">Reports</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-5 bg-muted/50 p-1 rounded-lg">
+          <TabsTrigger value="postings" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm">Job Postings</TabsTrigger>
+          <TabsTrigger value="applications" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm">Applications</TabsTrigger>
+          <TabsTrigger value="interviews" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm">Interviews</TabsTrigger>
+          <TabsTrigger value="assessments" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm">Assessments</TabsTrigger>
+          <TabsTrigger value="reports" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm">Reports</TabsTrigger>
         </TabsList>
 
         <TabsContent value="postings" className="space-y-6">
           <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold">Job Postings</h2>
+            <h2 className="text-xl font-semibold text-foreground">Job Postings</h2>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
                 <Button>
@@ -164,28 +172,28 @@ const Recruitment = () => {
           <div className="grid gap-4">
             {jobsLoading ? (
               <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                <p>Loading job postings...</p>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-muted-foreground">Loading job postings...</p>
               </div>
             ) : jobListings?.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-gray-500">No job postings found. Create your first job posting!</p>
+                <p className="text-muted-foreground">No job postings found. Create your first job posting!</p>
               </div>
             ) : (
               jobListings?.map((job) => (
-                <Card key={job.id}>
+                <Card key={job.id} className="border-0 shadow-sm bg-card">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between mb-4">
                       <div>
-                        <h3 className="text-lg font-semibold">{job.title}</h3>
-                        <p className="text-gray-600">{job.department} • {job.location}</p>
+                        <h3 className="text-lg font-semibold text-foreground">{job.title}</h3>
+                        <p className="text-muted-foreground">{job.department} • {job.location}</p>
                       </div>
                       <div className="flex items-center gap-2">
                         {getStatusBadge(job.status)}
                         <Badge variant="outline">{job.employment_type}</Badge>
                       </div>
                     </div>
-                    <p className="text-sm text-gray-700 mb-4 line-clamp-2">{job.description}</p>
+                    <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{job.description}</p>
                     <div className="flex gap-2">
                       <Button variant="outline" size="sm">Edit</Button>
                       <Button 
@@ -201,7 +209,7 @@ const Recruitment = () => {
                         variant="outline" 
                         size="sm"
                         onClick={() => handleCopyJobLink(job.id, job.title)}
-                        className="text-blue-600 hover:text-blue-700"
+                        className="text-primary hover:text-primary"
                       >
                         Copy Link
                       </Button>
