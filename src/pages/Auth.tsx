@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import SignInForm from '@/components/auth/SignInForm';
@@ -9,7 +10,7 @@ import StaffSignUpForm from '@/components/auth/StaffSignUpForm';
 import TutagoraLogo from '@/components/TutagoraLogo';
 import { PLATFORM_BRAND } from '@/constants/branding';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Building2 } from 'lucide-react';
 
 interface Tenant {
   id: string;
@@ -150,11 +151,22 @@ const Auth = () => {
         </Card>
 
         {/* Footer */}
-        <div className="text-center text-sm text-slate-600">
+        <div className="text-center text-sm text-slate-600 space-y-3">
           {currentTenant ? (
             <p>Powered by <span className="font-semibold">TUTAGORA</span></p>
           ) : (
-            <p>Secure, compliant, and user-friendly HR management</p>
+            <>
+              <p>Secure, compliant, and user-friendly HR management</p>
+              <div className="pt-2 border-t border-slate-200">
+                <p className="text-slate-500 mb-2">Are you an institution?</p>
+                <Link to="/register-institution">
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <Building2 className="h-4 w-4" />
+                    Register Your Institution
+                  </Button>
+                </Link>
+              </div>
+            </>
           )}
         </div>
       </div>
