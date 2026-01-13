@@ -22,11 +22,15 @@ import {
   Crown,
   BarChart3,
   Shield,
-  Search
+  Search,
+  UserPlus,
+  ExternalLink,
+  Copy
 } from 'lucide-react';
 import { toast } from 'sonner';
 import TutagoraLogo from '@/components/TutagoraLogo';
 import { PLATFORM_BRAND } from '@/constants/branding';
+import { supabase } from '@/integrations/supabase/client';
 
 const SaasAdmin = () => {
   const navigate = useNavigate();
@@ -43,12 +47,21 @@ const SaasAdmin = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isCreateAdminOpen, setIsCreateAdminOpen] = useState(false);
+  const [selectedTenant, setSelectedTenant] = useState<TenantWithStats | null>(null);
   const [newTenant, setNewTenant] = useState({
     name: '',
     slug: '',
     subscription_tier: 'trial',
     max_employees: 50
   });
+  const [newAdmin, setNewAdmin] = useState({
+    email: '',
+    password: '',
+    first_name: '',
+    last_name: ''
+  });
+  const [creatingAdmin, setCreatingAdmin] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -106,6 +119,90 @@ const SaasAdmin = () => {
     } catch (error) {
       console.error('Error toggling tenant:', error);
     }
+  };
+
+  const handleCreateAdmin = async () => {
+    if (!selectedTenant) return;
+    if (!newAdmin.email || !newAdmin.password || !newAdmin.first_name || !newAdmin.last_name) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    if (newAdmin.password.length < 6) {
+      toast.error('Password must be at least 6 characters');
+      return;
+    }
+
+    setCreatingAdmin(true);
+    try {
+      // Create the user with superadmin metadata
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: newAdmin.email,
+        password: newAdmin.password,
+        options: {
+          data: {
+            first_name: newAdmin.first_name,
+            last_name: newAdmin.last_name,
+            role: 'superadmin',
+            is_superadmin: 'true'
+          },
+          emailRedirectTo: `${window.location.origin}/auth?tenant=${selectedTenant.slug}`
+        }
+      });
+
+      if (authError) throw authError;
+
+      if (authData.user) {
+        // Update the profile with tenant_id
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({ 
+            tenant_id: selectedTenant.id,
+            is_active: true,
+            status: 'active'
+          })
+          .eq('id', authData.user.id);
+
+        if (profileError) {
+          console.error('Profile update error:', profileError);
+        }
+
+        // Add to tenant_users
+        const { error: tenantUserError } = await supabase
+          .from('tenant_users')
+          .insert({
+            tenant_id: selectedTenant.id,
+            user_id: authData.user.id,
+            is_tenant_admin: true
+          });
+
+        if (tenantUserError) {
+          console.error('Tenant user error:', tenantUserError);
+        }
+
+        toast.success(`Admin user created for ${selectedTenant.name}`);
+        setIsCreateAdminOpen(false);
+        setNewAdmin({ email: '', password: '', first_name: '', last_name: '' });
+        setSelectedTenant(null);
+        loadData();
+      }
+    } catch (error: any) {
+      console.error('Error creating admin:', error);
+      toast.error(error.message || 'Failed to create admin user');
+    } finally {
+      setCreatingAdmin(false);
+    }
+  };
+
+  const openCreateAdminDialog = (tenant: TenantWithStats) => {
+    setSelectedTenant(tenant);
+    setIsCreateAdminOpen(true);
+  };
+
+  const copyTenantUrl = (slug: string) => {
+    const url = `${window.location.origin}/auth?tenant=${slug}`;
+    navigator.clipboard.writeText(url);
+    toast.success('Tenant URL copied to clipboard');
   };
 
   const filteredTenants = tenants.filter(t => 
@@ -332,7 +429,25 @@ const SaasAdmin = () => {
                         </div>
                         <div>
                           <h3 className="font-medium">{tenant.name}</h3>
-                          <p className="text-sm text-muted-foreground">/{tenant.slug}</p>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <span>/{tenant.slug}</span>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-5 w-5"
+                              onClick={() => copyTenantUrl(tenant.slug)}
+                            >
+                              <Copy className="h-3 w-3" />
+                            </Button>
+                            <a 
+                              href={`/auth?tenant=${tenant.slug}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="hover:text-primary"
+                            >
+                              <ExternalLink className="h-3 w-3" />
+                            </a>
+                          </div>
                         </div>
                       </div>
                       <div className="flex items-center gap-6">
@@ -347,6 +462,16 @@ const SaasAdmin = () => {
                         <Badge className={getTierBadgeColor(tenant.subscription_tier)}>
                           {tenant.subscription_tier}
                         </Badge>
+                        {tenant.user_count === 0 && (
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => openCreateAdminDialog(tenant)}
+                          >
+                            <UserPlus className="h-4 w-4 mr-1" />
+                            Create Admin
+                          </Button>
+                        )}
                         <div className="flex items-center gap-2">
                           <Switch
                             checked={tenant.is_active}
@@ -394,6 +519,79 @@ const SaasAdmin = () => {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Create Admin Dialog */}
+        <Dialog open={isCreateAdminOpen} onOpenChange={setIsCreateAdminOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create Admin User for {selectedTenant?.name}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>First Name *</Label>
+                  <Input 
+                    placeholder="John"
+                    value={newAdmin.first_name}
+                    onChange={(e) => setNewAdmin({ ...newAdmin, first_name: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Last Name *</Label>
+                  <Input 
+                    placeholder="Doe"
+                    value={newAdmin.last_name}
+                    onChange={(e) => setNewAdmin({ ...newAdmin, last_name: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Email *</Label>
+                <Input 
+                  type="email"
+                  placeholder="admin@institution.com"
+                  value={newAdmin.email}
+                  onChange={(e) => setNewAdmin({ ...newAdmin, email: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Password *</Label>
+                <Input 
+                  type="password"
+                  placeholder="Minimum 6 characters"
+                  value={newAdmin.password}
+                  onChange={(e) => setNewAdmin({ ...newAdmin, password: e.target.value })}
+                />
+              </div>
+              <div className="bg-muted p-3 rounded-lg text-sm">
+                <p className="font-medium mb-1">This will create:</p>
+                <ul className="list-disc list-inside text-muted-foreground space-y-1">
+                  <li>A superadmin account for {selectedTenant?.name}</li>
+                  <li>The user can login at: /auth?tenant={selectedTenant?.slug}</li>
+                  <li>They will have full admin access to their institution</li>
+                </ul>
+              </div>
+            </div>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="outline">Cancel</Button>
+              </DialogClose>
+              <Button onClick={handleCreateAdmin} disabled={creatingAdmin}>
+                {creatingAdmin ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    Create Admin
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </main>
     </div>
   );
