@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useTenant } from '@/contexts/TenantContext';
 
 export interface JobListing {
   id: string;
@@ -13,12 +14,14 @@ export interface JobListing {
   status: 'Open' | 'Closed';
   created_at: string;
   updated_at: string;
+  tenant_id?: string;
 }
 
 export const useJobListings = () => {
   const [jobListings, setJobListings] = useState<JobListing[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { tenant } = useTenant();
 
   const fetchJobListings = async () => {
     try {
@@ -82,9 +85,14 @@ export const useJobListings = () => {
 
       console.log('User has admin permissions, proceeding with job creation');
       
+      const insertData = {
+        ...jobData,
+        tenant_id: tenant?.id
+      };
+      
       const { data, error } = await supabase
         .from('job_listings')
-        .insert([jobData])
+        .insert([insertData])
         .select()
         .single();
 

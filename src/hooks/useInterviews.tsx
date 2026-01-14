@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useTenant } from '@/contexts/TenantContext';
 
 export interface Interview {
   id: string;
@@ -13,6 +14,7 @@ export interface Interview {
   feedback?: string;
   created_at: string;
   updated_at: string;
+  tenant_id?: string;
   job_applications?: {
     candidate_name: string;
     candidate_email: string;
@@ -27,6 +29,7 @@ export const useInterviews = () => {
   const [interviews, setInterviews] = useState<Interview[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { tenant } = useTenant();
 
   const fetchInterviews = async () => {
     try {
@@ -74,7 +77,8 @@ export const useInterviews = () => {
           application_id: interviewData.application_id,
           interview_date: interviewData.interview_date,
           interviewer_name: interviewData.interviewer_name,
-          interview_type: interviewData.interview_type
+          interview_type: interviewData.interview_type,
+          tenant_id: tenant?.id
         }])
         .select()
         .single();
