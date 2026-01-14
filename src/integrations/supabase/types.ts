@@ -2127,6 +2127,10 @@ export type Database = {
           employee_name: string
         }[]
       }
+      create_default_departments_for_tenant: {
+        Args: { p_tenant_id: string }
+        Returns: undefined
+      }
       get_current_user_role: { Args: never; Returns: string }
       get_event_price: { Args: { event_name: string }; Returns: number }
       get_leave_requests_for_role: {
