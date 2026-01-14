@@ -2187,6 +2187,7 @@ export type Database = {
       }
       is_saas_admin: { Args: never; Returns: boolean }
       is_superadmin: { Args: { user_id: string }; Returns: boolean }
+      is_tenant_admin: { Args: { _user_id: string }; Returns: boolean }
       is_tenant_member: { Args: { _tenant_id: string }; Returns: boolean }
       send_registration_confirmation: {
         Args: { registration_id_param: string }
