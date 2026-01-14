@@ -13,9 +13,11 @@ export interface JobApplication {
   status: 'New' | 'Interview' | 'Rejected' | 'Hired';
   applied_at: string;
   updated_at: string;
+  tenant_id?: string;
   job_listings?: {
     title: string;
     department: string;
+    tenant_id?: string;
   };
 }
 
@@ -120,6 +122,17 @@ export const useJobApplications = () => {
       console.log('=== APPLICATION CREATION START ===');
       console.log('Application data:', applicationData);
       
+      // Get the job's tenant_id to associate the application with the correct tenant
+      const { data: jobData, error: jobError } = await supabase
+        .from('job_listings')
+        .select('tenant_id')
+        .eq('id', applicationData.job_id)
+        .single();
+      
+      if (jobError) {
+        console.error('Error fetching job tenant:', jobError);
+      }
+      
       const insertData = {
         job_id: applicationData.job_id,
         candidate_name: applicationData.candidate_name,
@@ -127,7 +140,8 @@ export const useJobApplications = () => {
         phone_number: applicationData.phone_number || null,
         cv_url: applicationData.cv_url || null,
         note: applicationData.note || null,
-        status: 'New' as const
+        status: 'New' as const,
+        tenant_id: jobData?.tenant_id || null
       };
       
       console.log('Inserting data:', insertData);
