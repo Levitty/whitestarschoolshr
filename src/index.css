@@ -103,26 +103,26 @@
 /* Modern UI utilities */
 @layer utilities {
   .glass {
-    @apply bg-white/70 backdrop-blur-xl border border-white/20 shadow-lg;
+    @apply bg-card/70 backdrop-blur-xl border border-border/20 shadow-lg;
   }
   
   .glass-card {
-    @apply bg-white/90 backdrop-blur-lg border border-white/40 shadow-xl;
+    @apply bg-card/90 backdrop-blur-lg border border-border/40 shadow-xl;
   }
   
   .glass-subtle {
-    @apply bg-white/60 backdrop-blur-md border border-white/20;
+    @apply bg-card/60 backdrop-blur-md border border-border/20;
   }
   
   .glass-dark {
-    @apply bg-black/10 backdrop-blur-lg border border-white/10;
+    @apply bg-background/10 backdrop-blur-lg border border-border/10;
   }
   
   .sidebar-glass {
     background: linear-gradient(
       180deg,
       hsl(var(--sidebar-background)) 0%,
-      hsl(200 28% 18%) 50%,
+      hsl(var(--sidebar-accent)) 50%,
       hsl(var(--sidebar-background)) 100%
     );
   }
