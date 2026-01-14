@@ -10,12 +10,14 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Building2, Plus, Trash2 } from 'lucide-react';
 import { useDepartments } from '@/hooks/useDepartments';
 import { useToast } from '@/hooks/use-toast';
+import { useTenant } from '@/contexts/TenantContext';
 
 const DepartmentManager = () => {
   const [formData, setFormData] = useState({ name: '', description: '' });
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const { departments, loading, createDepartment, deleteDepartment } = useDepartments();
+  const { tenant } = useTenant();
+  const { departments, loading, createDepartment, deleteDepartment } = useDepartments(tenant?.id);
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
