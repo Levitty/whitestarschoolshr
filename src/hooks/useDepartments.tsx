@@ -44,9 +44,16 @@ export const useDepartments = (tenantId?: string) => {
 
   const createDepartment = async (name: string, description?: string) => {
     try {
+      const insertData: { name: string; description?: string; tenant_id?: string } = { name, description };
+      
+      // Include tenant_id if provided
+      if (tenantId) {
+        insertData.tenant_id = tenantId;
+      }
+      
       const { data, error } = await supabase
         .from('departments')
-        .insert({ name, description })
+        .insert(insertData)
         .select()
         .single();
 
