@@ -18,8 +18,8 @@ const DynamicFavicon = () => {
       if (url) {
         link.href = url;
       } else {
-        // Default favicon
-        link.href = '/favicon.ico';
+        // Default favicon - use Tutagora logo
+        link.href = '/favicon.png';
       }
       
       document.head.appendChild(link);
