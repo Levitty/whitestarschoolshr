@@ -1,8 +1,8 @@
-
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
+import { useTenant } from '@/contexts/TenantContext';
 import {
   NavigationMenu,
   NavigationMenuList,
@@ -14,10 +14,12 @@ import {
 import { Home, Users, Briefcase, Settings, HelpCircle, LogOut } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu"
+import TenantSwitcher from './TenantSwitcher';
 
 const Navigation = () => {
   const { user, signOut } = useAuth();
   const { profile, hasRole } = useProfile();
+  const { isSaasAdmin } = useTenant();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -27,6 +29,11 @@ const Navigation = () => {
 
   return (
     <NavigationMenu className="relative">
+      {isSaasAdmin && (
+        <div className="mr-4">
+          <TenantSwitcher />
+        </div>
+      )}
       <NavigationMenuList>
         <NavigationMenuItem>
           <Link

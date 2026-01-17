@@ -22,6 +22,8 @@ export const useTenant = () => {
   return context;
 };
 
+const SELECTED_TENANT_KEY = 'selected_tenant_id';
+
 export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   const [tenant, setTenant] = useState<Tenant | null>(null);
@@ -64,7 +66,16 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           // Cast to Tenant type
           const typedTenants = data as unknown as Tenant[];
           setTenants(typedTenants);
-          if (typedTenants.length > 0 && !tenant) {
+          
+          // Try to restore previously selected tenant from localStorage
+          const savedTenantId = localStorage.getItem(SELECTED_TENANT_KEY);
+          const savedTenant = savedTenantId 
+            ? typedTenants.find(t => t.id === savedTenantId) 
+            : null;
+          
+          if (savedTenant) {
+            setTenant(savedTenant);
+          } else if (typedTenants.length > 0 && !tenant) {
             setTenant(typedTenants[0]);
           }
         }
@@ -103,6 +114,8 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const selectedTenant = tenants.find(t => t.id === tenantId);
     if (selectedTenant) {
       setTenant(selectedTenant);
+      // Persist selection for SaaS admins
+      localStorage.setItem(SELECTED_TENANT_KEY, tenantId);
     }
   };
 
