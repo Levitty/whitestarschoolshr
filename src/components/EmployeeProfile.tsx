@@ -130,7 +130,6 @@ const EmployeeProfile = ({ employee, onClose, onEmployeeUpdated }: EmployeeProfi
                 </Badge>
               )}
             </div>
-            </DialogTitle>
             <div className="flex gap-2">
               {!isEditing ? (
                 <>
