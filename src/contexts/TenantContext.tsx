@@ -84,18 +84,28 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         }
       } else {
         // Regular user can only see their tenant
+        console.log('TenantContext: Fetching tenant_users for user:', user.id);
         const { data: tenantUsers, error: tuError } = await supabase
           .from('tenant_users')
           .select('tenant_id')
           .eq('user_id', user.id);
         
+        console.log('TenantContext: tenant_users query result:', { tenantUsers, tuError });
+        
+        if (tuError) {
+          console.error('TenantContext: Error fetching tenant_users:', tuError);
+        }
+        
         if (!tuError && tenantUsers && tenantUsers.length > 0) {
           const tenantIds = tenantUsers.map(tu => tu.tenant_id);
+          console.log('TenantContext: Found tenant IDs:', tenantIds);
           
           const { data, error } = await supabase
             .from('tenants')
             .select('*')
             .in('id', tenantIds);
+          
+          console.log('TenantContext: tenants query result:', { data, error });
           
           if (!error && data) {
             const typedTenants = data as unknown as Tenant[];
@@ -107,6 +117,8 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
               setTenant(typedTenants[0]);
             }
           }
+        } else {
+          console.log('TenantContext: No tenant_users found for user');
         }
       }
     } catch (error) {
