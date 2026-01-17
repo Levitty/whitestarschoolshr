@@ -42,6 +42,8 @@ export const useTenantLabels = (): TenantLabelsResult => {
   
   const isCorporate = tenant?.slug === 'enda-sportswear';
   
+  console.log('useTenantLabels: tenant slug:', tenant?.slug, 'isCorporate:', isCorporate);
+  
   const labels: TenantLabels = isCorporate ? {
     employee: 'Employee',
     employees: 'Employees',

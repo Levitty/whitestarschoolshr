@@ -54,6 +54,7 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     try {
       const isSaas = await checkSaasAdmin();
       setIsSaasAdmin(isSaas);
+      console.log('TenantContext: User:', user.email, 'isSaasAdmin:', isSaas);
 
       if (isSaas) {
         // SaaS admin can see all tenants
@@ -74,8 +75,10 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             : null;
           
           if (savedTenant) {
+            console.log('TenantContext: Restored tenant from localStorage:', savedTenant.name, savedTenant.slug);
             setTenant(savedTenant);
           } else if (typedTenants.length > 0 && !tenant) {
+            console.log('TenantContext: Using first tenant:', typedTenants[0].name, typedTenants[0].slug);
             setTenant(typedTenants[0]);
           }
         }
@@ -97,7 +100,9 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           if (!error && data) {
             const typedTenants = data as unknown as Tenant[];
             setTenants(typedTenants);
+            console.log('TenantContext: Regular user tenants:', typedTenants.map(t => ({ name: t.name, slug: t.slug })));
             if (typedTenants.length > 0 && !tenant) {
+              console.log('TenantContext: Setting tenant for regular user:', typedTenants[0].name, typedTenants[0].slug);
               setTenant(typedTenants[0]);
             }
           }
