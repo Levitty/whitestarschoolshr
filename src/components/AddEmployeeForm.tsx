@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +10,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useDepartments } from '@/hooks/useDepartments';
+import { useTenant } from '@/contexts/TenantContext';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
@@ -40,8 +40,9 @@ const AddEmployeeForm = () => {
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [nextEmployeeNumber, setNextEmployeeNumber] = useState<string>('');
+  const { tenant } = useTenant();
   const { createEmployee } = useEmployees();
-  const { departments, loading: departmentsLoading } = useDepartments();
+  const { departments, loading: departmentsLoading } = useDepartments(tenant?.id);
   const { toast } = useToast();
 
   // Fetch next employee number when dialog opens
