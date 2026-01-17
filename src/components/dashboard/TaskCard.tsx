@@ -1,11 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, Clock, AlertCircle, MoreHorizontal, Loader2, Plus } from 'lucide-react';
+import { CheckCircle2, Clock, AlertCircle, MoreHorizontal, Loader2, Plus, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { formatDistanceToNow } from 'date-fns';
+import { isClearanceTask } from '@/hooks/useTenantLabels';
 
 interface Task {
   id: string;
@@ -158,18 +159,31 @@ const TaskCard = ({ title = 'Current Tasks' }: TaskCardProps) => {
             {tasks.map((task) => {
               const config = statusConfig[task.status] || statusConfig.pending;
               const StatusIcon = config.icon;
+              const isHighPriority = isClearanceTask(task.title);
               
               return (
                 <div 
                   key={task.id}
-                  className="flex items-center gap-3 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer"
+                  className={`flex items-center gap-3 p-3 rounded-lg transition-colors cursor-pointer ${
+                    isHighPriority 
+                      ? 'bg-red-50 hover:bg-red-100 dark:bg-red-950/30 dark:hover:bg-red-950/50 border border-red-200 dark:border-red-800' 
+                      : 'bg-muted/30 hover:bg-muted/50'
+                  }`}
                   onClick={() => handleToggleComplete(task)}
                 >
                   <StatusIcon className={`h-5 w-5 flex-shrink-0 ${config.iconClass}`} />
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm font-medium ${task.status === 'completed' ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
-                      {task.title}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className={`text-sm font-medium ${task.status === 'completed' ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                        {task.title}
+                      </p>
+                      {isHighPriority && (
+                        <Badge className="bg-red-500 text-white text-[10px] px-1.5 py-0 animate-pulse">
+                          <AlertTriangle className="h-2.5 w-2.5 mr-0.5" />
+                          High Priority
+                        </Badge>
+                      )}
+                    </div>
                     {task.due_date && (
                       <p className="text-xs text-muted-foreground mt-0.5">
                         Due {formatDistanceToNow(new Date(task.due_date), { addSuffix: true })}

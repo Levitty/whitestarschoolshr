@@ -32,6 +32,8 @@ import { useToast } from '@/hooks/use-toast';
 import { DocumentUpload } from '@/components/DocumentUpload';
 import DocumentsList from '@/components/DocumentsList';
 import { useEmployees } from '@/hooks/useEmployees';
+import { useTenantLabels, isOnProbation, getProbationDaysRemaining } from '@/hooks/useTenantLabels';
+import CompensationCard from '@/components/CompensationCard';
 
 interface EmployeeProfileProps {
   employee: any;
@@ -47,6 +49,10 @@ const EmployeeProfile = ({ employee, onClose, onEmployeeUpdated }: EmployeeProfi
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const { toast } = useToast();
   const { inactivateEmployee, deleteEmployee } = useEmployees();
+  const { corporateFeatures, hiddenFeatures, labels } = useTenantLabels();
+  
+  const employeeOnProbation = isOnProbation(employee.hire_date);
+  const probationDaysLeft = getProbationDaysRemaining(employee.hire_date);
 
   const handleSave = () => {
     // TODO: Implement actual save logic
@@ -113,9 +119,17 @@ const EmployeeProfile = ({ employee, onClose, onEmployeeUpdated }: EmployeeProfi
       <Dialog open={true} onOpenChange={onClose}>
         <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
           <DialogHeader className="flex flex-row items-center justify-between">
-            <DialogTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Employee Profile: {employee.first_name} {employee.last_name}
+            <div className="flex items-center gap-3">
+              <DialogTitle className="flex items-center gap-2">
+                <User className="h-5 w-5" />
+                Employee Profile: {employee.first_name} {employee.last_name}
+              </DialogTitle>
+              {corporateFeatures.probationTracker && employeeOnProbation && (
+                <Badge className="bg-amber-100 text-amber-800 border-amber-300">
+                  On Probation • {probationDaysLeft} days left
+                </Badge>
+              )}
+            </div>
             </DialogTitle>
             <div className="flex gap-2">
               {!isEditing ? (
@@ -377,10 +391,12 @@ const EmployeeProfile = ({ employee, onClose, onEmployeeUpdated }: EmployeeProfi
                       <Label>NSSF Number</Label>
                       <p className="text-sm text-muted-foreground">{employee.profile_data.nssf_number || 'Not provided'}</p>
                     </div>
-                    <div>
-                      <Label>TSC Number</Label>
-                      <p className="text-sm text-muted-foreground">{employee.profile_data.tsc_number || 'Not provided'}</p>
-                    </div>
+                    {!hiddenFeatures.tscNumber && (
+                      <div>
+                        <Label>TSC Number</Label>
+                        <p className="text-sm text-muted-foreground">{employee.profile_data.tsc_number || 'Not provided'}</p>
+                      </div>
+                    )}
                     <div>
                       <Label>Date of Birth</Label>
                       <p className="text-sm text-muted-foreground">{employee.profile_data.birth_date || 'Not provided'}</p>
