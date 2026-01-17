@@ -26,7 +26,9 @@ import {
   Award,
   AlertCircle,
   UserX,
-  Trash2
+  Trash2,
+  Target,
+  AlertTriangle
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { DocumentUpload } from '@/components/DocumentUpload';
@@ -34,6 +36,9 @@ import DocumentsList from '@/components/DocumentsList';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useTenantLabels, isOnProbation, getProbationDaysRemaining } from '@/hooks/useTenantLabels';
 import CompensationCard from '@/components/CompensationCard';
+import PerformanceSettingsCard from '@/components/PerformanceSettingsCard';
+import PIPManager from '@/components/PIPManager';
+import ClearanceChecklist from '@/components/ClearanceChecklist';
 
 interface EmployeeProfileProps {
   employee: any;
@@ -49,7 +54,7 @@ const EmployeeProfile = ({ employee, onClose, onEmployeeUpdated }: EmployeeProfi
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const { toast } = useToast();
   const { inactivateEmployee, deleteEmployee } = useEmployees();
-  const { corporateFeatures, hiddenFeatures, labels } = useTenantLabels();
+  const { corporateFeatures, hiddenFeatures, labels, isCorporate } = useTenantLabels();
   
   const employeeOnProbation = isOnProbation(employee.hire_date);
   const probationDaysLeft = getProbationDaysRemaining(employee.hire_date);
@@ -174,10 +179,16 @@ const EmployeeProfile = ({ employee, onClose, onEmployeeUpdated }: EmployeeProfi
           </DialogHeader>
 
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className={`grid w-full ${isCorporate ? 'grid-cols-5' : 'grid-cols-4'}`}>
             <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="documents">Documents</TabsTrigger>
             <TabsTrigger value="performance">Performance</TabsTrigger>
+            {isCorporate && (
+              <TabsTrigger value="pip" className="flex items-center gap-1">
+                <AlertTriangle className="h-3 w-3" />
+                PIP
+              </TabsTrigger>
+            )}
             <TabsTrigger value="certifications">Certifications</TabsTrigger>
           </TabsList>
 
@@ -495,6 +506,20 @@ const EmployeeProfile = ({ employee, onClose, onEmployeeUpdated }: EmployeeProfi
                 department={employee.department}
               />
             )}
+
+            {/* Performance Settings Card - Corporate only */}
+            {isCorporate && (
+              <PerformanceSettingsCard employeeId={employee.id} />
+            )}
+
+            {/* Clearance Checklist - Corporate only for resigned/terminated */}
+            {isCorporate && (
+              <ClearanceChecklist
+                employeeId={employee.id}
+                employeeName={`${employee.first_name} ${employee.last_name}`}
+                employeeStatus={employee.status}
+              />
+            )}
           </TabsContent>
 
           <TabsContent value="documents" className="space-y-6">
@@ -564,6 +589,16 @@ const EmployeeProfile = ({ employee, onClose, onEmployeeUpdated }: EmployeeProfi
               </Card>
             </div>
           </TabsContent>
+
+          {/* PIP Tab - Corporate only */}
+          {isCorporate && (
+            <TabsContent value="pip" className="space-y-6">
+              <PIPManager
+                employeeId={employee.id}
+                employeeName={`${employee.first_name} ${employee.last_name}`}
+              />
+            </TabsContent>
+          )}
 
           <TabsContent value="certifications" className="space-y-6">
             <div className="flex justify-between items-center">
