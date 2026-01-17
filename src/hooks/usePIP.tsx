@@ -14,16 +14,19 @@ export interface PIP {
   review_date: string;
   status: 'active' | 'completed' | 'terminated';
   notes: string | null;
+  supporting_data: {
+    sales_history?: { month: string; year: number; achievement: number }[];
+  } | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
 }
 
 export interface CreatePIPData {
-  employee_id: string;
-  area_of_deficiency: 'sales_target' | 'attendance' | 'conduct';
-  expected_outcome: string;
-  review_date: string;
+  employeeId: string;
+  areaOfDeficiency: 'sales_target' | 'attendance' | 'conduct';
+  expectedOutcome: string;
+  reviewDate: string;
 }
 
 export const usePIP = () => {
@@ -63,7 +66,7 @@ export const usePIP = () => {
     }
   };
 
-  const createPIP = async (pipData: CreatePIPData) => {
+  const createPIP = async (pipData: CreatePIPData, supportingData?: { sales_history?: { month: string; year: number; achievement: number }[] }) => {
     try {
       setLoading(true);
       
@@ -75,15 +78,16 @@ export const usePIP = () => {
       const { error } = await supabase
         .from('performance_improvement_plans')
         .insert({
-          employee_id: pipData.employee_id,
+          employee_id: pipData.employeeId,
           tenant_id: tenant?.id,
-          area_of_deficiency: pipData.area_of_deficiency,
-          expected_outcome: pipData.expected_outcome,
+          area_of_deficiency: pipData.areaOfDeficiency,
+          expected_outcome: pipData.expectedOutcome,
           start_date: startDate.toISOString().split('T')[0],
           check_in_date: checkInDate.toISOString().split('T')[0],
-          review_date: pipData.review_date,
+          review_date: pipData.reviewDate,
           status: 'active',
-          created_by: user?.id
+          created_by: user?.id,
+          supporting_data: supportingData || null
         });
 
       if (error) throw error;
