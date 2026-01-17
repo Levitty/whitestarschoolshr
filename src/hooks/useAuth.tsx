@@ -263,27 +263,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signOut = async () => {
     setLoading(true);
     
-    // Clear state first
+    // Clear React state first
     setUser(null);
     setSession(null);
     setProfile(null);
     
-    // Clear any localStorage tenant selection
+    // Clear tenant selection
     localStorage.removeItem('selected_tenant_id');
     
-    try {
-      const { error } = await supabase.auth.signOut({ scope: 'local' });
-      if (error) {
-        console.error('Sign out error:', error);
+    // Clear ALL Supabase auth tokens from localStorage
+    // This is the key fix - remove the stored session before signOut
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('sb-') || key.includes('supabase')) {
+        localStorage.removeItem(key);
       }
+    });
+    
+    try {
+      // Try global signout, but don't block on errors (session may already be gone)
+      await supabase.auth.signOut({ scope: 'global' });
     } catch (error) {
-      console.error('Sign out error:', error);
+      console.log('Sign out error (expected if session was stale):', error);
     }
     
     setLoading(false);
     
-    // Force a full page reload to clear all cached state
-    window.location.replace('/auth');
+    // Force full page reload to clear all cached state
+    window.location.href = '/auth';
   };
 
   React.useEffect(() => {
