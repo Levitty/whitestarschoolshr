@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
+import { useTenant } from '@/contexts/TenantContext';
 import { useTenantLabels } from '@/hooks/useTenantLabels';
 import { Button } from '@/components/ui/button';
 import { 
@@ -23,7 +24,8 @@ import WorkforceDistribution from '@/components/dashboard/WorkforceDistribution'
 const RoleBasedDashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { profile, hasRole, loading } = useProfile();
+  const { profile, hasRole, loading: profileLoading } = useProfile();
+  const { loading: tenantLoading } = useTenant();
 
   useEffect(() => {
     if (!user) {
@@ -31,7 +33,8 @@ const RoleBasedDashboard = () => {
     }
   }, [user, navigate]);
 
-  if (loading) {
+  // Wait for BOTH profile and tenant to load
+  if (profileLoading || tenantLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
