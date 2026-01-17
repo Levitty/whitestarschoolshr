@@ -3,6 +3,15 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Tenant, TenantWithStats } from '@/types/tenant';
 import { toast } from 'sonner';
+import { ActivityItem } from '@/components/saas-admin/RecentActivityLog';
+
+export interface PlatformStats {
+  totalTenants: number;
+  activeTenants: number;
+  totalEmployees: number;
+  totalUsers: number;
+  trialsEndingSoon: number;
+}
 
 export const useSaasAdmin = () => {
   const { user } = useAuth();
@@ -123,31 +132,88 @@ export const useSaasAdmin = () => {
     toast.success(isActive ? 'Tenant activated' : 'Tenant deactivated');
   };
 
-  const getPlatformStats = async () => {
-    const { count: totalTenants } = await supabase
-      .from('tenants')
-      .select('*', { count: 'exact', head: true });
+  const getPlatformStats = async (): Promise<PlatformStats> => {
+    const sevenDaysFromNow = new Date();
+    sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
 
-    const { count: activeTenants } = await supabase
-      .from('tenants')
-      .select('*', { count: 'exact', head: true })
-      .eq('is_active', true);
-
-    const { count: totalEmployees } = await supabase
-      .from('employee_profiles')
-      .select('*', { count: 'exact', head: true });
-
-    const { count: totalUsers } = await supabase
-      .from('profiles')
-      .select('*', { count: 'exact', head: true })
-      .eq('is_active', true);
+    const [
+      { count: totalTenants },
+      { count: activeTenants },
+      { count: totalEmployees },
+      { count: totalUsers },
+      { count: trialsEndingSoon }
+    ] = await Promise.all([
+      supabase.from('tenants').select('*', { count: 'exact', head: true }),
+      supabase.from('tenants').select('*', { count: 'exact', head: true }).eq('is_active', true),
+      supabase.from('employee_profiles').select('*', { count: 'exact', head: true }),
+      supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('is_active', true),
+      supabase
+        .from('tenants')
+        .select('*', { count: 'exact', head: true })
+        .eq('subscription_tier', 'trial')
+        .not('subscription_ends_at', 'is', null)
+        .lte('subscription_ends_at', sevenDaysFromNow.toISOString())
+    ]);
 
     return {
       totalTenants: totalTenants || 0,
       activeTenants: activeTenants || 0,
       totalEmployees: totalEmployees || 0,
-      totalUsers: totalUsers || 0
+      totalUsers: totalUsers || 0,
+      trialsEndingSoon: trialsEndingSoon || 0
     };
+  };
+
+  const getRecentActivity = async (): Promise<ActivityItem[]> => {
+    // Fetch recent user signups
+    const { data: recentUsers } = await supabase
+      .from('profiles')
+      .select('id, email, first_name, last_name, created_at')
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+    // Fetch recent tenant registrations
+    const { data: recentTenants } = await supabase
+      .from('tenants')
+      .select('id, name, slug, primary_color, created_at')
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+    const activities: ActivityItem[] = [];
+
+    // Add user signups
+    if (recentUsers) {
+      recentUsers.forEach(user => {
+        activities.push({
+          id: `user-${user.id}`,
+          type: 'user_signup',
+          title: user.email,
+          description: user.first_name && user.last_name 
+            ? `${user.first_name} ${user.last_name} signed up` 
+            : 'New user signed up',
+          timestamp: user.created_at || new Date().toISOString(),
+        });
+      });
+    }
+
+    // Add tenant registrations
+    if (recentTenants) {
+      recentTenants.forEach(tenant => {
+        activities.push({
+          id: `tenant-${tenant.id}`,
+          type: 'tenant_created',
+          title: tenant.name,
+          description: 'Organization registered',
+          timestamp: tenant.created_at || new Date().toISOString(),
+          avatarColor: tenant.primary_color || undefined,
+        });
+      });
+    }
+
+    // Sort by timestamp and return top 5
+    return activities
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .slice(0, 5);
   };
 
   return {
@@ -157,6 +223,7 @@ export const useSaasAdmin = () => {
     createTenant,
     updateTenant,
     toggleTenantActive,
-    getPlatformStats
+    getPlatformStats,
+    getRecentActivity
   };
 };
