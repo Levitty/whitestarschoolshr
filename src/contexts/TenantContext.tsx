@@ -101,7 +101,8 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             const typedTenants = data as unknown as Tenant[];
             setTenants(typedTenants);
             console.log('TenantContext: Regular user tenants:', typedTenants.map(t => ({ name: t.name, slug: t.slug })));
-            if (typedTenants.length > 0 && !tenant) {
+            // Always set the first tenant for regular users (they typically have one)
+            if (typedTenants.length > 0) {
               console.log('TenantContext: Setting tenant for regular user:', typedTenants[0].name, typedTenants[0].slug);
               setTenant(typedTenants[0]);
             }
