@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
+import { useTenantLabels } from '@/hooks/useTenantLabels';
 import { Button } from '@/components/ui/button';
 import { 
   Users, Calendar, Briefcase, BarChart, GraduationCap, 
@@ -16,6 +17,8 @@ import TaskCard from '@/components/dashboard/TaskCard';
 import ActivityFeed from '@/components/dashboard/ActivityFeed';
 import HeadDashboardSummary from '@/components/HeadDashboardSummary';
 import StaffDashboardSummary from '@/components/StaffDashboardSummary';
+import ProbationTracker from '@/components/dashboard/ProbationTracker';
+import WorkforceDistribution from '@/components/dashboard/WorkforceDistribution';
 
 const RoleBasedDashboard = () => {
   const navigate = useNavigate();
@@ -40,98 +43,110 @@ const RoleBasedDashboard = () => {
   }
 
   // Super Admin Dashboard
-  const SuperAdminDashboard = () => (
-    <div className="space-y-6">
-      {/* Welcome Header */}
-      <WelcomeHeader 
-        firstName={profile?.first_name}
-        lastName={profile?.last_name}
-        avatarUrl={profile?.avatar_url}
-        role={profile?.role}
-      />
+  const SuperAdminDashboard = () => {
+    const { corporateFeatures, labels } = useTenantLabels();
+    
+    return (
+      <div className="space-y-6">
+        {/* Welcome Header */}
+        <WelcomeHeader 
+          firstName={profile?.first_name}
+          lastName={profile?.last_name}
+          avatarUrl={profile?.avatar_url}
+          role={profile?.role}
+        />
 
-      {/* Page Actions */}
-      <div className="flex items-center justify-between">
+        {/* Page Actions */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-semibold text-foreground">Overview</h2>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              Monitor and manage your workforce at a glance
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button variant="outline" className="gap-2 shadow-sm border-0 bg-white">
+              <Download className="h-4 w-4" />
+              Export
+            </Button>
+            <Button className="gap-2 shadow-sm" onClick={() => navigate('/employees')}>
+              <UserPlus className="h-4 w-4" />
+              Add {labels.employee}
+            </Button>
+          </div>
+        </div>
+
+        {/* Stats Cards */}
+        <DashboardStatsCards />
+
+        {/* Corporate-only widgets */}
+        {corporateFeatures.probationTracker && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <ProbationTracker />
+            <WorkforceDistribution />
+          </div>
+        )}
+
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Chart - Takes 2 columns */}
+          <div className="lg:col-span-2">
+            <NewHiresChart />
+          </div>
+
+          {/* Activity Feed */}
+          <div className="lg:col-span-1">
+            <ActivityFeed />
+          </div>
+        </div>
+
+        {/* Tasks and Employee Table */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-1">
+            <TaskCard />
+          </div>
+          <div className="lg:col-span-2">
+            <EmployeeTable />
+          </div>
+        </div>
+
+        {/* Quick Actions Grid */}
         <div>
-          <h2 className="text-xl font-semibold text-foreground">Overview</h2>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Monitor and manage your workforce at a glance
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Button variant="outline" className="gap-2 shadow-sm border-0 bg-white">
-            <Download className="h-4 w-4" />
-            Export
-          </Button>
-          <Button className="gap-2 shadow-sm" onClick={() => navigate('/employees')}>
-            <UserPlus className="h-4 w-4" />
-            Add Employee
-          </Button>
-        </div>
-      </div>
-
-      {/* Stats Cards */}
-      <DashboardStatsCards />
-
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Chart - Takes 2 columns */}
-        <div className="lg:col-span-2">
-          <NewHiresChart />
-        </div>
-
-        {/* Activity Feed */}
-        <div className="lg:col-span-1">
-          <ActivityFeed />
-        </div>
-      </div>
-
-      {/* Tasks and Employee Table */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1">
-          <TaskCard />
-        </div>
-        <div className="lg:col-span-2">
-          <EmployeeTable />
+          <h3 className="text-lg font-semibold text-foreground mb-4">Quick Actions</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <QuickActionCard
+              title="Leave Management"
+              description="Review and approve requests"
+              icon={Calendar}
+              accentColor="emerald"
+              onClick={() => navigate('/leave')}
+            />
+            <QuickActionCard
+              title="Recruitment"
+              description="Manage job postings"
+              icon={UserPlus}
+              accentColor="orange"
+              onClick={() => navigate('/recruitment')}
+            />
+            <QuickActionCard
+              title="Performance"
+              description="Track evaluations"
+              icon={BarChart}
+              accentColor="amber"
+              onClick={() => navigate('/performance')}
+            />
+            <QuickActionCard
+              title="Documents"
+              description="Access all records"
+              icon={FolderOpen}
+              accentColor="teal"
+              onClick={() => navigate('/records')}
+            />
+          </div>
         </div>
       </div>
-
-      {/* Quick Actions Grid */}
-      <div>
-        <h3 className="text-lg font-semibold text-foreground mb-4">Quick Actions</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <QuickActionCard
-            title="Leave Management"
-            description="Review and approve requests"
-            icon={Calendar}
-            accentColor="emerald"
-            onClick={() => navigate('/leave')}
-          />
-          <QuickActionCard
-            title="Recruitment"
-            description="Manage job postings"
-            icon={UserPlus}
-            accentColor="orange"
-            onClick={() => navigate('/recruitment')}
-          />
-          <QuickActionCard
-            title="Performance"
-            description="Track evaluations"
-            icon={BarChart}
-            accentColor="amber"
-            onClick={() => navigate('/performance')}
-          />
-          <QuickActionCard
-            title="Documents"
-            description="Access all records"
-            icon={FolderOpen}
-            accentColor="teal"
-            onClick={() => navigate('/records')}
-          />
-        </div>
-      </div>
-    </div>
-  );
+    );
+  };
 
   // Head Dashboard
   const HeadDashboard = () => (
