@@ -1,54 +1,69 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { useSaasAdmin } from '@/hooks/useSaasAdmin';
+import { useSaasAdmin, PlatformStats } from '@/hooks/useSaasAdmin';
 import { TenantWithStats, SUBSCRIPTION_TIERS } from '@/types/tenant';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
 import { 
   Building2, 
   Users, 
-  TrendingUp, 
   Plus, 
-  Settings, 
-  LogOut,
-  Crown,
+  Settings,
   BarChart3,
-  Shield,
-  Search,
-  UserPlus,
-  ExternalLink,
-  Copy
+  Clock,
+  CheckCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
-import TutagoraLogo from '@/components/TutagoraLogo';
-import { PLATFORM_BRAND } from '@/constants/branding';
 import { supabase } from '@/integrations/supabase/client';
+
+// Import new components
+import SaasAdminHeader from '@/components/saas-admin/SaasAdminHeader';
+import TenantsTable from '@/components/saas-admin/TenantsTable';
+import TenantDetailsDialog from '@/components/saas-admin/TenantDetailsDialog';
+import ManageSubscriptionDialog from '@/components/saas-admin/ManageSubscriptionDialog';
+import RecentActivityLog, { ActivityItem } from '@/components/saas-admin/RecentActivityLog';
+import SystemHealthBadge from '@/components/saas-admin/SystemHealthBadge';
 
 const SaasAdmin = () => {
   const navigate = useNavigate();
   const { user, signOut, loading: authLoading } = useAuth();
-  const { isSaasAdmin, loading: saasLoading, fetchTenants, createTenant, toggleTenantActive, getPlatformStats } = useSaasAdmin();
+  const { 
+    isSaasAdmin, 
+    loading: saasLoading, 
+    fetchTenants, 
+    createTenant, 
+    updateTenant,
+    toggleTenantActive, 
+    getPlatformStats,
+    getRecentActivity 
+  } = useSaasAdmin();
   
   const [tenants, setTenants] = useState<TenantWithStats[]>([]);
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<PlatformStats>({
     totalTenants: 0,
     activeTenants: 0,
     totalEmployees: 0,
-    totalUsers: 0
+    totalUsers: 0,
+    trialsEndingSoon: 0
   });
+  const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activitiesLoading, setActivitiesLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Dialog states
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isCreateAdminOpen, setIsCreateAdminOpen] = useState(false);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [isSubscriptionOpen, setIsSubscriptionOpen] = useState(false);
   const [selectedTenant, setSelectedTenant] = useState<TenantWithStats | null>(null);
+  
   const [newTenant, setNewTenant] = useState({
     name: '',
     slug: '',
@@ -77,6 +92,7 @@ const SaasAdmin = () => {
 
     if (isSaasAdmin) {
       loadData();
+      loadActivities();
     }
   }, [user, authLoading, isSaasAdmin, saasLoading]);
 
@@ -96,6 +112,18 @@ const SaasAdmin = () => {
     }
   };
 
+  const loadActivities = async () => {
+    setActivitiesLoading(true);
+    try {
+      const data = await getRecentActivity();
+      setActivities(data);
+    } catch (error) {
+      console.error('Error loading activities:', error);
+    } finally {
+      setActivitiesLoading(false);
+    }
+  };
+
   const handleCreateTenant = async () => {
     if (!newTenant.name || !newTenant.slug) {
       toast.error('Please fill in all required fields');
@@ -107,6 +135,7 @@ const SaasAdmin = () => {
       setIsCreateOpen(false);
       setNewTenant({ name: '', slug: '', subscription_tier: 'trial', max_employees: 50 });
       loadData();
+      loadActivities();
     } catch (error) {
       console.error('Error creating tenant:', error);
     }
@@ -118,6 +147,18 @@ const SaasAdmin = () => {
       loadData();
     } catch (error) {
       console.error('Error toggling tenant:', error);
+    }
+  };
+
+  const handleManageSubscription = async (tenantId: string, data: { subscription_tier: string; max_employees: number }) => {
+    try {
+      await updateTenant(tenantId, {
+        subscription_tier: data.subscription_tier as 'trial' | 'basic' | 'professional' | 'enterprise',
+        max_employees: data.max_employees
+      });
+      loadData();
+    } catch (error) {
+      console.error('Error updating subscription:', error);
     }
   };
 
@@ -135,7 +176,6 @@ const SaasAdmin = () => {
 
     setCreatingAdmin(true);
     try {
-      // Create the user with superadmin metadata
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: newAdmin.email,
         password: newAdmin.password,
@@ -153,7 +193,6 @@ const SaasAdmin = () => {
       if (authError) throw authError;
 
       if (authData.user) {
-        // Update the profile with tenant_id
         const { error: profileError } = await supabase
           .from('profiles')
           .update({ 
@@ -167,7 +206,6 @@ const SaasAdmin = () => {
           console.error('Profile update error:', profileError);
         }
 
-        // Add to tenant_users
         const { error: tenantUserError } = await supabase
           .from('tenant_users')
           .insert({
@@ -185,6 +223,7 @@ const SaasAdmin = () => {
         setNewAdmin({ email: '', password: '', first_name: '', last_name: '' });
         setSelectedTenant(null);
         loadData();
+        loadActivities();
       }
     } catch (error: any) {
       console.error('Error creating admin:', error);
@@ -194,37 +233,27 @@ const SaasAdmin = () => {
     }
   };
 
-  const openCreateAdminDialog = (tenant: TenantWithStats) => {
+  const openViewDetails = (tenant: TenantWithStats) => {
+    setSelectedTenant(tenant);
+    setIsDetailsOpen(true);
+  };
+
+  const openManageSubscription = (tenant: TenantWithStats) => {
+    setSelectedTenant(tenant);
+    setIsSubscriptionOpen(true);
+  };
+
+  const openCreateAdmin = (tenant: TenantWithStats) => {
     setSelectedTenant(tenant);
     setIsCreateAdminOpen(true);
   };
 
-  const copyTenantUrl = (slug: string) => {
-    const url = `${window.location.origin}/auth?tenant=${slug}`;
-    navigator.clipboard.writeText(url);
-    toast.success('Tenant URL copied to clipboard');
-  };
-
-  const filteredTenants = tenants.filter(t => 
-    t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    t.slug.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const getTierBadgeColor = (tier: string) => {
-    switch (tier) {
-      case 'enterprise': return 'bg-purple-100 text-purple-800';
-      case 'professional': return 'bg-blue-100 text-blue-800';
-      case 'basic': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   if (authLoading || saasLoading || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="min-h-screen flex items-center justify-center bg-slate-900">
         <div className="text-center">
-          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading SaaS Admin...</p>
+          <div className="w-8 h-8 border-2 border-amber-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-slate-400">Loading SaaS Admin...</p>
         </div>
       </div>
     );
@@ -232,35 +261,13 @@ const SaasAdmin = () => {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3">
-              <TutagoraLogo size="sm" />
-              <div className="flex items-center gap-2 ml-2 pl-2 border-l border-slate-200">
-                <Crown className="h-5 w-5 text-amber-500" />
-                <span className="font-semibold text-lg">Admin</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard')}>
-                <Building2 className="h-4 w-4 mr-2" />
-                Go to App
-              </Button>
-              <Button variant="ghost" size="sm" onClick={signOut}>
-                <LogOut className="h-4 w-4 mr-2" />
-                Sign Out
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
+      {/* Dark Header */}
+      <SaasAdminHeader onSignOut={signOut} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Cards */}
+        {/* KPI Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <Card>
+          <Card className="border-l-4 border-l-primary">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -271,267 +278,217 @@ const SaasAdmin = () => {
               </div>
             </CardContent>
           </Card>
-          <Card>
+          
+          <Card className="border-l-4 border-l-blue-500">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Active Tenants</p>
-                  <p className="text-3xl font-bold">{stats.activeTenants}</p>
-                </div>
-                <TrendingUp className="h-10 w-10 text-green-500/20" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Users</p>
+                  <p className="text-sm text-muted-foreground">Active Users</p>
                   <p className="text-3xl font-bold">{stats.totalUsers}</p>
                 </div>
                 <Users className="h-10 w-10 text-blue-500/20" />
               </div>
             </CardContent>
           </Card>
-          <Card>
+          
+          <Card className="border-l-4 border-l-amber-500">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Total Employees</p>
-                  <p className="text-3xl font-bold">{stats.totalEmployees}</p>
+                  <p className="text-sm text-muted-foreground">Trials Ending Soon</p>
+                  <p className="text-3xl font-bold">{stats.trialsEndingSoon}</p>
                 </div>
-                <Shield className="h-10 w-10 text-purple-500/20" />
+                <Clock className="h-10 w-10 text-amber-500/20" />
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="border-l-4 border-l-green-500">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">System Health</p>
+                  <SystemHealthBadge status="operational" />
+                </div>
+                <CheckCircle className="h-10 w-10 text-green-500/20" />
               </div>
             </CardContent>
           </Card>
         </div>
 
-        <Tabs defaultValue="tenants" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="tenants">
-              <Building2 className="h-4 w-4 mr-2" />
-              Tenants
-            </TabsTrigger>
-            <TabsTrigger value="analytics">
-              <BarChart3 className="h-4 w-4 mr-2" />
-              Analytics
-            </TabsTrigger>
-            <TabsTrigger value="settings">
-              <Settings className="h-4 w-4 mr-2" />
-              Settings
-            </TabsTrigger>
-          </TabsList>
+        {/* Main Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Tenants Table - Takes 2/3 width on large screens */}
+          <div className="lg:col-span-2">
+            <Tabs defaultValue="tenants" className="space-y-6">
+              <TabsList>
+                <TabsTrigger value="tenants">
+                  <Building2 className="h-4 w-4 mr-2" />
+                  Tenants
+                </TabsTrigger>
+                <TabsTrigger value="analytics">
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  Analytics
+                </TabsTrigger>
+                <TabsTrigger value="settings">
+                  <Settings className="h-4 w-4 mr-2" />
+                  Settings
+                </TabsTrigger>
+              </TabsList>
 
-          <TabsContent value="tenants">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
+              <TabsContent value="tenants">
+                <Card>
+                  <CardHeader>
                     <CardTitle>Tenant Management</CardTitle>
                     <CardDescription>Manage all institutions on the platform</CardDescription>
-                  </div>
-                  <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-                    <DialogTrigger asChild>
-                      <Button>
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Tenant
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Create New Tenant</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4 py-4">
-                        <div className="space-y-2">
-                          <Label>Institution Name *</Label>
-                          <Input 
-                            placeholder="e.g., Greenwood Academy"
-                            value={newTenant.name}
-                            onChange={(e) => setNewTenant({ ...newTenant, name: e.target.value })}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Slug (URL identifier) *</Label>
-                          <Input 
-                            placeholder="e.g., greenwood-academy"
-                            value={newTenant.slug}
-                            onChange={(e) => setNewTenant({ 
-                              ...newTenant, 
-                              slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-') 
-                            })}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Subscription Tier</Label>
-                          <Select 
-                            value={newTenant.subscription_tier}
-                            onValueChange={(value) => setNewTenant({ 
-                              ...newTenant, 
-                              subscription_tier: value,
-                              max_employees: SUBSCRIPTION_TIERS[value as keyof typeof SUBSCRIPTION_TIERS]?.maxEmployees || 50
-                            })}
-                          >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="trial">Trial (10 employees)</SelectItem>
-                              <SelectItem value="basic">Basic (25 employees)</SelectItem>
-                              <SelectItem value="professional">Professional (100 employees)</SelectItem>
-                              <SelectItem value="enterprise">Enterprise (Unlimited)</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Max Employees</Label>
-                          <Input 
-                            type="number"
-                            value={newTenant.max_employees}
-                            onChange={(e) => setNewTenant({ ...newTenant, max_employees: parseInt(e.target.value) || 50 })}
-                          />
-                        </div>
-                      </div>
-                      <DialogFooter>
-                        <DialogClose asChild>
-                          <Button variant="outline">Cancel</Button>
-                        </DialogClose>
-                        <Button onClick={handleCreateTenant}>Create Tenant</Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="mb-4">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Search tenants..."
-                      className="pl-10"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
+                  </CardHeader>
+                  <CardContent>
+                    <TenantsTable
+                      tenants={tenants}
+                      searchQuery={searchQuery}
+                      onSearchChange={setSearchQuery}
+                      onAddTenant={() => setIsCreateOpen(true)}
+                      onViewDetails={openViewDetails}
+                      onManageSubscription={openManageSubscription}
+                      onToggleActive={handleToggleActive}
+                      onCreateAdmin={openCreateAdmin}
                     />
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
 
-                <div className="space-y-4">
-                  {filteredTenants.map((tenant) => (
-                    <div 
-                      key={tenant.id} 
-                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-slate-50 transition-colors"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div 
-                          className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-lg"
-                          style={{ backgroundColor: tenant.primary_color || '#3B82F6' }}
-                        >
-                          {tenant.name.charAt(0)}
-                        </div>
-                        <div>
-                          <h3 className="font-medium">{tenant.name}</h3>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <span>/{tenant.slug}</span>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-5 w-5"
-                              onClick={() => copyTenantUrl(tenant.slug)}
-                            >
-                              <Copy className="h-3 w-3" />
-                            </Button>
-                            <a 
-                              href={`/auth?tenant=${tenant.slug}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="hover:text-primary"
-                            >
-                              <ExternalLink className="h-3 w-3" />
-                            </a>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-6">
-                        <div className="text-center">
-                          <p className="text-sm text-muted-foreground">Employees</p>
-                          <p className="font-medium">{tenant.employee_count} / {tenant.max_employees === -1 ? '∞' : tenant.max_employees}</p>
-                        </div>
-                        <div className="text-center">
-                          <p className="text-sm text-muted-foreground">Users</p>
-                          <p className="font-medium">{tenant.user_count}</p>
-                        </div>
-                        <Badge className={getTierBadgeColor(tenant.subscription_tier)}>
-                          {tenant.subscription_tier}
-                        </Badge>
-                        {tenant.user_count === 0 && (
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => openCreateAdminDialog(tenant)}
-                          >
-                            <UserPlus className="h-4 w-4 mr-1" />
-                            Create Admin
-                          </Button>
-                        )}
-                        <div className="flex items-center gap-2">
-                          <Switch
-                            checked={tenant.is_active}
-                            onCheckedChange={() => handleToggleActive(tenant.id, tenant.is_active)}
-                          />
-                          <span className="text-sm text-muted-foreground">
-                            {tenant.is_active ? 'Active' : 'Inactive'}
-                          </span>
-                        </div>
-                      </div>
+              <TabsContent value="analytics">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Platform Analytics</CardTitle>
+                    <CardDescription>Insights across all tenants</CardDescription>
+                  </CardHeader>
+                  <CardContent className="h-64 flex items-center justify-center">
+                    <div className="text-center text-muted-foreground">
+                      <BarChart3 className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <p>Analytics dashboard coming soon</p>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                  </CardContent>
+                </Card>
+              </TabsContent>
 
-          <TabsContent value="analytics">
-            <Card>
-              <CardHeader>
-                <CardTitle>Platform Analytics</CardTitle>
-                <CardDescription>Overview of platform usage and growth</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-12 text-muted-foreground">
-                  <BarChart3 className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>Analytics dashboard coming soon</p>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+              <TabsContent value="settings">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Platform Settings</CardTitle>
+                    <CardDescription>Configure global platform settings</CardDescription>
+                  </CardHeader>
+                  <CardContent className="h-64 flex items-center justify-center">
+                    <div className="text-center text-muted-foreground">
+                      <Settings className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <p>Settings panel coming soon</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </div>
 
-          <TabsContent value="settings">
-            <Card>
-              <CardHeader>
-                <CardTitle>Platform Settings</CardTitle>
-                <CardDescription>Configure global platform settings</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-12 text-muted-foreground">
-                  <Settings className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>Settings panel coming soon</p>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+          {/* Activity Log - Takes 1/3 width on large screens */}
+          <div className="lg:col-span-1">
+            <RecentActivityLog activities={activities} loading={activitiesLoading} />
+          </div>
+        </div>
+      </main>
 
-        {/* Create Admin Dialog */}
-        <Dialog open={isCreateAdminOpen} onOpenChange={setIsCreateAdminOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create Admin User for {selectedTenant?.name}</DialogTitle>
-            </DialogHeader>
+      {/* Create Tenant Dialog */}
+      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create New Tenant</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Institution Name *</Label>
+              <Input 
+                placeholder="e.g., Greenwood Academy"
+                value={newTenant.name}
+                onChange={(e) => setNewTenant({ ...newTenant, name: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Slug (URL identifier) *</Label>
+              <Input 
+                placeholder="e.g., greenwood-academy"
+                value={newTenant.slug}
+                onChange={(e) => setNewTenant({ 
+                  ...newTenant, 
+                  slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-') 
+                })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Subscription Tier</Label>
+              <Select 
+                value={newTenant.subscription_tier}
+                onValueChange={(value) => setNewTenant({ 
+                  ...newTenant, 
+                  subscription_tier: value,
+                  max_employees: SUBSCRIPTION_TIERS[value as keyof typeof SUBSCRIPTION_TIERS]?.maxEmployees || 50
+                })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="trial">Trial (10 employees)</SelectItem>
+                  <SelectItem value="basic">Basic (25 employees)</SelectItem>
+                  <SelectItem value="professional">Professional (100 employees)</SelectItem>
+                  <SelectItem value="enterprise">Enterprise (Unlimited)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Max Employees</Label>
+              <Input 
+                type="number"
+                value={newTenant.max_employees}
+                onChange={(e) => setNewTenant({ ...newTenant, max_employees: parseInt(e.target.value) || 50 })}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button onClick={handleCreateTenant}>Create Tenant</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Admin Dialog */}
+      <Dialog open={isCreateAdminOpen} onOpenChange={(open) => {
+        setIsCreateAdminOpen(open);
+        if (!open) setSelectedTenant(null);
+      }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create Tenant Admin</DialogTitle>
+          </DialogHeader>
+          {selectedTenant && (
             <div className="space-y-4 py-4">
+              <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                <div 
+                  className="w-8 h-8 rounded flex items-center justify-center text-white font-bold text-sm"
+                  style={{ backgroundColor: selectedTenant.primary_color || '#3B82F6' }}
+                >
+                  {selectedTenant.name.charAt(0)}
+                </div>
+                <div>
+                  <p className="font-medium">{selectedTenant.name}</p>
+                  <p className="text-sm text-muted-foreground">/{selectedTenant.slug}</p>
+                </div>
+              </div>
+              
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>First Name *</Label>
                   <Input 
-                    placeholder="John"
                     value={newAdmin.first_name}
                     onChange={(e) => setNewAdmin({ ...newAdmin, first_name: e.target.value })}
                   />
@@ -539,7 +496,6 @@ const SaasAdmin = () => {
                 <div className="space-y-2">
                   <Label>Last Name *</Label>
                   <Input 
-                    placeholder="Doe"
                     value={newAdmin.last_name}
                     onChange={(e) => setNewAdmin({ ...newAdmin, last_name: e.target.value })}
                   />
@@ -549,7 +505,6 @@ const SaasAdmin = () => {
                 <Label>Email *</Label>
                 <Input 
                   type="email"
-                  placeholder="admin@institution.com"
                   value={newAdmin.email}
                   onChange={(e) => setNewAdmin({ ...newAdmin, email: e.target.value })}
                 />
@@ -558,41 +513,44 @@ const SaasAdmin = () => {
                 <Label>Password *</Label>
                 <Input 
                   type="password"
-                  placeholder="Minimum 6 characters"
                   value={newAdmin.password}
                   onChange={(e) => setNewAdmin({ ...newAdmin, password: e.target.value })}
                 />
-              </div>
-              <div className="bg-muted p-3 rounded-lg text-sm">
-                <p className="font-medium mb-1">This will create:</p>
-                <ul className="list-disc list-inside text-muted-foreground space-y-1">
-                  <li>A superadmin account for {selectedTenant?.name}</li>
-                  <li>The user can login at: /auth?tenant={selectedTenant?.slug}</li>
-                  <li>They will have full admin access to their institution</li>
-                </ul>
+                <p className="text-xs text-muted-foreground">Minimum 6 characters</p>
               </div>
             </div>
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button variant="outline">Cancel</Button>
-              </DialogClose>
-              <Button onClick={handleCreateAdmin} disabled={creatingAdmin}>
-                {creatingAdmin ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                    Creating...
-                  </>
-                ) : (
-                  <>
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    Create Admin
-                  </>
-                )}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </main>
+          )}
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button onClick={handleCreateAdmin} disabled={creatingAdmin}>
+              {creatingAdmin ? 'Creating...' : 'Create Admin'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Tenant Details Dialog */}
+      <TenantDetailsDialog 
+        tenant={selectedTenant}
+        open={isDetailsOpen}
+        onOpenChange={(open) => {
+          setIsDetailsOpen(open);
+          if (!open) setSelectedTenant(null);
+        }}
+      />
+
+      {/* Manage Subscription Dialog */}
+      <ManageSubscriptionDialog
+        tenant={selectedTenant}
+        open={isSubscriptionOpen}
+        onOpenChange={(open) => {
+          setIsSubscriptionOpen(open);
+          if (!open) setSelectedTenant(null);
+        }}
+        onSave={handleManageSubscription}
+      />
     </div>
   );
 };
