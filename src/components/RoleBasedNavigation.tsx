@@ -9,6 +9,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { useTenantLabels } from "@/hooks/useTenantLabels";
+import { useTenant } from "@/contexts/TenantContext";
 
 interface NavItem {
   path: string;
@@ -23,6 +24,7 @@ const RoleBasedNavigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isSaasAdmin, setIsSaasAdmin] = useState(false);
   const { labels, hiddenFeatures, isCorporate } = useTenantLabels();
+  const { tenant } = useTenant();
 
   useEffect(() => {
     const checkSaasAdmin = async () => {
@@ -127,14 +129,27 @@ const RoleBasedNavigation = () => {
       {/* Logo & Brand */}
       <div className="p-5" style={{ borderBottom: '1px solid hsl(var(--sidebar-border))' }}>
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg" style={{
-            background: 'linear-gradient(135deg, hsl(var(--sidebar-primary)), hsl(var(--sidebar-primary) / 0.8))',
-            boxShadow: '0 4px 12px hsl(var(--sidebar-primary) / 0.3)'
-          }}>
-            <span style={{ color: 'hsl(var(--sidebar-primary-foreground))' }} className="font-bold text-lg">HR</span>
-          </div>
+          {tenant?.logo_url ? (
+            <img 
+              src={tenant.logo_url} 
+              alt={`${tenant.name} logo`}
+              className="h-10 w-10 object-contain rounded-xl"
+              style={{ maxHeight: '40px' }}
+            />
+          ) : (
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg" style={{
+              background: 'linear-gradient(135deg, hsl(var(--sidebar-primary)), hsl(var(--sidebar-primary) / 0.8))',
+              boxShadow: '0 4px 12px hsl(var(--sidebar-primary) / 0.3)'
+            }}>
+              <span style={{ color: 'hsl(var(--sidebar-primary-foreground))' }} className="font-bold text-lg">
+                {tenant?.name?.charAt(0).toUpperCase() || 'HR'}
+              </span>
+            </div>
+          )}
           <div>
-            <h1 className="text-base font-semibold" style={{ color: 'hsl(var(--sidebar-foreground))' }}>HR Portal</h1>
+            <h1 className="text-base font-semibold" style={{ color: 'hsl(var(--sidebar-foreground))' }}>
+              {tenant?.name || 'HR Portal'}
+            </h1>
             <p className="text-xs" style={{ color: 'hsl(var(--sidebar-muted))' }}>{getRoleDisplayName(profile?.role)}</p>
           </div>
         </div>
