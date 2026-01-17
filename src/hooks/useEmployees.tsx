@@ -1,7 +1,7 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
+import { useTenant } from '@/contexts/TenantContext';
 
 type EmployeeProfile = Database['public']['Tables']['employee_profiles']['Row'];
 type EmployeeProfileInsert = Database['public']['Tables']['employee_profiles']['Insert'];
@@ -15,17 +15,27 @@ export type EmployeeWithProfile = EmployeeProfile & {
 export const useEmployees = () => {
   const [employees, setEmployees] = useState<EmployeeWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
+  const { tenant } = useTenant();
 
   useEffect(() => {
     fetchEmployees();
-  }, []);
+  }, [tenant?.id]);
 
   const fetchEmployees = async () => {
     try {
-      console.log('Fetching employees...');
+      // Only fetch if tenant is available
+      if (!tenant?.id) {
+        console.log('Skipping employees fetch - no tenant');
+        setEmployees([]);
+        setLoading(false);
+        return;
+      }
+      
+      console.log('Fetching employees for tenant:', tenant.id);
       const { data, error } = await supabase
         .from('employee_profiles')
         .select('*')
+        .eq('tenant_id', tenant.id)
         .order('created_at', { ascending: false });
 
       if (error) {

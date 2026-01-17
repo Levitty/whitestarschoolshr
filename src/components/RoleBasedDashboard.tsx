@@ -38,13 +38,27 @@ const RoleBasedDashboard = () => {
     }
   }, [user, navigate]);
 
-  // Wait for BOTH profile and tenant to load, AND ensure tenant is actually set
-  if (profileLoading || tenantLoading || (!tenantLoading && !tenant)) {
+  // Wait for profile and tenant to load
+  if (profileLoading || tenantLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-muted-foreground">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If tenant failed to load after loading completed, show error with retry
+  if (!tenant) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center space-y-4">
+          <p className="text-muted-foreground">Unable to load tenant information.</p>
+          <Button onClick={() => window.location.reload()} variant="outline">
+            Retry
+          </Button>
         </div>
       </div>
     );

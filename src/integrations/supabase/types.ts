@@ -2127,6 +2127,10 @@ export type Database = {
           employee_name: string
         }[]
       }
+      check_tenant_admin_for_tenant: {
+        Args: { check_tenant_id: string; check_user_id: string }
+        Returns: boolean
+      }
       create_default_departments_for_tenant: {
         Args: { p_tenant_id: string }
         Returns: undefined

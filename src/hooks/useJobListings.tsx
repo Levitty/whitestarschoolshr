@@ -25,7 +25,15 @@ export const useJobListings = () => {
 
   const fetchJobListings = async () => {
     try {
-      console.log('Fetching job listings...');
+      // Only fetch if tenant is available
+      if (!tenant?.id) {
+        console.log('Skipping job listings fetch - no tenant');
+        setJobListings([]);
+        setLoading(false);
+        return;
+      }
+      
+      console.log('Fetching job listings for tenant:', tenant.id);
       
       // Get current user to check permissions
       const { data: { user } } = await supabase.auth.getUser();
@@ -34,6 +42,7 @@ export const useJobListings = () => {
       const { data, error } = await supabase
         .from('job_listings')
         .select('*')
+        .eq('tenant_id', tenant.id)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -41,7 +50,7 @@ export const useJobListings = () => {
         throw error;
       }
       
-      console.log('Job listings fetched successfully:', data);
+      console.log('Job listings fetched successfully:', data?.length || 0);
       setJobListings((data || []) as JobListing[]);
     } catch (error) {
       console.error('Error fetching job listings:', error);
@@ -179,7 +188,7 @@ export const useJobListings = () => {
 
   useEffect(() => {
     fetchJobListings();
-  }, []);
+  }, [tenant?.id]);
 
   return {
     jobListings,

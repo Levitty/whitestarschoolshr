@@ -1,8 +1,8 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
+import { useTenant } from '@/contexts/TenantContext';
 
 type LeaveRequest = Database['public']['Tables']['leave_requests']['Row'];
 
@@ -29,23 +29,33 @@ export const useLeaveRequests = () => {
   const { user } = useAuth();
   const [leaveRequests, setLeaveRequests] = useState<EnrichedLeaveRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const { tenant } = useTenant();
 
   useEffect(() => {
-    if (user) {
+    if (user && tenant?.id) {
       fetchLeaveRequests();
     }
-  }, [user]);
+  }, [user, tenant?.id]);
 
   const fetchLeaveRequests = async () => {
     if (!user) return;
+    
+    // Only fetch if tenant is available
+    if (!tenant?.id) {
+      console.log('Skipping leave requests fetch - no tenant');
+      setLeaveRequests([]);
+      setLoading(false);
+      return;
+    }
 
     try {
-      console.log('Fetching leave requests...');
+      console.log('Fetching leave requests for tenant:', tenant.id);
       
       // Fetch all leave requests with workflow fields
       const { data: leaveRequestsData, error } = await supabase
         .from('leave_requests')
         .select('*')
+        .eq('tenant_id', tenant.id)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -54,7 +64,7 @@ export const useLeaveRequests = () => {
         return;
       }
 
-      console.log('Raw leave requests:', leaveRequestsData);
+      console.log('Raw leave requests:', leaveRequestsData?.length || 0);
 
       // If we have leave requests, enrich them with employee data
       if (leaveRequestsData && leaveRequestsData.length > 0) {
