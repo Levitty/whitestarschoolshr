@@ -89,6 +89,54 @@ export type Database = {
         }
         Relationships: []
       }
+      clearance_items: {
+        Row: {
+          clearance_id: string
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          department: string
+          id: string
+          is_completed: boolean
+          item_name: string
+        }
+        Insert: {
+          clearance_id: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          department: string
+          id?: string
+          is_completed?: boolean
+          item_name: string
+        }
+        Update: {
+          clearance_id?: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          department?: string
+          id?: string
+          is_completed?: boolean
+          item_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clearance_items_clearance_id_fkey"
+            columns: ["clearance_id"]
+            isOneToOne: false
+            referencedRelation: "offboarding_clearance"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clearance_items_completed_by_fkey"
+            columns: ["completed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contract_reminders: {
         Row: {
           created_at: string | null
@@ -525,6 +573,54 @@ export type Database = {
           },
           {
             foreignKeyName: "employee_profiles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_sales_targets: {
+        Row: {
+          commission_rate: number
+          created_at: string
+          current_mtd_sales: number | null
+          employee_id: string
+          id: string
+          monthly_target: number
+          tenant_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          commission_rate?: number
+          created_at?: string
+          current_mtd_sales?: number | null
+          employee_id: string
+          id?: string
+          monthly_target?: number
+          tenant_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          commission_rate?: number
+          created_at?: string
+          current_mtd_sales?: number | null
+          employee_id?: string
+          id?: string
+          monthly_target?: number
+          tenant_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_sales_targets_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: true
+            referencedRelation: "employee_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_sales_targets_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -1432,6 +1528,124 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      offboarding_clearance: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          employee_id: string
+          id: string
+          initiated_at: string
+          status: string
+          tenant_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          employee_id: string
+          id?: string
+          initiated_at?: string
+          status?: string
+          tenant_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          employee_id?: string
+          id?: string
+          initiated_at?: string
+          status?: string
+          tenant_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offboarding_clearance_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: true
+            referencedRelation: "employee_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offboarding_clearance_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      performance_improvement_plans: {
+        Row: {
+          area_of_deficiency: string
+          check_in_date: string
+          created_at: string
+          created_by: string | null
+          employee_id: string
+          expected_outcome: string
+          id: string
+          notes: string | null
+          review_date: string
+          start_date: string
+          status: string
+          tenant_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          area_of_deficiency: string
+          check_in_date: string
+          created_at?: string
+          created_by?: string | null
+          employee_id: string
+          expected_outcome: string
+          id?: string
+          notes?: string | null
+          review_date: string
+          start_date?: string
+          status?: string
+          tenant_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          area_of_deficiency?: string
+          check_in_date?: string
+          created_at?: string
+          created_by?: string | null
+          employee_id?: string
+          expected_outcome?: string
+          id?: string
+          notes?: string | null
+          review_date?: string
+          start_date?: string
+          status?: string
+          tenant_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "performance_improvement_plans_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "performance_improvement_plans_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employee_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "performance_improvement_plans_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]

@@ -1,8 +1,10 @@
-
-import { Mail, Phone, Badge } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Mail, Phone, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge as UIBadge } from '@/components/ui/badge';
+import { useTenantLabels } from '@/hooks/useTenantLabels';
+import { usePIP } from '@/hooks/usePIP';
 
 interface Employee {
   id: string;
@@ -22,6 +24,18 @@ interface EmployeeCardProps {
 }
 
 const EmployeeCard = ({ employee, onViewProfile }: EmployeeCardProps) => {
+  const [hasActivePIP, setHasActivePIP] = useState(false);
+  const { isCorporate } = useTenantLabels();
+  const { fetchEmployeePIP } = usePIP();
+
+  useEffect(() => {
+    if (isCorporate) {
+      fetchEmployeePIP(employee.id).then(pip => {
+        setHasActivePIP(!!pip);
+      });
+    }
+  }, [employee.id, isCorporate]);
+
   const getInitials = (firstName: string = '', lastName: string = '') => {
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
   };
@@ -34,9 +48,17 @@ const EmployeeCard = ({ employee, onViewProfile }: EmployeeCardProps) => {
             {getInitials(employee.first_name, employee.last_name)}
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-lg text-slate-900 truncate mb-1">
-              {employee.first_name} {employee.last_name}
-            </h3>
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="font-semibold text-lg text-slate-900 truncate">
+                {employee.first_name} {employee.last_name}
+              </h3>
+              {isCorporate && hasActivePIP && (
+                <UIBadge className="bg-amber-500 text-white text-xs shrink-0">
+                  <AlertTriangle className="h-3 w-3 mr-1" />
+                  On PIP
+                </UIBadge>
+              )}
+            </div>
             <p className="text-sm font-medium text-blue-600 mb-1">{employee.position}</p>
             <p className="text-sm text-slate-600">{employee.department}</p>
           </div>
