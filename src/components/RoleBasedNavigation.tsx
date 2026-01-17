@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { useTenantLabels } from "@/hooks/useTenantLabels";
 
 interface NavItem {
   path: string;
@@ -21,6 +22,7 @@ const RoleBasedNavigation = () => {
   const { signOut, profile, user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isSaasAdmin, setIsSaasAdmin] = useState(false);
+  const { labels, hiddenFeatures, isCorporate } = useTenantLabels();
 
   useEffect(() => {
     const checkSaasAdmin = async () => {
@@ -48,9 +50,13 @@ const RoleBasedNavigation = () => {
     setIsOpen(false);
   };
 
+  // Dynamic labels based on tenant type
+  const employeesLabel = isCorporate ? labels.employees : "Employees";
+  const headLabel = isCorporate ? labels.headTeacher : "Head Teacher";
+
   const superAdminNavItems: NavItem[] = [
     { path: "/dashboard", label: "Dashboard", icon: Home },
-    { path: "/employees", label: "Employees", icon: Users },
+    { path: "/employees", label: employeesLabel, icon: Users },
     { path: "/recruitment", label: "Recruitment", icon: UserPlus },
     { path: "/applications", label: "Applications", icon: Briefcase },
     { path: "/performance", label: "Performance", icon: BarChart },
@@ -64,7 +70,7 @@ const RoleBasedNavigation = () => {
 
   const headNavItems: NavItem[] = [
     { path: "/dashboard", label: "Dashboard", icon: Home },
-    { path: "/employees", label: "My Team", icon: Users },
+    { path: "/employees", label: isCorporate ? "My Team" : "My Team", icon: Users },
     { path: "/recruitment", label: "Recruitment", icon: UserPlus },
     { path: "/applications", label: "Applications", icon: Briefcase },
     { path: "/performance", label: "Team Performance", icon: BarChart },

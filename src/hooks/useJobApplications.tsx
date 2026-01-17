@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useTenant } from '@/contexts/TenantContext';
 
 export interface JobApplication {
   id: string;
@@ -25,10 +26,19 @@ export const useJobApplications = () => {
   const [applications, setApplications] = useState<JobApplication[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { tenant } = useTenant();
 
   const fetchApplications = async () => {
     try {
-      console.log('Fetching job applications...');
+      // Only fetch if tenant is available
+      if (!tenant?.id) {
+        console.log('Skipping applications fetch - no tenant');
+        setApplications([]);
+        setLoading(false);
+        return;
+      }
+      
+      console.log('Fetching job applications for tenant:', tenant.id);
       const { data, error } = await supabase
         .from('job_applications')
         .select(`
@@ -39,6 +49,7 @@ export const useJobApplications = () => {
             status
           )
         `)
+        .eq('tenant_id', tenant.id)
         .order('applied_at', { ascending: false });
 
       if (error) {
@@ -253,7 +264,7 @@ export const useJobApplications = () => {
 
   useEffect(() => {
     fetchApplications();
-  }, []);
+  }, [tenant?.id]);
 
   return {
     applications,

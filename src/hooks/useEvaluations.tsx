@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface Evaluation {
   id: string;
@@ -74,9 +75,19 @@ export const useEvaluations = () => {
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { tenant } = useTenant();
 
   const fetchEvaluations = async () => {
     try {
+      // Only fetch if tenant is available
+      if (!tenant?.id) {
+        console.log('Skipping evaluations fetch - no tenant');
+        setEvaluations([]);
+        setLoading(false);
+        return;
+      }
+      
+      console.log('Fetching evaluations for tenant:', tenant.id);
       const { data, error } = await supabase
         .from('evaluations')
         .select(`
@@ -84,6 +95,7 @@ export const useEvaluations = () => {
           employee_profiles!evaluations_employee_id_fkey(first_name, last_name),
           profiles!evaluations_evaluator_id_fkey(first_name, last_name)
         `)
+        .eq('tenant_id', tenant.id)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -107,7 +119,7 @@ export const useEvaluations = () => {
 
   useEffect(() => {
     fetchEvaluations();
-  }, []);
+  }, [tenant?.id]);
 
   const createEvaluation = async (evaluationData: CreateEvaluationData) => {
     try {

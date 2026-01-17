@@ -487,6 +487,14 @@ const EmployeeProfile = ({ employee, onClose, onEmployeeUpdated }: EmployeeProfi
                 </div>
               </CardContent>
             </Card>
+
+            {/* Compensation Card - Corporate only */}
+            {corporateFeatures.compensationStructure && (
+              <CompensationCard 
+                baseSalary={employee.salary}
+                department={employee.department}
+              />
+            )}
           </TabsContent>
 
           <TabsContent value="documents" className="space-y-6">

@@ -33,6 +33,15 @@ export const useInterviews = () => {
 
   const fetchInterviews = async () => {
     try {
+      // Only fetch if tenant is available
+      if (!tenant?.id) {
+        console.log('Skipping interviews fetch - no tenant');
+        setInterviews([]);
+        setLoading(false);
+        return;
+      }
+      
+      console.log('Fetching interviews for tenant:', tenant.id);
       const { data, error } = await supabase
         .from('interviews')
         .select(`
@@ -46,6 +55,7 @@ export const useInterviews = () => {
             )
           )
         `)
+        .eq('tenant_id', tenant.id)
         .order('interview_date', { ascending: true });
 
       if (error) throw error;
@@ -180,7 +190,7 @@ export const useInterviews = () => {
 
   useEffect(() => {
     fetchInterviews();
-  }, []);
+  }, [tenant?.id]);
 
   return {
     interviews,
