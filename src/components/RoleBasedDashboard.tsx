@@ -25,7 +25,12 @@ const RoleBasedDashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { profile, hasRole, loading: profileLoading } = useProfile();
-  const { loading: tenantLoading } = useTenant();
+  const { loading: tenantLoading, tenant } = useTenant();
+  
+  // Get tenant labels at the parent level so they're available when dashboard renders
+  const { corporateFeatures, labels, isCorporate } = useTenantLabels();
+  
+  console.log('RoleBasedDashboard: tenant:', tenant?.slug, 'isCorporate:', isCorporate, 'probationTracker:', corporateFeatures.probationTracker);
 
   useEffect(() => {
     if (!user) {
@@ -33,8 +38,8 @@ const RoleBasedDashboard = () => {
     }
   }, [user, navigate]);
 
-  // Wait for BOTH profile and tenant to load
-  if (profileLoading || tenantLoading) {
+  // Wait for BOTH profile and tenant to load, AND ensure tenant is actually set
+  if (profileLoading || tenantLoading || (!tenantLoading && !tenant)) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
@@ -47,7 +52,6 @@ const RoleBasedDashboard = () => {
 
   // Super Admin Dashboard
   const SuperAdminDashboard = () => {
-    const { corporateFeatures, labels } = useTenantLabels();
     
     return (
       <div className="space-y-6">
