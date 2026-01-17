@@ -1593,6 +1593,7 @@ export type Database = {
           review_date: string
           start_date: string
           status: string
+          supporting_data: Json | null
           tenant_id: string | null
           updated_at: string
         }
@@ -1608,6 +1609,7 @@ export type Database = {
           review_date: string
           start_date?: string
           status?: string
+          supporting_data?: Json | null
           tenant_id?: string | null
           updated_at?: string
         }
@@ -1623,6 +1625,7 @@ export type Database = {
           review_date?: string
           start_date?: string
           status?: string
+          supporting_data?: Json | null
           tenant_id?: string | null
           updated_at?: string
         }
@@ -2025,6 +2028,69 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      sales_performance: {
+        Row: {
+          actual_sales: number | null
+          commission_rate: number | null
+          created_at: string | null
+          employee_id: string
+          id: string
+          month: number
+          notes: string | null
+          status: string | null
+          supporting_data: Json | null
+          target_amount: number
+          tenant_id: string
+          updated_at: string | null
+          year: number
+        }
+        Insert: {
+          actual_sales?: number | null
+          commission_rate?: number | null
+          created_at?: string | null
+          employee_id: string
+          id?: string
+          month: number
+          notes?: string | null
+          status?: string | null
+          supporting_data?: Json | null
+          target_amount: number
+          tenant_id: string
+          updated_at?: string | null
+          year: number
+        }
+        Update: {
+          actual_sales?: number | null
+          commission_rate?: number | null
+          created_at?: string | null
+          employee_id?: string
+          id?: string
+          month?: number
+          notes?: string | null
+          status?: string | null
+          supporting_data?: Json | null
+          target_amount?: number
+          tenant_id?: string
+          updated_at?: string | null
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_performance_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employee_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_performance_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tasks: {
         Row: {

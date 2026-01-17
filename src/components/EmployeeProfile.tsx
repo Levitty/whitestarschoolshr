@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
@@ -28,7 +28,8 @@ import {
   UserX,
   Trash2,
   Target,
-  AlertTriangle
+  AlertTriangle,
+  TrendingUp
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { DocumentUpload } from '@/components/DocumentUpload';
@@ -39,6 +40,8 @@ import CompensationCard from '@/components/CompensationCard';
 import PerformanceSettingsCard from '@/components/PerformanceSettingsCard';
 import PIPManager from '@/components/PIPManager';
 import ClearanceChecklist from '@/components/ClearanceChecklist';
+import { SalesPerformanceTracker } from '@/components/SalesPerformanceTracker';
+import { usePIP } from '@/hooks/usePIP';
 
 interface EmployeeProfileProps {
   employee: any;
@@ -52,12 +55,23 @@ const EmployeeProfile = ({ employee, onClose, onEmployeeUpdated }: EmployeeProfi
   const [showDocumentUpload, setShowDocumentUpload] = useState(false);
   const [showInactivateDialog, setShowInactivateDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [hasSalesPIP, setHasSalesPIP] = useState(false);
   const { toast } = useToast();
   const { inactivateEmployee, deleteEmployee } = useEmployees();
   const { corporateFeatures, hiddenFeatures, labels, isCorporate } = useTenantLabels();
+  const { fetchEmployeePIP } = usePIP();
   
   const employeeOnProbation = isOnProbation(employee.hire_date);
   const probationDaysLeft = getProbationDaysRemaining(employee.hire_date);
+
+  // Check if employee has active PIP for sales
+  useEffect(() => {
+    if (isCorporate) {
+      fetchEmployeePIP(employee.id).then(pip => {
+        setHasSalesPIP(pip?.area_of_deficiency === 'sales_target');
+      });
+    }
+  }, [employee.id, isCorporate]);
 
   const handleSave = () => {
     // TODO: Implement actual save logic
@@ -179,10 +193,16 @@ const EmployeeProfile = ({ employee, onClose, onEmployeeUpdated }: EmployeeProfi
           </DialogHeader>
 
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className={`grid w-full ${isCorporate ? 'grid-cols-5' : 'grid-cols-4'}`}>
+          <TabsList className={`grid w-full ${isCorporate ? 'grid-cols-6' : 'grid-cols-4'}`}>
             <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="documents">Documents</TabsTrigger>
             <TabsTrigger value="performance">Performance</TabsTrigger>
+            {isCorporate && (
+              <TabsTrigger value="sales" className="flex items-center gap-1">
+                <TrendingUp className="h-3 w-3" />
+                Sales
+              </TabsTrigger>
+            )}
             {isCorporate && (
               <TabsTrigger value="pip" className="flex items-center gap-1">
                 <AlertTriangle className="h-3 w-3" />
@@ -589,6 +609,25 @@ const EmployeeProfile = ({ employee, onClose, onEmployeeUpdated }: EmployeeProfi
               </Card>
             </div>
           </TabsContent>
+
+          {/* Sales Performance Tab - Corporate only */}
+          {isCorporate && (
+            <TabsContent value="sales" className="space-y-6">
+              {/* Show PIP prominently if employee is on sales PIP */}
+              {hasSalesPIP && (
+                <PIPManager
+                  employeeId={employee.id}
+                  employeeName={`${employee.first_name} ${employee.last_name}`}
+                />
+              )}
+              
+              <SalesPerformanceTracker
+                employeeId={employee.id}
+                employeeName={`${employee.first_name} ${employee.last_name}`}
+                onPIPCreated={() => setHasSalesPIP(true)}
+              />
+            </TabsContent>
+          )}
 
           {/* PIP Tab - Corporate only */}
           {isCorporate && (

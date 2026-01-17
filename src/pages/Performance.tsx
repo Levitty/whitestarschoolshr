@@ -2,13 +2,14 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, BarChart3, Target, Users, MessageCircle, Star, Calculator } from 'lucide-react';
+import { Plus, BarChart3, Target, Users, MessageCircle, Star, Calculator, TrendingUp } from 'lucide-react';
 import CreateEvaluationForm from '@/components/CreateEvaluationForm';
 import EvaluationsList from '@/components/EvaluationsList';
 import EvaluationAnalytics from '@/components/EvaluationAnalytics';
 import EvaluationGoalsSuggestions from '@/components/EvaluationGoalsSuggestions';
 import StudentParentFeedback from '@/components/StudentParentFeedback';
 import CommissionCalculator from '@/components/CommissionCalculator';
+import { SalesTeamDashboard } from '@/components/SalesTeamDashboard';
 import { useProfile } from '@/hooks/useProfile';
 import { useTenantLabels } from '@/hooks/useTenantLabels';
 
@@ -42,7 +43,7 @@ const Performance = () => {
       <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
         <TabsList className={`grid w-full gap-1 bg-muted/50 p-1 rounded-lg ${
           corporateFeatures.salesCommission 
-            ? 'grid-cols-2 md:grid-cols-5' 
+            ? 'grid-cols-2 md:grid-cols-6' 
             : 'grid-cols-2 md:grid-cols-4'
         }`}>
           <TabsTrigger value="evaluations" className="flex items-center gap-1 text-xs md:text-sm px-2 rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm">
@@ -53,6 +54,12 @@ const Performance = () => {
             <TabsTrigger value="commission" className="flex items-center gap-1 text-xs md:text-sm px-2 rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm">
               <Calculator className="h-3 w-3 md:h-4 md:w-4 flex-shrink-0" />
               <span className="truncate">Commission</span>
+            </TabsTrigger>
+          )}
+          {corporateFeatures.salesCommission && (
+            <TabsTrigger value="sales-team" className="flex items-center gap-1 text-xs md:text-sm px-2 rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              <TrendingUp className="h-3 w-3 md:h-4 md:w-4 flex-shrink-0" />
+              <span className="truncate">Sales Team</span>
             </TabsTrigger>
           )}
           <TabsTrigger value="analytics" className="flex items-center gap-1 text-xs md:text-sm px-2 rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm">
@@ -137,6 +144,28 @@ const Performance = () => {
               employeeName="Select Employee"
               period="January 2026"
             />
+          </TabsContent>
+        )}
+
+        {/* Sales Team Tab - Corporate Only */}
+        {corporateFeatures.salesCommission && (
+          <TabsContent value="sales-team" className="space-y-6">
+            <Card className="border-0 shadow-sm bg-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-foreground">
+                  <TrendingUp className="h-5 w-5 text-primary" />
+                  Sales Team Performance
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  Monitor your sales team's monthly performance, identify top performers, 
+                  and track employees who may need performance improvement support.
+                </p>
+              </CardContent>
+            </Card>
+            
+            <SalesTeamDashboard />
           </TabsContent>
         )}
 

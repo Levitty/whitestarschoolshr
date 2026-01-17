@@ -62,10 +62,10 @@ const PIPManager = ({ employeeId, employeeName, onUpdate }: PIPManagerProps) => 
     if (!reviewDate || !expectedOutcome.trim()) return;
 
     const result = await createPIP({
-      employee_id: employeeId,
-      area_of_deficiency: deficiency,
-      expected_outcome: expectedOutcome,
-      review_date: reviewDate.toISOString().split('T')[0],
+      employeeId,
+      areaOfDeficiency: deficiency,
+      expectedOutcome,
+      reviewDate: reviewDate.toISOString().split('T')[0],
     });
 
     if (!result.error) {
@@ -162,6 +162,25 @@ const PIPManager = ({ employeeId, employeeName, onUpdate }: PIPManagerProps) => 
             <p className="text-sm mt-1">{activePIP.expected_outcome}</p>
           </div>
 
+          {/* Sales History Context - only show for sales_target deficiency */}
+          {activePIP.area_of_deficiency === 'sales_target' && activePIP.supporting_data?.sales_history && (
+            <div className="p-4 bg-white dark:bg-card rounded-xl border border-amber-200">
+              <Label className="text-sm text-muted-foreground">Sales History Context</Label>
+              <div className="flex gap-4 mt-2">
+                {activePIP.supporting_data.sales_history.map((record, idx) => (
+                  <div key={idx} className="text-center">
+                    <span className={`text-lg font-bold ${
+                      record.achievement >= 80 ? 'text-green-600' :
+                      record.achievement >= 60 ? 'text-yellow-600' : 'text-red-600'
+                    }`}>
+                      {record.achievement}%
+                    </span>
+                    <p className="text-xs text-muted-foreground">{record.month} {record.year}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           {/* Timeline Visual */}
           <div className="p-4 bg-white dark:bg-card rounded-xl border border-amber-200">
             <Label className="text-sm text-muted-foreground mb-4 block">PIP Timeline</Label>
