@@ -24,6 +24,11 @@ export interface Clearance {
   created_at: string;
   updated_at: string;
   items?: ClearanceItem[];
+  outstanding_salary?: number;
+  leave_balance_payout?: number;
+  total_deductions?: number;
+  final_settlement_amount?: number;
+  settlement_status?: 'pending_calculation' | 'calculated' | 'approved' | 'paid';
 }
 
 const DEFAULT_CLEARANCE_ITEMS = [
