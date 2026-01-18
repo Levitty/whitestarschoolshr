@@ -444,6 +444,106 @@ export type Database = {
           },
         ]
       }
+      corporate_evaluations: {
+        Row: {
+          communication: number | null
+          communication_comments: string | null
+          created_at: string
+          employee_id: string
+          evaluation_type: string
+          evaluator_id: string
+          goals: string | null
+          id: string
+          improvement_areas: string | null
+          overall_rating: number | null
+          period: string
+          productivity: number | null
+          productivity_comments: string | null
+          quality_of_work: number | null
+          quality_of_work_comments: string | null
+          status: string
+          strengths: string | null
+          teamwork: number | null
+          teamwork_comments: string | null
+          technical_skills: number | null
+          technical_skills_comments: string | null
+          tenant_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          communication?: number | null
+          communication_comments?: string | null
+          created_at?: string
+          employee_id: string
+          evaluation_type: string
+          evaluator_id: string
+          goals?: string | null
+          id?: string
+          improvement_areas?: string | null
+          overall_rating?: number | null
+          period: string
+          productivity?: number | null
+          productivity_comments?: string | null
+          quality_of_work?: number | null
+          quality_of_work_comments?: string | null
+          status?: string
+          strengths?: string | null
+          teamwork?: number | null
+          teamwork_comments?: string | null
+          technical_skills?: number | null
+          technical_skills_comments?: string | null
+          tenant_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          communication?: number | null
+          communication_comments?: string | null
+          created_at?: string
+          employee_id?: string
+          evaluation_type?: string
+          evaluator_id?: string
+          goals?: string | null
+          id?: string
+          improvement_areas?: string | null
+          overall_rating?: number | null
+          period?: string
+          productivity?: number | null
+          productivity_comments?: string | null
+          quality_of_work?: number | null
+          quality_of_work_comments?: string | null
+          status?: string
+          strengths?: string | null
+          teamwork?: number | null
+          teamwork_comments?: string | null
+          technical_skills?: number | null
+          technical_skills_comments?: string | null
+          tenant_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "corporate_evaluations_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employee_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "corporate_evaluations_evaluator_id_fkey"
+            columns: ["evaluator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "corporate_evaluations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       departments: {
         Row: {
           created_at: string
