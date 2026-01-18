@@ -1,4 +1,4 @@
-import { Home, Users, UserPlus, Briefcase, BarChart, FolderOpen, Calendar, GraduationCap, Settings, LogOut, Menu, X, Crown, ChevronRight, ClipboardList } from "lucide-react";
+import { Home, Users, UserPlus, Briefcase, BarChart, FolderOpen, Calendar, GraduationCap, Settings, LogOut, Menu, X, Crown, ChevronRight, ClipboardList, Monitor, ClipboardCheck } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { UserRole } from "@/types/auth";
@@ -69,6 +69,12 @@ const RoleBasedNavigation = () => {
     { path: "/tickets", label: "Support Tickets", icon: Settings },
     { path: "/settings", label: "System Settings", icon: Settings },
   ];
+
+  // Corporate-only Operations items
+  const operationsNavItems: NavItem[] = isCorporate ? [
+    { path: "/assets", label: "Asset Management", icon: Monitor },
+    { path: "/clearances", label: "Clearances", icon: ClipboardCheck },
+  ] : [];
 
   const headNavItems: NavItem[] = [
     { path: "/dashboard", label: "Dashboard", icon: Home },
@@ -194,6 +200,50 @@ const RoleBasedNavigation = () => {
             </button>
           );
         })}
+        
+        {/* Operations Section - Corporate Only */}
+        {isCorporate && operationsNavItems.length > 0 && (userRole === 'superadmin' || userRole === 'admin' || userRole === 'head') && (
+          <>
+            <div className="my-4" style={{ borderTop: '1px solid hsl(var(--sidebar-border))' }}></div>
+            <p className="px-3 text-[10px] font-semibold uppercase tracking-widest mb-3" style={{ color: 'hsl(var(--sidebar-muted))' }}>Operations</p>
+            {operationsNavItems.map((item) => {
+              const active = isActive(item.path);
+              return (
+                <button
+                  key={item.path}
+                  onClick={() => handleNavigation(item.path)}
+                  className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 text-left group"
+                  style={{
+                    backgroundColor: active ? 'hsl(var(--sidebar-primary))' : 'transparent',
+                    color: active ? 'hsl(var(--sidebar-primary-foreground))' : 'hsl(var(--sidebar-muted))',
+                    boxShadow: active ? '0 4px 12px hsl(var(--sidebar-primary) / 0.3)' : 'none'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!active) {
+                      e.currentTarget.style.backgroundColor = 'hsl(var(--sidebar-accent))';
+                      e.currentTarget.style.color = 'hsl(var(--sidebar-accent-foreground))';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!active) {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                      e.currentTarget.style.color = 'hsl(var(--sidebar-muted))';
+                    }
+                  }}
+                >
+                  <item.icon className={cn(
+                    "h-[18px] w-[18px] flex-shrink-0 transition-transform duration-200",
+                    !active && "group-hover:scale-110"
+                  )} />
+                  <span className="flex-1">{item.label}</span>
+                  {active && (
+                    <ChevronRight className="h-4 w-4 opacity-70" />
+                  )}
+                </button>
+              );
+            })}
+          </>
+        )}
         
         {/* SaaS Admin Link */}
         {isSaasAdmin && (
