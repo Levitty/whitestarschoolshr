@@ -10,7 +10,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
-  X, 
+  X,
+  Monitor,
   Edit, 
   Save, 
   FileText, 
@@ -42,6 +43,7 @@ import PIPManager from '@/components/PIPManager';
 import ClearanceChecklist from '@/components/ClearanceChecklist';
 import { SalesPerformanceTracker } from '@/components/SalesPerformanceTracker';
 import { usePIP } from '@/hooks/usePIP';
+import EmployeeAssetsTab from '@/components/EmployeeAssetsTab';
 
 interface EmployeeProfileProps {
   employee: any;
@@ -193,10 +195,16 @@ const EmployeeProfile = ({ employee, onClose, onEmployeeUpdated }: EmployeeProfi
           </DialogHeader>
 
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className={`grid w-full ${isCorporate ? 'grid-cols-6' : 'grid-cols-4'}`}>
+          <TabsList className={`grid w-full ${isCorporate ? 'grid-cols-7' : 'grid-cols-4'}`}>
             <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="documents">Documents</TabsTrigger>
             <TabsTrigger value="performance">Performance</TabsTrigger>
+            {isCorporate && (
+              <TabsTrigger value="assets" className="flex items-center gap-1">
+                <Monitor className="h-3 w-3" />
+                Assets
+              </TabsTrigger>
+            )}
             {isCorporate && (
               <TabsTrigger value="sales" className="flex items-center gap-1">
                 <TrendingUp className="h-3 w-3" />
@@ -609,6 +617,16 @@ const EmployeeProfile = ({ employee, onClose, onEmployeeUpdated }: EmployeeProfi
               </Card>
             </div>
           </TabsContent>
+
+          {/* Assets Tab - Corporate only */}
+          {isCorporate && (
+            <TabsContent value="assets" className="space-y-6">
+              <EmployeeAssetsTab
+                employeeId={employee.id}
+                employeeName={`${employee.first_name} ${employee.last_name}`}
+              />
+            </TabsContent>
+          )}
 
           {/* Sales Performance Tab - Corporate only */}
           {isCorporate && (
