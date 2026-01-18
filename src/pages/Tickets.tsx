@@ -27,8 +27,8 @@ const Tickets = () => {
   const filteredTickets = tickets.filter(ticket => {
     const matchesSearch = ticket.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          ticket.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = !statusFilter || ticket.status === statusFilter;
-    const matchesPriority = !priorityFilter || ticket.priority === priorityFilter;
+    const matchesStatus = statusFilter === 'all' || !statusFilter || ticket.status === statusFilter;
+    const matchesPriority = priorityFilter === 'all' || !priorityFilter || ticket.priority === priorityFilter;
     
     return matchesSearch && matchesStatus && matchesPriority;
   });
@@ -151,7 +151,7 @@ const Tickets = () => {
                     <SelectValue placeholder="All Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Status</SelectItem>
+                    <SelectItem value="all">All Status</SelectItem>
                     <SelectItem value="open">Open</SelectItem>
                     <SelectItem value="in_progress">In Progress</SelectItem>
                     <SelectItem value="closed">Closed</SelectItem>
@@ -162,7 +162,7 @@ const Tickets = () => {
                     <SelectValue placeholder="All Priority" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Priority</SelectItem>
+                    <SelectItem value="all">All Priority</SelectItem>
                     <SelectItem value="low">Low</SelectItem>
                     <SelectItem value="medium">Medium</SelectItem>
                     <SelectItem value="high">High</SelectItem>
