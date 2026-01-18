@@ -44,6 +44,7 @@ import ClearanceChecklist from '@/components/ClearanceChecklist';
 import { SalesPerformanceTracker } from '@/components/SalesPerformanceTracker';
 import { usePIP } from '@/hooks/usePIP';
 import EmployeeAssetsTab from '@/components/EmployeeAssetsTab';
+import { WorkflowStatusBadge } from '@/components/WorkflowStatusBadge';
 
 interface EmployeeProfileProps {
   employee: any;
@@ -145,10 +146,12 @@ const EmployeeProfile = ({ employee, onClose, onEmployeeUpdated }: EmployeeProfi
                 <User className="h-5 w-5" />
                 Employee Profile: {employee.first_name} {employee.last_name}
               </DialogTitle>
-              {corporateFeatures.probationTracker && employeeOnProbation && (
-                <Badge className="bg-amber-100 text-amber-800 border-amber-300">
-                  On Probation • {probationDaysLeft} days left
-                </Badge>
+              {isCorporate && (
+                <WorkflowStatusBadge 
+                  employeeId={employee.id}
+                  hireDate={employee.hire_date}
+                  status={employee.status}
+                />
               )}
             </div>
             <div className="flex gap-2">

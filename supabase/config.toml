@@ -5,3 +5,12 @@ verify_jwt = false
 
 [functions.send-interview-notification]
 verify_jwt = false
+
+[functions.notify-clearance-initiated]
+verify_jwt = false
+
+[functions.notify-department-approved]
+verify_jwt = false
+
+[functions.notify-clearance-complete]
+verify_jwt = false
