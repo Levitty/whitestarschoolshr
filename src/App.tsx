@@ -36,6 +36,8 @@ import Onboarding from '@/pages/Onboarding';
 import SaasAdmin from '@/pages/SaasAdmin';
 import TenantRegister from '@/pages/TenantRegister';
 import Tasks from '@/pages/Tasks';
+import Assets from '@/pages/Assets';
+import Clearances from '@/pages/Clearances';
 
 const queryClient = new QueryClient();
 
@@ -119,6 +121,14 @@ function App() {
 
             <Route path="/tasks" element={<Layout />}>
               <Route index element={<Tasks />} />
+            </Route>
+
+            <Route path="/assets" element={<Layout />}>
+              <Route index element={<Assets />} />
+            </Route>
+
+            <Route path="/clearances" element={<Layout />}>
+              <Route index element={<Clearances />} />
             </Route>
             
               <Route path="/settings" element={<Layout />}>

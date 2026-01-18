@@ -14,6 +14,77 @@ export type Database = {
   }
   public: {
     Tables: {
+      asset_assignments: {
+        Row: {
+          asset_id: string
+          assigned_date: string
+          condition_on_assign: string | null
+          condition_on_return: string | null
+          created_at: string | null
+          created_by: string | null
+          employee_id: string
+          id: string
+          notes: string | null
+          returned_date: string | null
+          tenant_id: string
+        }
+        Insert: {
+          asset_id: string
+          assigned_date: string
+          condition_on_assign?: string | null
+          condition_on_return?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          employee_id: string
+          id?: string
+          notes?: string | null
+          returned_date?: string | null
+          tenant_id: string
+        }
+        Update: {
+          asset_id?: string
+          assigned_date?: string
+          condition_on_assign?: string | null
+          condition_on_return?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          employee_id?: string
+          id?: string
+          notes?: string | null
+          returned_date?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_assignments_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "company_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_assignments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_assignments_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_assignments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       athlete_intents: {
         Row: {
           age: number
@@ -89,6 +160,71 @@ export type Database = {
         }
         Relationships: []
       }
+      clearance_deductions: {
+        Row: {
+          amount: number
+          asset_id: string | null
+          clearance_id: string
+          created_at: string | null
+          created_by: string | null
+          deduction_type: string
+          description: string
+          id: string
+          tenant_id: string
+        }
+        Insert: {
+          amount: number
+          asset_id?: string | null
+          clearance_id: string
+          created_at?: string | null
+          created_by?: string | null
+          deduction_type: string
+          description: string
+          id?: string
+          tenant_id: string
+        }
+        Update: {
+          amount?: number
+          asset_id?: string | null
+          clearance_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          deduction_type?: string
+          description?: string
+          id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clearance_deductions_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "company_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clearance_deductions_clearance_id_fkey"
+            columns: ["clearance_id"]
+            isOneToOne: false
+            referencedRelation: "offboarding_clearance"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clearance_deductions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clearance_deductions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clearance_items: {
         Row: {
           clearance_id: string
@@ -133,6 +269,78 @@ export type Database = {
             columns: ["completed_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_assets: {
+        Row: {
+          asset_name: string
+          asset_tag: string
+          asset_type: string
+          assigned_date: string | null
+          assigned_to: string | null
+          created_at: string | null
+          current_value: number
+          id: string
+          notes: string | null
+          photo_url: string | null
+          purchase_date: string | null
+          purchase_value: number
+          serial_number: string | null
+          status: string | null
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          asset_name: string
+          asset_tag: string
+          asset_type: string
+          assigned_date?: string | null
+          assigned_to?: string | null
+          created_at?: string | null
+          current_value: number
+          id?: string
+          notes?: string | null
+          photo_url?: string | null
+          purchase_date?: string | null
+          purchase_value: number
+          serial_number?: string | null
+          status?: string | null
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          asset_name?: string
+          asset_tag?: string
+          asset_type?: string
+          assigned_date?: string | null
+          assigned_to?: string | null
+          created_at?: string | null
+          current_value?: number
+          id?: string
+          notes?: string | null
+          photo_url?: string | null
+          purchase_date?: string | null
+          purchase_value?: number
+          serial_number?: string | null
+          status?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_assets_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_assets_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]
@@ -1537,30 +1745,51 @@ export type Database = {
           completed_at: string | null
           created_at: string
           employee_id: string
+          final_settlement_amount: number | null
           id: string
           initiated_at: string
+          leave_balance_payout: number | null
+          outstanding_salary: number | null
+          settlement_approved_at: string | null
+          settlement_approved_by: string | null
+          settlement_status: string | null
           status: string
           tenant_id: string | null
+          total_deductions: number | null
           updated_at: string
         }
         Insert: {
           completed_at?: string | null
           created_at?: string
           employee_id: string
+          final_settlement_amount?: number | null
           id?: string
           initiated_at?: string
+          leave_balance_payout?: number | null
+          outstanding_salary?: number | null
+          settlement_approved_at?: string | null
+          settlement_approved_by?: string | null
+          settlement_status?: string | null
           status?: string
           tenant_id?: string | null
+          total_deductions?: number | null
           updated_at?: string
         }
         Update: {
           completed_at?: string | null
           created_at?: string
           employee_id?: string
+          final_settlement_amount?: number | null
           id?: string
           initiated_at?: string
+          leave_balance_payout?: number | null
+          outstanding_salary?: number | null
+          settlement_approved_at?: string | null
+          settlement_approved_by?: string | null
+          settlement_status?: string | null
           status?: string
           tenant_id?: string | null
+          total_deductions?: number | null
           updated_at?: string
         }
         Relationships: [
@@ -1569,6 +1798,13 @@ export type Database = {
             columns: ["employee_id"]
             isOneToOne: true
             referencedRelation: "employee_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offboarding_clearance_settlement_approved_by_fkey"
+            columns: ["settlement_approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
