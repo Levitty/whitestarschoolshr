@@ -13,6 +13,8 @@ export interface Tenant {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  tenant_type?: 'school' | 'corporate';
+  features?: Record<string, boolean>;
 }
 
 export interface SaasAdmin {

@@ -380,8 +380,6 @@ const EmployeeProfile = ({ employee, onClose, onEmployeeUpdated }: EmployeeProfi
                         <SelectContent>
                           <SelectItem value="active">Active</SelectItem>
                           <SelectItem value="on_leave">On Leave</SelectItem>
-                          <SelectItem value="terminated">Terminated</SelectItem>
-                          <SelectItem value="resigned">Resigned</SelectItem>
                           <SelectItem value="inactive">Inactive</SelectItem>
                         </SelectContent>
                       </Select>

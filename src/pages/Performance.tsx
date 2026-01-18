@@ -2,11 +2,9 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, BarChart3, Target, Users, MessageCircle, Star, Calculator, TrendingUp, Briefcase, CheckCircle, Clock } from 'lucide-react';
+import { Plus, BarChart3, Target, Users, MessageCircle, Star, Calculator, TrendingUp } from 'lucide-react';
 import CreateEvaluationForm from '@/components/CreateEvaluationForm';
-import CreateCorporateEvaluationForm from '@/components/CreateCorporateEvaluationForm';
 import EvaluationsList from '@/components/EvaluationsList';
-import CorporateEvaluationsList from '@/components/CorporateEvaluationsList';
 import EvaluationAnalytics from '@/components/EvaluationAnalytics';
 import EvaluationGoalsSuggestions from '@/components/EvaluationGoalsSuggestions';
 import StudentParentFeedback from '@/components/StudentParentFeedback';
@@ -19,7 +17,7 @@ const Performance = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [selectedTab, setSelectedTab] = useState('evaluations');
   const { canAccessAdmin, canAccessSuperAdmin } = useProfile();
-  const { corporateFeatures, hiddenFeatures, labels, isCorporate } = useTenantLabels();
+  const { corporateFeatures, hiddenFeatures, labels } = useTenantLabels();
   const canCreateEvaluation = canAccessAdmin() || canAccessSuperAdmin();
 
   return (
@@ -28,7 +26,7 @@ const Performance = () => {
         <div>
           <h1 className="text-2xl font-bold text-foreground">Performance Management</h1>
           <p className="text-muted-foreground">
-            {isCorporate 
+            {corporateFeatures.salesCommission 
               ? 'Employee evaluations, sales commissions, and performance tracking'
               : `${labels.teacher} evaluations and performance tracking`
             }
@@ -81,88 +79,46 @@ const Performance = () => {
         </TabsList>
 
         <TabsContent value="evaluations" className="space-y-6">
-          {isCorporate ? (
-            <>
-              <Card className="border-0 shadow-sm bg-card">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-foreground">
-                    <Star className="h-5 w-5 text-amber-500" />
-                    Employee Performance Evaluations
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground mb-4">
-                    Comprehensive employee appraisal system with 5 key criteria: Technical Skills, Quality of Work, Productivity, Communication, and Teamwork. Each criterion is rated on a 1-5 scale.
-                  </p>
-                  <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-                    <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
-                      <Briefcase className="h-5 w-5 mx-auto mb-2 text-blue-600 dark:text-blue-400" />
-                      <div className="text-sm font-bold text-blue-600 dark:text-blue-400">Technical Skills</div>
-                      <div className="text-xs text-muted-foreground mt-1">Job Knowledge</div>
-                    </div>
-                    <div className="text-center p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl">
-                      <CheckCircle className="h-5 w-5 mx-auto mb-2 text-emerald-600 dark:text-emerald-400" />
-                      <div className="text-sm font-bold text-emerald-600 dark:text-emerald-400">Quality of Work</div>
-                      <div className="text-xs text-muted-foreground mt-1">Accuracy & Detail</div>
-                    </div>
-                    <div className="text-center p-4 bg-violet-50 dark:bg-violet-900/20 rounded-xl">
-                      <Clock className="h-5 w-5 mx-auto mb-2 text-violet-600 dark:text-violet-400" />
-                      <div className="text-sm font-bold text-violet-600 dark:text-violet-400">Productivity</div>
-                      <div className="text-xs text-muted-foreground mt-1">Meeting Deadlines</div>
-                    </div>
-                    <div className="text-center p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl">
-                      <MessageCircle className="h-5 w-5 mx-auto mb-2 text-amber-600 dark:text-amber-400" />
-                      <div className="text-sm font-bold text-amber-600 dark:text-amber-400">Communication</div>
-                      <div className="text-xs text-muted-foreground mt-1">Clear & Professional</div>
-                    </div>
-                    <div className="text-center p-4 bg-rose-50 dark:bg-rose-900/20 rounded-xl">
-                      <Users className="h-5 w-5 mx-auto mb-2 text-rose-600 dark:text-rose-400" />
-                      <div className="text-sm font-bold text-rose-600 dark:text-rose-400">Teamwork</div>
-                      <div className="text-xs text-muted-foreground mt-1">Collaboration</div>
-                    </div>
+          <Card className="border-0 shadow-sm bg-card">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-foreground">
+                <Star className="h-5 w-5 text-amber-500" />
+                {labels.teacher} Evaluations
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground mb-4">
+                {corporateFeatures.salesCommission 
+                  ? 'Comprehensive employee appraisal system with performance metrics, sales targets, and professional development tracking.'
+                  : `Comprehensive ${labels.teacher.toLowerCase()} appraisal system with 4 key areas: Academic Achievement, ${labels.school} Culture, Professional Development, and Customer Relationship. Each area is weighted equally (20%) to calculate the overall rating.`
+                }
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+                  <div className="text-sm font-bold text-blue-600 dark:text-blue-400">
+                    {corporateFeatures.salesCommission ? 'Sales Performance' : 'Academic Achievement'}
                   </div>
-                </CardContent>
-              </Card>
-              
-              <CorporateEvaluationsList />
-            </>
-          ) : (
-            <>
-              <Card className="border-0 shadow-sm bg-card">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-foreground">
-                    <Star className="h-5 w-5 text-amber-500" />
-                    {labels.teacher} Evaluations
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground mb-4">
-                    Comprehensive {labels.teacher.toLowerCase()} appraisal system with 4 key areas: Academic Achievement, {labels.school} Culture, Professional Development, and Customer Relationship. Each area is weighted equally (20%) to calculate the overall rating.
-                  </p>
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                    <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
-                      <div className="text-sm font-bold text-blue-600 dark:text-blue-400">Academic Achievement</div>
-                      <div className="text-xs text-muted-foreground mt-1">20% Weight</div>
-                    </div>
-                    <div className="text-center p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl">
-                      <div className="text-sm font-bold text-emerald-600 dark:text-emerald-400">{labels.school} Culture</div>
-                      <div className="text-xs text-muted-foreground mt-1">20% Weight</div>
-                    </div>
-                    <div className="text-center p-4 bg-violet-50 dark:bg-violet-900/20 rounded-xl">
-                      <div className="text-sm font-bold text-violet-600 dark:text-violet-400">Professional Development</div>
-                      <div className="text-xs text-muted-foreground mt-1">20% Weight</div>
-                    </div>
-                    <div className="text-center p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl">
-                      <div className="text-sm font-bold text-amber-600 dark:text-amber-400">Customer Relationship</div>
-                      <div className="text-xs text-muted-foreground mt-1">20% Weight</div>
-                    </div>
+                  <div className="text-xs text-muted-foreground mt-1">20% Weight</div>
+                </div>
+                <div className="text-center p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl">
+                  <div className="text-sm font-bold text-emerald-600 dark:text-emerald-400">
+                    {corporateFeatures.salesCommission ? 'Team Collaboration' : `${labels.school} Culture`}
                   </div>
-                </CardContent>
-              </Card>
-              
-              <EvaluationsList />
-            </>
-          )}
+                  <div className="text-xs text-muted-foreground mt-1">20% Weight</div>
+                </div>
+                <div className="text-center p-4 bg-violet-50 dark:bg-violet-900/20 rounded-xl">
+                  <div className="text-sm font-bold text-violet-600 dark:text-violet-400">Professional Development</div>
+                  <div className="text-xs text-muted-foreground mt-1">20% Weight</div>
+                </div>
+                <div className="text-center p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl">
+                  <div className="text-sm font-bold text-amber-600 dark:text-amber-400">Customer Relationship</div>
+                  <div className="text-xs text-muted-foreground mt-1">20% Weight</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <EvaluationsList />
         </TabsContent>
 
         {/* Commission Tab - Corporate Only */}
@@ -223,7 +179,7 @@ const Performance = () => {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                Visual analytics and insights from {isCorporate ? 'employee' : 'teacher'} evaluations across departments and performance areas.
+                Visual analytics and insights from teacher evaluations across departments and performance areas.
               </p>
             </CardContent>
           </Card>
@@ -272,19 +228,12 @@ const Performance = () => {
         )}
       </Tabs>
 
-      {/* Create Evaluation Form - Corporate vs School */}
+      {/* Create Evaluation Form */}
       {canCreateEvaluation && (
-        isCorporate ? (
-          <CreateCorporateEvaluationForm
-            isOpen={showCreateForm}
-            onClose={() => setShowCreateForm(false)}
-          />
-        ) : (
-          <CreateEvaluationForm
-            isOpen={showCreateForm}
-            onClose={() => setShowCreateForm(false)}
-          />
-        )
+        <CreateEvaluationForm
+          isOpen={showCreateForm}
+          onClose={() => setShowCreateForm(false)}
+        />
       )}
     </div>
   );

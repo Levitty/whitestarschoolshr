@@ -39,11 +39,14 @@ interface TenantLabelsResult {
 
 export const useTenantLabels = (): TenantLabelsResult => {
   const { tenant } = useTenant();
-  
-  const isCorporate = tenant?.slug === 'enda-sportswear';
-  
-  console.log('useTenantLabels: tenant slug:', tenant?.slug, 'isCorporate:', isCorporate);
-  
+
+  // Logic: 
+  // 1. Check DB field `tenant_type`
+  // 2. Fallback to slug check (backward compatibility)
+  const isCorporate = tenant?.tenant_type === 'corporate' || tenant?.slug === 'enda-sportswear';
+
+  console.log('useTenantLabels: tenant slug:', tenant?.slug, 'type:', tenant?.tenant_type, 'isCorporate:', isCorporate);
+
   const labels: TenantLabels = isCorporate ? {
     employee: 'Employee',
     employees: 'Employees',
@@ -77,12 +80,23 @@ export const useTenantLabels = (): TenantLabelsResult => {
     classPerformance: isCorporate,
   };
 
+  // Base corporate features (defaults)
+  const defaultCorporateFeatures: CorporateFeatures = {
+    probationTracker: true,
+    compensationStructure: true,
+    salesCommission: true,
+    workforceDistribution: true,
+    departmentClearance: true,
+  };
+
+  // If DB has features config, use it to override defaults. 
+  // Otherwise, if isCorporate, use all defaults. If not corporate, use none.
   const corporateFeatures: CorporateFeatures = {
-    probationTracker: isCorporate,
-    compensationStructure: isCorporate,
-    salesCommission: isCorporate,
-    workforceDistribution: isCorporate,
-    departmentClearance: isCorporate,
+    probationTracker: isCorporate && (tenant?.features?.probationTracker ?? defaultCorporateFeatures.probationTracker),
+    compensationStructure: isCorporate && (tenant?.features?.compensationStructure ?? defaultCorporateFeatures.compensationStructure),
+    salesCommission: isCorporate && (tenant?.features?.salesCommission ?? defaultCorporateFeatures.salesCommission),
+    workforceDistribution: isCorporate && (tenant?.features?.workforceDistribution ?? defaultCorporateFeatures.workforceDistribution),
+    departmentClearance: isCorporate && (tenant?.features?.departmentClearance ?? defaultCorporateFeatures.departmentClearance),
   };
 
   return {
@@ -97,26 +111,26 @@ export const useTenantLabels = (): TenantLabelsResult => {
 // Helper function to check if an employee is on probation (hired < 6 months ago)
 export const isOnProbation = (hireDate: string | null | undefined): boolean => {
   if (!hireDate) return false;
-  
+
   const hired = new Date(hireDate);
   const sixMonthsAgo = new Date();
   sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-  
+
   return hired > sixMonthsAgo;
 };
 
 // Helper to calculate days remaining in probation
 export const getProbationDaysRemaining = (hireDate: string | null | undefined): number => {
   if (!hireDate) return 0;
-  
+
   const hired = new Date(hireDate);
   const probationEnd = new Date(hired);
   probationEnd.setMonth(probationEnd.getMonth() + 6);
-  
+
   const today = new Date();
   const diffTime = probationEnd.getTime() - today.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  
+
   return Math.max(0, diffDays);
 };
 
