@@ -39,6 +39,7 @@ import { useClearance, Clearance, ClearanceItem } from '@/hooks/useClearance';
 import { useAssets } from '@/hooks/useAssets';
 import { useClearanceDeductions, ClearanceDeduction } from '@/hooks/useClearanceDeductions';
 import { useToast } from '@/hooks/use-toast';
+import { ClearanceApprovalWorkflow } from './ClearanceApprovalWorkflow';
 
 interface ClearanceChecklistProps {
   employeeId: string;
@@ -439,6 +440,14 @@ const ClearanceChecklist = ({
               </div>
             );
           })}
+
+          <Separator />
+
+          {/* Department Approval Workflow */}
+          <ClearanceApprovalWorkflow 
+            clearanceId={clearance.id}
+            onFullyApproved={() => loadClearance()}
+          />
 
           <Separator />
 

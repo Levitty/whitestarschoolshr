@@ -19,6 +19,8 @@ import ActivityFeed from '@/components/dashboard/ActivityFeed';
 import HeadDashboardSummary from '@/components/HeadDashboardSummary';
 import StaffDashboardSummary from '@/components/StaffDashboardSummary';
 import ProbationTracker from '@/components/dashboard/ProbationTracker';
+import { HRActionsRequired } from '@/components/HRActionsRequired';
+import { PendingApprovalsCard } from '@/components/PendingApprovalsCard';
 import WorkforceDistribution from '@/components/dashboard/WorkforceDistribution';
 
 const RoleBasedDashboard = () => {
@@ -99,6 +101,18 @@ const RoleBasedDashboard = () => {
 
         {/* Stats Cards */}
         <DashboardStatsCards />
+
+        {/* HR Actions Required - Corporate only */}
+        {isCorporate && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <HRActionsRequired />
+            </div>
+            <div className="lg:col-span-1">
+              <PendingApprovalsCard />
+            </div>
+          </div>
+        )}
 
         {/* Corporate-only widgets */}
         {corporateFeatures.probationTracker && (

@@ -160,6 +160,70 @@ export type Database = {
         }
         Relationships: []
       }
+      clearance_approvals: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          clearance_id: string
+          created_at: string | null
+          department: string
+          id: string
+          notes: string | null
+          rejection_reason: string | null
+          status: string
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          clearance_id: string
+          created_at?: string | null
+          department: string
+          id?: string
+          notes?: string | null
+          rejection_reason?: string | null
+          status?: string
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          clearance_id?: string
+          created_at?: string | null
+          department?: string
+          id?: string
+          notes?: string | null
+          rejection_reason?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clearance_approvals_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clearance_approvals_clearance_id_fkey"
+            columns: ["clearance_id"]
+            isOneToOne: false
+            referencedRelation: "offboarding_clearance"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clearance_approvals_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clearance_deductions: {
         Row: {
           amount: number
@@ -2634,6 +2698,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_clearance_fully_approved: {
+        Args: { p_clearance_id: string }
+        Returns: boolean
+      }
       check_expiring_contracts: {
         Args: never
         Returns: {
