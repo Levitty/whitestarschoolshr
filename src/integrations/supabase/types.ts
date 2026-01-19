@@ -2598,6 +2598,7 @@ export type Database = {
         Row: {
           created_at: string | null
           favicon_url: string | null
+          features: Json | null
           id: string
           is_active: boolean | null
           logo_url: string | null
@@ -2609,11 +2610,13 @@ export type Database = {
           subscription_ends_at: string | null
           subscription_status: string | null
           subscription_tier: string | null
+          tenant_type: string | null
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
           favicon_url?: string | null
+          features?: Json | null
           id?: string
           is_active?: boolean | null
           logo_url?: string | null
@@ -2625,11 +2628,13 @@ export type Database = {
           subscription_ends_at?: string | null
           subscription_status?: string | null
           subscription_tier?: string | null
+          tenant_type?: string | null
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
           favicon_url?: string | null
+          features?: Json | null
           id?: string
           is_active?: boolean | null
           logo_url?: string | null
@@ -2641,6 +2646,7 @@ export type Database = {
           subscription_ends_at?: string | null
           subscription_status?: string | null
           subscription_tier?: string | null
+          tenant_type?: string | null
           updated_at?: string | null
         }
         Relationships: []

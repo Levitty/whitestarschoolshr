@@ -111,6 +111,8 @@ const AssetManager = () => {
   const [assetHistory, setAssetHistory] = useState<AssetAssignment[]>([]);
   const [showAssignDialog, setShowAssignDialog] = useState(false);
   const [showReturnDialog, setShowReturnDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editAsset, setEditAsset] = useState<Partial<CompanyAsset>>({});
   const [newAsset, setNewAsset] = useState({
     asset_type: 'laptop' as AssetType,
     asset_name: '',
@@ -128,6 +130,7 @@ const AssetManager = () => {
     fetchAllAssets, 
     getAssetStats, 
     createAsset,
+    updateAsset,
     fetchAssetHistory 
   } = useAssets();
 
@@ -494,48 +497,64 @@ const AssetManager = () => {
                           KES {asset.current_value.toLocaleString()}
                         </TableCell>
                         <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleViewDetails(asset); }}>
-                                <Eye className="h-4 w-4 mr-2" />
-                                View Details
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
-                                <Edit className="h-4 w-4 mr-2" />
-                                Edit
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              {asset.status === 'available' && (
-                                <DropdownMenuItem onClick={(e) => {
+                          <div className="flex items-center gap-1">
+                            {asset.status === 'available' && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-7 text-xs"
+                                onClick={(e) => {
                                   e.stopPropagation();
                                   setSelectedAsset(asset);
                                   setShowAssignDialog(true);
-                                }}>
-                                  <UserPlus className="h-4 w-4 mr-2" />
-                                  Assign
-                                </DropdownMenuItem>
-                              )}
-                              {asset.status === 'assigned' && (
-                                <DropdownMenuItem onClick={(e) => {
+                                }}
+                              >
+                                <UserPlus className="h-3 w-3 mr-1" />
+                                Assign
+                              </Button>
+                            )}
+                            {asset.status === 'assigned' && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-7 text-xs"
+                                onClick={(e) => {
                                   e.stopPropagation();
                                   setSelectedAsset(asset);
                                   setShowReturnDialog(true);
-                                }}>
-                                  <RotateCcw className="h-4 w-4 mr-2" />
-                                  Return
+                                }}
+                              >
+                                <RotateCcw className="h-3 w-3 mr-1" />
+                                Return
+                              </Button>
+                            )}
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                <Button variant="ghost" size="icon" className="h-7 w-7">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleViewDetails(asset); }}>
+                                  <Eye className="h-4 w-4 mr-2" />
+                                  View Details
                                 </DropdownMenuItem>
-                              )}
-                              <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
-                                <Archive className="h-4 w-4 mr-2" />
-                                Retire
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                                <DropdownMenuItem onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedAsset(asset);
+                                  setShowEditDialog(true);
+                                }}>
+                                  <Edit className="h-4 w-4 mr-2" />
+                                  Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
+                                  <Archive className="h-4 w-4 mr-2" />
+                                  Retire
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
                         </TableCell>
                       </TableRow>
                     );
@@ -657,6 +676,91 @@ const AssetManager = () => {
           }}
         />
       )}
+
+      {/* Edit Asset Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Edit Asset</DialogTitle>
+            <DialogDescription>Update asset information</DialogDescription>
+          </DialogHeader>
+          {selectedAsset && (
+            <div className="grid gap-4 py-4">
+              <div className="space-y-2">
+                <Label>Asset Name</Label>
+                <Input 
+                  value={editAsset.asset_name ?? selectedAsset.asset_name}
+                  onChange={(e) => setEditAsset(prev => ({ ...prev, asset_name: e.target.value }))}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Current Value (KES)</Label>
+                  <Input 
+                    type="number"
+                    value={editAsset.current_value ?? selectedAsset.current_value}
+                    onChange={(e) => setEditAsset(prev => ({ ...prev, current_value: Number(e.target.value) }))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Status</Label>
+                  <Select 
+                    value={editAsset.status ?? selectedAsset.status} 
+                    onValueChange={(v) => setEditAsset(prev => ({ ...prev, status: v as AssetStatus }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="available">Available</SelectItem>
+                      <SelectItem value="assigned">Assigned</SelectItem>
+                      <SelectItem value="maintenance">Maintenance</SelectItem>
+                      <SelectItem value="retired">Retired</SelectItem>
+                      <SelectItem value="lost">Lost</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Serial Number</Label>
+                <Input 
+                  value={editAsset.serial_number ?? selectedAsset.serial_number ?? ''}
+                  onChange={(e) => setEditAsset(prev => ({ ...prev, serial_number: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Notes</Label>
+                <Textarea 
+                  value={editAsset.notes ?? selectedAsset.notes ?? ''}
+                  onChange={(e) => setEditAsset(prev => ({ ...prev, notes: e.target.value }))}
+                  rows={2}
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setShowEditDialog(false);
+              setEditAsset({});
+            }}>
+              Cancel
+            </Button>
+            <Button onClick={async () => {
+              if (selectedAsset) {
+                const success = await updateAsset(selectedAsset.id, editAsset);
+                if (success) {
+                  setShowEditDialog(false);
+                  setEditAsset({});
+                  loadData();
+                }
+              }
+            }} disabled={loading}>
+              {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -381,6 +381,8 @@ const EmployeeProfile = ({ employee, onClose, onEmployeeUpdated }: EmployeeProfi
                           <SelectItem value="active">Active</SelectItem>
                           <SelectItem value="on_leave">On Leave</SelectItem>
                           <SelectItem value="inactive">Inactive</SelectItem>
+                          <SelectItem value="terminated">Terminated</SelectItem>
+                          <SelectItem value="resigned">Resigned</SelectItem>
                         </SelectContent>
                       </Select>
                     ) : (
