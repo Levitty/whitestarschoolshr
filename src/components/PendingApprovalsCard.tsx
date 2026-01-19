@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ClipboardCheck, Clock, ChevronRight, PartyPopper } from 'lucide-react';
+import { ClipboardCheck, Clock, ChevronRight } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useClearanceApprovals } from '@/hooks/useClearanceApprovals';
 import { useAuth } from '@/hooks/useAuth';
@@ -86,8 +86,8 @@ export const PendingApprovalsCard = () => {
           </ScrollArea>
         ) : (
           <div className="text-center py-8 text-muted-foreground">
-            <PartyPopper className="h-10 w-10 mx-auto mb-2 text-green-500" />
-            <p>No pending approvals 🎉</p>
+            <ClipboardCheck className="h-10 w-10 mx-auto mb-2 text-muted-foreground/50" />
+            <p>No pending approvals</p>
           </div>
         )}
       </CardContent>

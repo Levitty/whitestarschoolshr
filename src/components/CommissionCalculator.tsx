@@ -149,7 +149,7 @@ const CommissionCalculator = ({
           <p className="text-4xl font-bold">{formatCurrency(commissionPayable)}</p>
           {achievementPercent >= 100 && (
             <p className="text-sm text-emerald-100 mt-2">
-              🎉 Target exceeded by {formatCurrency(actualSales - target)}
+              Target exceeded by {formatCurrency(actualSales - target)}
             </p>
           )}
         </div>

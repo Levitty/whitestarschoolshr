@@ -75,7 +75,7 @@ const CompensationCard = ({
         {/* Additional Info */}
         <div className="mt-4 p-3 rounded-lg bg-muted/30 text-sm text-muted-foreground">
           <p>
-            💡 Commission is calculated based on monthly sales performance. 
+            Commission is calculated based on monthly sales performance. 
             View the Performance tab for detailed commission calculations.
           </p>
         </div>
