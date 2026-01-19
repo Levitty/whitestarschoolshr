@@ -69,7 +69,7 @@ export const useEmployees = () => {
     }
   };
 
-  const createEmployee = async (employeeData: EmployeeProfileInsert) => {
+  const createEmployee = async (employeeData: Omit<EmployeeProfileInsert, 'employee_number'> & { employee_number?: string }) => {
     try {
       console.log('Creating employee with data:', employeeData);
       
@@ -94,10 +94,11 @@ export const useEmployees = () => {
         console.log('Linking to existing profile:', profileId);
       }
 
-      // Create employee_profile
-      const finalEmployeeData = {
-        ...employeeData,
-        profile_id: profileId, // Will be null if no profile exists yet
+      // Create employee_profile - omit employee_number to let trigger generate it
+      const { employee_number: _, ...dataWithoutEmployeeNumber } = employeeData;
+      const finalEmployeeData: Omit<EmployeeProfileInsert, 'employee_number'> = {
+        ...dataWithoutEmployeeNumber,
+        profile_id: profileId,
         contract_end_date: contractEndDate,
         status: employeeData.status || 'active'
       };
@@ -106,7 +107,7 @@ export const useEmployees = () => {
 
       const { data, error } = await supabase
         .from('employee_profiles')
-        .insert(finalEmployeeData)
+        .insert(finalEmployeeData as EmployeeProfileInsert)
         .select()
         .single();
 
