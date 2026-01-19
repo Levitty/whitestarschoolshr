@@ -13,7 +13,42 @@ export const normalizeRole = (role: string | null): UserRole | null => {
   return validRoles.includes(role as UserRole) ? (role as UserRole) : null;
 };
 
-export const getRoleDisplayName = (role: UserRole | null): string => {
+// Check if tenant is corporate based on slug
+export const isCorporateTenant = (tenantSlug: string | null | undefined): boolean => {
+  if (!tenantSlug) return false;
+  const corporateSlugs = ['enda-sportswear', 'enda', 'corporate'];
+  return corporateSlugs.some(slug => tenantSlug.toLowerCase().includes(slug)) || 
+         !tenantSlug.toLowerCase().includes('school');
+};
+
+export const getRoleDisplayName = (role: UserRole | null, tenantSlug?: string | null): string => {
+  const isCorporate = isCorporateTenant(tenantSlug);
+  
+  if (isCorporate) {
+    switch (role) {
+      case 'superadmin':
+      case 'admin':
+        return 'Administrator';
+      case 'head':
+        return 'Department Head';
+      case 'deputy_head':
+        return 'Assistant Manager';
+      case 'teacher':
+        return 'Employee';
+      case 'secretary':
+        return 'Administrative Assistant';
+      case 'driver':
+        return 'Driver';
+      case 'support_staff':
+        return 'Support Staff';
+      case 'staff':
+        return 'Staff Member';
+      default:
+        return 'User';
+    }
+  }
+  
+  // School mode
   switch (role) {
     case 'superadmin':
     case 'admin':
@@ -54,15 +89,31 @@ export const getRoleColor = (role: UserRole | null): string => {
   }
 };
 
-export const getAvailableRoles = (): { value: UserRole; label: string }[] => [
-  { value: 'head', label: 'Head Teacher' },
-  { value: 'deputy_head', label: 'Deputy Head Teacher' },
-  { value: 'teacher', label: 'Teacher' },
-  { value: 'secretary', label: 'Secretary' },
-  { value: 'driver', label: 'Driver' },
-  { value: 'support_staff', label: 'Support Staff' },
-  { value: 'staff', label: 'General Staff' }
-];
+export const getAvailableRoles = (tenantSlug?: string | null): { value: UserRole; label: string }[] => {
+  const isCorporate = isCorporateTenant(tenantSlug);
+  
+  if (isCorporate) {
+    return [
+      { value: 'head', label: 'Department Head' },
+      { value: 'deputy_head', label: 'Assistant Manager' },
+      { value: 'teacher', label: 'Employee' },
+      { value: 'secretary', label: 'Administrative Assistant' },
+      { value: 'driver', label: 'Driver' },
+      { value: 'support_staff', label: 'Support Staff' },
+      { value: 'staff', label: 'General Staff' }
+    ];
+  }
+  
+  return [
+    { value: 'head', label: 'Head Teacher' },
+    { value: 'deputy_head', label: 'Deputy Head Teacher' },
+    { value: 'teacher', label: 'Teacher' },
+    { value: 'secretary', label: 'Secretary' },
+    { value: 'driver', label: 'Driver' },
+    { value: 'support_staff', label: 'Support Staff' },
+    { value: 'staff', label: 'General Staff' }
+  ];
+};
 
 export const hasRoleAccess = (userRole: UserRole | null, requiredRoles: UserRole[]): boolean => {
   if (!userRole) return false;
