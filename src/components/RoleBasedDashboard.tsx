@@ -102,11 +102,11 @@ const RoleBasedDashboard = () => {
         {/* Stats Cards */}
         <DashboardStatsCards />
 
-        {/* HR Actions Required - Corporate only */}
+        {/* Tasks and Pending Approvals - Corporate only */}
         {isCorporate && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
-              <HRActionsRequired />
+              <TaskCard />
             </div>
             <div className="lg:col-span-1">
               <PendingApprovalsCard />
@@ -122,6 +122,11 @@ const RoleBasedDashboard = () => {
           </div>
         )}
 
+        {/* HR Actions Required - Corporate only */}
+        {isCorporate && (
+          <HRActionsRequired />
+        )}
+
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Chart - Takes 2 columns */}
@@ -135,15 +140,8 @@ const RoleBasedDashboard = () => {
           </div>
         </div>
 
-        {/* Tasks and Employee Table */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-1">
-            <TaskCard />
-          </div>
-          <div className="lg:col-span-2">
-            <EmployeeTable />
-          </div>
-        </div>
+        {/* Employee Table */}
+        <EmployeeTable />
 
         {/* Quick Actions Grid */}
         <div>

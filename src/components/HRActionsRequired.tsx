@@ -44,6 +44,9 @@ export const HRActionsRequired = () => {
   const { tenant } = useTenant();
   const [expandedSections, setExpandedSections] = useState<string[]>(['probation']);
 
+  // Check if this is Enda Sportswear tenant - show demo data
+  const isEndaSportswear = tenant?.slug === 'enda-sportswear';
+
   const { data: actions, isLoading } = useQuery({
     queryKey: ['hr-actions-required', tenant?.id],
     queryFn: async () => {
@@ -79,6 +82,26 @@ export const HRActionsRequired = () => {
           }
         }
       });
+
+      // Add demo data for Enda Sportswear
+      if (isEndaSportswear && probationItems.length === 0) {
+        probationItems.push({
+          id: 'demo-prob-1',
+          employeeId: 'demo-1',
+          employeeName: 'Grace Wanjiku',
+          action: 'Probation review due',
+          urgency: 'high',
+          daysInfo: 'In 2 days',
+        });
+        probationItems.push({
+          id: 'demo-prob-2',
+          employeeId: 'demo-2',
+          employeeName: 'Peter Kamau',
+          action: 'Probation review due',
+          urgency: 'medium',
+          daysInfo: 'In 5 days',
+        });
+      }
 
       if (probationItems.length > 0) {
         sections.push({
@@ -193,6 +216,18 @@ export const HRActionsRequired = () => {
         });
       }
 
+      // Add demo clearance for Enda Sportswear
+      if (isEndaSportswear && clearanceItems.length === 0) {
+        clearanceItems.push({
+          id: 'demo-clear-1',
+          employeeId: 'demo-3',
+          employeeName: 'John Mwangi',
+          action: 'Clearance 45% complete',
+          urgency: 'medium',
+          daysInfo: '8 days pending',
+        });
+      }
+
       if (clearanceItems.length > 0) {
         sections.push({
           title: 'Pending Clearances',
@@ -220,6 +255,17 @@ export const HRActionsRequired = () => {
         action: 'Critical sales performance',
         urgency: 'high' as const,
       }));
+
+      // Add demo sales alert for Enda Sportswear
+      if (isEndaSportswear && salesItems.length === 0) {
+        salesItems.push({
+          id: 'demo-sales-1',
+          employeeId: 'demo-4',
+          employeeName: 'Sarah Odhiambo',
+          action: 'Critical sales performance',
+          urgency: 'high',
+        });
+      }
 
       if (salesItems.length > 0) {
         sections.push({
