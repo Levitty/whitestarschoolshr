@@ -2829,6 +2829,10 @@ export type Database = {
         Args: { p_tenant_id: string }
         Returns: undefined
       }
+      generate_tenant_employee_number: {
+        Args: { p_tenant_id: string }
+        Returns: string
+      }
       get_current_user_role: { Args: never; Returns: string }
       get_event_price: { Args: { event_name: string }; Returns: number }
       get_leave_requests_for_role: {
