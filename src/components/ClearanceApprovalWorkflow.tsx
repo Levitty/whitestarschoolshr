@@ -130,7 +130,7 @@ export const ClearanceApprovalWorkflow = ({
           <Alert className="bg-green-50 border-green-200">
             <CheckCircle2 className="h-4 w-4 text-green-600" />
             <AlertDescription className="text-green-800">
-              ✅ All departments have approved clearance
+              All departments have approved clearance
             </AlertDescription>
           </Alert>
         )}

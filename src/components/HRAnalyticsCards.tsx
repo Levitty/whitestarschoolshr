@@ -156,54 +156,62 @@ const HRAnalyticsCards = () => {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold text-slate-900 mb-4">System Overview</h2>
+      <h2 className="text-xl font-semibold text-foreground mb-4">System Overview</h2>
       
       {/* First Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-gradient-to-r from-blue-50 to-blue-100 hover:shadow-lg transition-shadow rounded-xl">
+        <Card className="bg-card border shadow-sm hover:shadow-md transition-shadow">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-blue-700">👥 Total Employees</p>
-                <p className="text-2xl font-bold text-blue-900">{formatCount(analytics.totalEmployees)}</p>
+                <p className="text-sm font-medium text-muted-foreground">Total Employees</p>
+                <p className="text-2xl font-bold text-foreground">{formatCount(analytics.totalEmployees)}</p>
               </div>
-              <Users className="h-8 w-8 text-blue-600" />
+              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Users className="h-5 w-5 text-primary" />
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-r from-green-50 to-green-100 hover:shadow-lg transition-shadow rounded-xl">
+        <Card className="bg-card border shadow-sm hover:shadow-md transition-shadow">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-green-700">🧑‍🏫 New Hires This Month</p>
-                <p className="text-2xl font-bold text-green-900">{formatCount(analytics.newHiresThisMonth)}</p>
+                <p className="text-sm font-medium text-muted-foreground">New Hires This Month</p>
+                <p className="text-2xl font-bold text-foreground">{formatCount(analytics.newHiresThisMonth)}</p>
               </div>
-              <UserPlus className="h-8 w-8 text-green-600" />
+              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <UserPlus className="h-5 w-5 text-primary" />
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-r from-orange-50 to-orange-100 hover:shadow-lg transition-shadow rounded-xl">
+        <Card className="bg-card border shadow-sm hover:shadow-md transition-shadow">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-orange-700">📝 Pending Leave Requests</p>
-                <p className="text-2xl font-bold text-orange-900">{formatCount(analytics.pendingLeaveRequests)}</p>
+                <p className="text-sm font-medium text-muted-foreground">Pending Leave Requests</p>
+                <p className="text-2xl font-bold text-foreground">{formatCount(analytics.pendingLeaveRequests)}</p>
               </div>
-              <Calendar className="h-8 w-8 text-orange-600" />
+              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Calendar className="h-5 w-5 text-primary" />
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-r from-purple-50 to-purple-100 hover:shadow-lg transition-shadow rounded-xl">
+        <Card className="bg-card border shadow-sm hover:shadow-md transition-shadow">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-purple-700">📬 New Applications (7d)</p>
-                <p className="text-2xl font-bold text-purple-900">{formatCount(analytics.newJobApplications)}</p>
+                <p className="text-sm font-medium text-muted-foreground">New Applications (7d)</p>
+                <p className="text-2xl font-bold text-foreground">{formatCount(analytics.newJobApplications)}</p>
               </div>
-              <Briefcase className="h-8 w-8 text-purple-600" />
+              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Briefcase className="h-5 w-5 text-primary" />
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -211,50 +219,58 @@ const HRAnalyticsCards = () => {
 
       {/* Second Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-gradient-to-r from-teal-50 to-teal-100 hover:shadow-lg transition-shadow rounded-xl">
+        <Card className="bg-card border shadow-sm hover:shadow-md transition-shadow">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-teal-700">📄 Documents Uploaded (7d)</p>
-                <p className="text-2xl font-bold text-teal-900">{formatCount(analytics.documentsUploaded)}</p>
+                <p className="text-sm font-medium text-muted-foreground">Documents Uploaded (7d)</p>
+                <p className="text-2xl font-bold text-foreground">{formatCount(analytics.documentsUploaded)}</p>
               </div>
-              <FileText className="h-8 w-8 text-teal-600" />
+              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <FileText className="h-5 w-5 text-primary" />
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-r from-yellow-50 to-yellow-100 hover:shadow-lg transition-shadow rounded-xl">
+        <Card className="bg-card border shadow-sm hover:shadow-md transition-shadow">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-yellow-700">📈 Evaluations This Week</p>
-                <p className="text-2xl font-bold text-yellow-900">{formatCount(analytics.evaluationsThisWeek)}</p>
+                <p className="text-sm font-medium text-muted-foreground">Evaluations This Week</p>
+                <p className="text-2xl font-bold text-foreground">{formatCount(analytics.evaluationsThisWeek)}</p>
               </div>
-              <BarChart className="h-8 w-8 text-yellow-600" />
+              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <BarChart className="h-5 w-5 text-primary" />
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-r from-red-50 to-red-100 hover:shadow-lg transition-shadow rounded-xl">
+        <Card className="bg-card border shadow-sm hover:shadow-md transition-shadow">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-red-700">⏳ Expiring Contracts (30d)</p>
-                <p className="text-2xl font-bold text-red-900">{formatCount(analytics.expiringDocuments)}</p>
+                <p className="text-sm font-medium text-muted-foreground">Expiring Contracts (30d)</p>
+                <p className="text-2xl font-bold text-foreground">{formatCount(analytics.expiringDocuments)}</p>
               </div>
-              <Clock className="h-8 w-8 text-red-600" />
+              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Clock className="h-5 w-5 text-primary" />
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-r from-indigo-50 to-indigo-100 hover:shadow-lg transition-shadow rounded-xl">
+        <Card className="bg-card border shadow-sm hover:shadow-md transition-shadow">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-indigo-700">🎓 Active Assessments</p>
-                <p className="text-2xl font-bold text-indigo-900">{formatCount(analytics.upskillingEmployees)}</p>
+                <p className="text-sm font-medium text-muted-foreground">Active Assessments</p>
+                <p className="text-2xl font-bold text-foreground">{formatCount(analytics.upskillingEmployees)}</p>
               </div>
-              <GraduationCap className="h-8 w-8 text-indigo-600" />
+              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <GraduationCap className="h-5 w-5 text-primary" />
+              </div>
             </div>
           </CardContent>
         </Card>
