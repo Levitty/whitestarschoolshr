@@ -286,7 +286,9 @@ const AddEmployeeForm = () => {
                     </SelectTrigger>
                     <SelectContent>
                       {departmentsLoading ? (
-                        <SelectItem value="" disabled>Loading departments...</SelectItem>
+                        <div className="p-2 text-sm text-muted-foreground">Loading departments...</div>
+                      ) : departments.length === 0 ? (
+                        <div className="p-2 text-sm text-muted-foreground">No departments found</div>
                       ) : (
                         departments.map((dept) => (
                           <SelectItem key={dept.id} value={dept.name}>{dept.name}</SelectItem>

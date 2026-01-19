@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useTenant } from '@/contexts/TenantContext';
 import { 
   Building, 
   Upload, 
@@ -17,6 +17,7 @@ import {
 
 const LetterheadSettings = () => {
   const { user } = useAuth();
+  const { tenant } = useTenant();
   const { toast } = useToast();
   
   const [loading, setLoading] = useState(true);
@@ -34,18 +35,23 @@ const LetterheadSettings = () => {
   });
 
   useEffect(() => {
-    fetchLetterheadSettings();
-  }, []);
+    if (tenant?.id) {
+      fetchLetterheadSettings();
+    }
+  }, [tenant?.id]);
 
   const fetchLetterheadSettings = async () => {
+    if (!tenant?.id) return;
+    
     try {
       const { data, error } = await supabase
         .from('letterhead_settings')
         .select('*')
+        .eq('tenant_id', tenant.id)
         .eq('is_active', true)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         console.error('Error fetching letterhead settings:', error);
       } else if (data) {
         setSettings(data);
@@ -134,6 +140,7 @@ const LetterheadSettings = () => {
           email: settings.email,
           website: settings.website,
           created_by: user.id,
+          tenant_id: tenant?.id,
           is_active: true
         };
 
