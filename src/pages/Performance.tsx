@@ -4,11 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, BarChart3, Target, Users, MessageCircle, Star, Calculator, TrendingUp } from 'lucide-react';
 import CreateEvaluationForm from '@/components/CreateEvaluationForm';
+import CreateCorporateEvaluationForm from '@/components/CreateCorporateEvaluationForm';
 import EvaluationsList from '@/components/EvaluationsList';
 import EvaluationAnalytics from '@/components/EvaluationAnalytics';
 import EvaluationGoalsSuggestions from '@/components/EvaluationGoalsSuggestions';
+import CorporateGoalsManagement from '@/components/CorporateGoalsManagement';
 import StudentParentFeedback from '@/components/StudentParentFeedback';
-import CommissionCalculator from '@/components/CommissionCalculator';
+import EnhancedCommissionCalculator from '@/components/EnhancedCommissionCalculator';
 import { SalesTeamDashboard } from '@/components/SalesTeamDashboard';
 import { useProfile } from '@/hooks/useProfile';
 import { useTenantLabels } from '@/hooks/useTenantLabels';
@@ -124,26 +126,7 @@ const Performance = () => {
         {/* Commission Tab - Corporate Only */}
         {corporateFeatures.salesCommission && (
           <TabsContent value="commission" className="space-y-6">
-            <Card className="border-0 shadow-sm bg-card">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-foreground">
-                  <Calculator className="h-5 w-5 text-emerald-500" />
-                  Sales Commission Calculator
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Calculate commission payouts based on monthly sales performance against targets.
-                  Commission rates are applied automatically based on achievement levels.
-                </p>
-              </CardContent>
-            </Card>
-            
-            <CommissionCalculator
-              evaluationType="Monthly Sales Commission Review"
-              employeeName="Select Employee"
-              period="January 2026"
-            />
+            <EnhancedCommissionCalculator />
           </TabsContent>
         )}
 
@@ -188,22 +171,28 @@ const Performance = () => {
         </TabsContent>
 
         <TabsContent value="goals" className="space-y-6">
-          <Card className="border-0 shadow-sm bg-card">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-foreground">
-                <Target className="h-5 w-5 text-emerald-500" />
-                Goals & Development Planning
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Automatically generated development goals based on evaluation scores. Focus areas with scores below 4.0 
-                generate specific improvement suggestions.
-              </p>
-            </CardContent>
-          </Card>
-          
-          <EvaluationGoalsSuggestions />
+          {corporateFeatures.salesCommission ? (
+            <CorporateGoalsManagement />
+          ) : (
+            <>
+              <Card className="border-0 shadow-sm bg-card">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-foreground">
+                    <Target className="h-5 w-5 text-emerald-500" />
+                    Goals & Development Planning
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">
+                    Automatically generated development goals based on evaluation scores. Focus areas with scores below 4.0 
+                    generate specific improvement suggestions.
+                  </p>
+                </CardContent>
+              </Card>
+              
+              <EvaluationGoalsSuggestions />
+            </>
+          )}
         </TabsContent>
 
         {!hiddenFeatures.studentFeedback && (
@@ -228,8 +217,14 @@ const Performance = () => {
         )}
       </Tabs>
 
-      {/* Create Evaluation Form */}
-      {canCreateEvaluation && (
+      {/* Create Evaluation Form - Tenant Aware */}
+      {canCreateEvaluation && corporateFeatures.salesCommission && (
+        <CreateCorporateEvaluationForm
+          isOpen={showCreateForm}
+          onClose={() => setShowCreateForm(false)}
+        />
+      )}
+      {canCreateEvaluation && !corporateFeatures.salesCommission && (
         <CreateEvaluationForm
           isOpen={showCreateForm}
           onClose={() => setShowCreateForm(false)}
