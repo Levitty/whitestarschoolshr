@@ -83,8 +83,12 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           }
         }
       } else {
-        // Regular user can only see their tenant
-        console.log('TenantContext: Fetching tenant_users for user:', user.id);
+        // Regular user - first try tenant_users, then fallback to profiles.tenant_id
+        console.log('TenantContext: Fetching tenant for regular user:', user.id);
+        
+        let tenantId: string | null = null;
+        
+        // First, try tenant_users table
         const { data: tenantUsers, error: tuError } = await supabase
           .from('tenant_users')
           .select('tenant_id')
@@ -92,33 +96,46 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         
         console.log('TenantContext: tenant_users query result:', { tenantUsers, tuError });
         
-        if (tuError) {
-          console.error('TenantContext: Error fetching tenant_users:', tuError);
+        if (!tuError && tenantUsers && tenantUsers.length > 0) {
+          tenantId = tenantUsers[0].tenant_id;
+          console.log('TenantContext: Found tenant_id from tenant_users:', tenantId);
         }
         
-        if (!tuError && tenantUsers && tenantUsers.length > 0) {
-          const tenantIds = tenantUsers.map(tu => tu.tenant_id);
-          console.log('TenantContext: Found tenant IDs:', tenantIds);
+        // Fallback: check profiles.tenant_id if no tenant_users entry
+        if (!tenantId) {
+          console.log('TenantContext: No tenant_users, checking profiles.tenant_id');
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('tenant_id')
+            .eq('id', user.id)
+            .maybeSingle();
           
+          console.log('TenantContext: profile query result:', { profile, profileError });
+          
+          if (!profileError && profile?.tenant_id) {
+            tenantId = profile.tenant_id;
+            console.log('TenantContext: Found tenant_id from profiles:', tenantId);
+          }
+        }
+        
+        // Fetch the tenant if we have an ID
+        if (tenantId) {
           const { data, error } = await supabase
             .from('tenants')
             .select('*')
-            .in('id', tenantIds);
+            .eq('id', tenantId)
+            .maybeSingle();
           
-          console.log('TenantContext: tenants query result:', { data, error });
+          console.log('TenantContext: tenant query result:', { data, error });
           
           if (!error && data) {
-            const typedTenants = data as unknown as Tenant[];
-            setTenants(typedTenants);
-            console.log('TenantContext: Regular user tenants:', typedTenants.map(t => ({ name: t.name, slug: t.slug })));
-            // Always set the first tenant for regular users (they typically have one)
-            if (typedTenants.length > 0) {
-              console.log('TenantContext: Setting tenant for regular user:', typedTenants[0].name, typedTenants[0].slug);
-              setTenant(typedTenants[0]);
-            }
+            const typedTenant = data as unknown as Tenant;
+            setTenants([typedTenant]);
+            setTenant(typedTenant);
+            console.log('TenantContext: Setting tenant for regular user:', typedTenant.name, typedTenant.slug);
           }
         } else {
-          console.log('TenantContext: No tenant_users found for user');
+          console.log('TenantContext: No tenant_id found for user');
         }
       }
     } catch (error) {
