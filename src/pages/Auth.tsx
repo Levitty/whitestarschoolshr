@@ -28,13 +28,38 @@ const Auth = () => {
   const tenantSlug = searchParams.get('tenant');
   
   const [currentTenant, setCurrentTenant] = useState<Tenant | null>(null);
-  const [tenantLoading, setTenantLoading] = useState(false);
+  const [tenantLoading, setTenantLoading] = useState(true);
 
-  // Fetch tenant if slug is provided
+  // Map custom domains to tenant slugs
+  const getDomainTenantSlug = (): string | null => {
+    const hostname = window.location.hostname.toLowerCase();
+    
+    // Map of custom domains to tenant slugs
+    const domainToTenant: Record<string, string> = {
+      'hr.whitestarschools.com': 'whitestar-schools',
+      'www.hr.whitestarschools.com': 'whitestar-schools',
+      // Add more domain mappings here as needed
+    };
+    
+    return domainToTenant[hostname] || null;
+  };
+
+  // Fetch tenant based on URL param or custom domain
   useEffect(() => {
     const fetchTenant = async () => {
-      if (!tenantSlug) {
+      // First check URL param, then check custom domain
+      const slugFromParam = tenantSlug;
+      const slugFromDomain = getDomainTenantSlug();
+      const effectiveSlug = slugFromParam || slugFromDomain;
+      
+      console.log('Auth - Domain:', window.location.hostname);
+      console.log('Auth - Slug from param:', slugFromParam);
+      console.log('Auth - Slug from domain:', slugFromDomain);
+      console.log('Auth - Effective slug:', effectiveSlug);
+      
+      if (!effectiveSlug) {
         setCurrentTenant(null);
+        setTenantLoading(false);
         return;
       }
       
@@ -42,14 +67,17 @@ const Auth = () => {
       const { data, error } = await supabase
         .from('tenants')
         .select('id, name, slug, logo_url, primary_color')
-        .eq('slug', tenantSlug)
+        .eq('slug', effectiveSlug)
         .eq('is_active', true)
         .maybeSingle();
       
       if (error) {
         console.error('Error fetching tenant:', error);
       } else if (data) {
+        console.log('Auth - Tenant found:', data);
         setCurrentTenant(data);
+      } else {
+        console.log('Auth - No tenant found for slug:', effectiveSlug);
       }
       setTenantLoading(false);
     };
