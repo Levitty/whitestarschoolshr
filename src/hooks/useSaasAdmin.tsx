@@ -132,6 +132,20 @@ export const useSaasAdmin = () => {
     toast.success(isActive ? 'Tenant activated' : 'Tenant deactivated');
   };
 
+  const deleteTenant = async (tenantId: string) => {
+    const { error } = await supabase
+      .from('tenants')
+      .delete()
+      .eq('id', tenantId);
+
+    if (error) {
+      toast.error('Failed to delete tenant: ' + error.message);
+      throw error;
+    }
+
+    toast.success('Tenant deleted successfully');
+  };
+
   const getPlatformStats = async (): Promise<PlatformStats> => {
     const sevenDaysFromNow = new Date();
     sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
@@ -223,6 +237,7 @@ export const useSaasAdmin = () => {
     createTenant,
     updateTenant,
     toggleTenantActive,
+    deleteTenant,
     getPlatformStats,
     getRecentActivity
   };

@@ -25,6 +25,7 @@ interface TenantsTableProps {
   onManageSubscription: (tenant: TenantWithStats) => void;
   onToggleActive: (tenantId: string, currentStatus: boolean) => void;
   onCreateAdmin: (tenant: TenantWithStats) => void;
+  onDeleteTenant: (tenant: TenantWithStats) => void;
 }
 
 const TenantsTable = ({
@@ -36,6 +37,7 @@ const TenantsTable = ({
   onManageSubscription,
   onToggleActive,
   onCreateAdmin,
+  onDeleteTenant,
 }: TenantsTableProps) => {
   const filteredTenants = tenants.filter(t => 
     t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -161,6 +163,7 @@ const TenantsTable = ({
                       onManageSubscription={onManageSubscription}
                       onToggleActive={onToggleActive}
                       onCreateAdmin={onCreateAdmin}
+                      onDeleteTenant={onDeleteTenant}
                     />
                   </TableCell>
                 </TableRow>
