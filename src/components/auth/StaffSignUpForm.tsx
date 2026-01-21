@@ -113,10 +113,10 @@ const StaffSignUpForm = ({ tenantId, tenantName }: StaffSignUpFormProps) => {
       return;
     }
     
-    console.log('Starting staff signup process for:', { email, role, fullName, department, branch });
+    console.log('Starting staff signup process for:', { email, role, fullName, department, branch, tenantId });
     setLoading(true);
 
-    const { error } = await signUp(email, password, fullName, department, role, branch);
+    const { error } = await signUp(email, password, fullName, department, role, branch, tenantId);
     
     if (error) {
       console.error('Signup error:', error);

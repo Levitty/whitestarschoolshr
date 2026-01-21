@@ -40,7 +40,7 @@ export interface AuthContextType {
   session: any | null;
   profile: Profile | null;
   loading: boolean;
-  signUp: (email: string, password: string, fullName: string, department: string, role: UserRole, branch?: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, fullName: string, department: string, role: UserRole, branch?: string, tenantId?: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   fetchProfile: () => Promise<void>;

@@ -122,8 +122,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signUp = async (email: string, password: string, fullName: string, department: string, role: UserRole, branch?: string) => {
+  const signUp = async (email: string, password: string, fullName: string, department: string, role: UserRole, branch?: string, tenantId?: string) => {
     setLoading(true);
+    
+    console.log('Signup called with tenantId:', tenantId);
     
     try {
       // For superadmin accounts, create them directly as confirmed users
@@ -143,6 +145,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               department: department,
               role: role,
               branch: branch || null,
+              tenant_id: tenantId || null,
               is_superadmin: true // Flag to identify superadmin during profile creation
             }
           }
@@ -172,7 +175,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               last_name: fullName.split(' ').slice(1).join(' ') || '',
               department: department,
               role: role,
-              branch: branch || null
+              branch: branch || null,
+              tenant_id: tenantId || null
             }
           }
         });
