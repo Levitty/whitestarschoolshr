@@ -19,24 +19,31 @@ export const useDepartments = (tenantId?: string) => {
 
   const fetchDepartments = async () => {
     try {
-      let query = supabase
-        .from('departments')
-        .select('*')
-        .order('name');
-      
-      if (tenantId) {
-        query = query.eq('tenant_id', tenantId);
+      // If tenantId is provided, use it to filter departments
+      // This works for both authenticated and unauthenticated users (e.g., signup page)
+      if (!tenantId) {
+        // No tenant context - can't fetch departments without a tenant
+        setDepartments([]);
+        setLoading(false);
+        return;
       }
 
-      const { data, error } = await query;
+      const { data, error } = await supabase
+        .from('departments')
+        .select('id, name, description, created_at, updated_at')
+        .eq('tenant_id', tenantId)
+        .order('name');
 
       if (error) {
         console.error('Error fetching departments:', error);
+        // For signup, if RLS blocks the query, we might need a fallback
+        setDepartments([]);
       } else {
         setDepartments(data || []);
       }
     } catch (error) {
       console.error('Error fetching departments:', error);
+      setDepartments([]);
     } finally {
       setLoading(false);
     }
