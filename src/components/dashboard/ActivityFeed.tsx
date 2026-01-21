@@ -5,6 +5,7 @@ import { FileText, UserPlus, Calendar, Award, MessageSquare, Loader2 } from 'luc
 import { LucideIcon } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface Activity {
   id: string;
@@ -28,10 +29,13 @@ const iconMap: Record<Activity['type'], { icon: LucideIcon; color: string }> = {
 };
 
 const ActivityFeed = () => {
-  // Fetch real leave requests
+  const { tenant } = useTenant();
+
+  // Fetch real leave requests filtered by tenant
   const { data: leaveRequests } = useQuery({
-    queryKey: ['recent-leave-requests'],
+    queryKey: ['recent-leave-requests', tenant?.id],
     queryFn: async () => {
+      if (!tenant?.id) return [];
       const { data, error } = await supabase
         .from('leave_requests')
         .select(`
@@ -40,18 +44,21 @@ const ActivityFeed = () => {
           created_at,
           employee:profiles!leave_requests_employee_id_fkey(first_name, last_name, avatar_url)
         `)
+        .eq('tenant_id', tenant.id)
         .order('created_at', { ascending: false })
         .limit(3);
       
       if (error) throw error;
       return data;
-    }
+    },
+    enabled: !!tenant?.id
   });
 
-  // Fetch real document uploads
+  // Fetch real document uploads filtered by tenant
   const { data: documents } = useQuery({
-    queryKey: ['recent-documents'],
+    queryKey: ['recent-documents', tenant?.id],
     queryFn: async () => {
+      if (!tenant?.id) return [];
       const { data, error } = await supabase
         .from('documents')
         .select(`
@@ -60,18 +67,21 @@ const ActivityFeed = () => {
           created_at,
           uploader:profiles!documents_uploaded_by_fkey(first_name, last_name, avatar_url)
         `)
+        .eq('tenant_id', tenant.id)
         .order('created_at', { ascending: false })
         .limit(3);
       
       if (error) throw error;
       return data;
-    }
+    },
+    enabled: !!tenant?.id
   });
 
-  // Fetch recent evaluations
+  // Fetch recent evaluations filtered by tenant
   const { data: evaluations } = useQuery({
-    queryKey: ['recent-evaluations'],
+    queryKey: ['recent-evaluations', tenant?.id],
     queryFn: async () => {
+      if (!tenant?.id) return [];
       const { data, error } = await supabase
         .from('evaluations')
         .select(`
@@ -80,27 +90,32 @@ const ActivityFeed = () => {
           created_at,
           employee:employee_profiles!evaluations_employee_id_fkey(first_name, last_name)
         `)
+        .eq('tenant_id', tenant.id)
         .order('created_at', { ascending: false })
         .limit(2);
       
       if (error) throw error;
       return data;
-    }
+    },
+    enabled: !!tenant?.id
   });
 
-  // Fetch recent employee additions
+  // Fetch recent employee additions filtered by tenant
   const { data: employees } = useQuery({
-    queryKey: ['recent-employees'],
+    queryKey: ['recent-employees', tenant?.id],
     queryFn: async () => {
+      if (!tenant?.id) return [];
       const { data, error } = await supabase
         .from('employee_profiles')
         .select('id, first_name, last_name, created_at')
+        .eq('tenant_id', tenant.id)
         .order('created_at', { ascending: false })
         .limit(2);
       
       if (error) throw error;
       return data;
-    }
+    },
+    enabled: !!tenant?.id
   });
 
   // Build activities from real data

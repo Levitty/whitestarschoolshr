@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { UserCheck, UserX, Clock, Shield, Mail, Phone, MapPin } from 'lucide-react';
 import { UserRole, UserStatus } from '@/types/auth';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface PendingUser {
   id: string;
@@ -25,17 +25,26 @@ const AccountApprovalManager = () => {
   const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { tenant } = useTenant();
 
   useEffect(() => {
-    fetchPendingUsers();
-  }, []);
+    if (tenant?.id) {
+      fetchPendingUsers();
+    }
+  }, [tenant?.id]);
 
   const fetchPendingUsers = async () => {
+    if (!tenant?.id) {
+      setLoading(false);
+      return;
+    }
+    
     try {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('status', 'pending')
+        .eq('tenant_id', tenant.id)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -124,7 +133,7 @@ const AccountApprovalManager = () => {
           .maybeSingle();
 
         if (!existingEmployee) {
-          // Create employee profile
+          // Create employee profile with tenant_id
           const { error: empError } = await supabase
             .from('employee_profiles')
             .insert({
@@ -138,7 +147,8 @@ const AccountApprovalManager = () => {
               position: getRolePosition(profileData.role),
               hire_date: new Date().toISOString().split('T')[0],
               status: 'active',
-              branch: profileData.branch
+              branch: profileData.branch,
+              tenant_id: tenant?.id
             });
 
           if (empError) {
