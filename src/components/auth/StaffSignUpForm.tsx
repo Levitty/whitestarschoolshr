@@ -29,37 +29,61 @@ const StaffSignUpForm = ({ tenantId, tenantName }: StaffSignUpFormProps) => {
   const [branch, setBranch] = useState('');
   const [loading, setLoading] = useState(false);
   const [branches, setBranches] = useState<Branch[]>([]);
-  const [branchesLoading, setBranchesLoading] = useState(false);
+  const [branchesLoading, setBranchesLoading] = useState(true);
   
   const { signUp } = useAuth();
   const { toast } = useToast();
   const { departments, loading: departmentsLoading } = useDepartments(tenantId);
 
+  // Debug logging
+  useEffect(() => {
+    console.log('StaffSignUpForm - tenantId:', tenantId, 'tenantName:', tenantName);
+    console.log('StaffSignUpForm - departments loaded:', departments.length, departments);
+  }, [tenantId, tenantName, departments]);
+
   // Fetch branches for the tenant
   useEffect(() => {
     const fetchBranches = async () => {
+      console.log('Fetching branches for tenant:', tenantId);
+      
       if (!tenantId) {
         // Default branches for platform-level signup
+        console.log('No tenantId, using default branch');
         setBranches([
           { value: 'main', label: 'Main Branch' }
         ]);
+        setBranchesLoading(false);
         return;
       }
       
       setBranchesLoading(true);
-      // For now, we'll use a simple approach - fetch unique branches from employee_profiles
-      const { data } = await supabase
-        .from('employee_profiles')
-        .select('branch')
-        .eq('tenant_id', tenantId)
-        .not('branch', 'is', null);
       
-      if (data && data.length > 0) {
-        const uniqueBranches = [...new Set(data.map(e => e.branch).filter(Boolean))];
-        setBranches(uniqueBranches.map(b => ({ value: b!, label: b! })));
-      } else {
+      // First try to fetch from branches table if it exists, otherwise from employee_profiles
+      try {
+        const { data: branchData, error } = await supabase
+          .from('employee_profiles')
+          .select('branch')
+          .eq('tenant_id', tenantId)
+          .not('branch', 'is', null);
+        
+        console.log('Branches query result:', branchData, error);
+        
+        if (branchData && branchData.length > 0) {
+          const uniqueBranches = [...new Set(branchData.map(e => e.branch).filter(Boolean))];
+          console.log('Unique branches found:', uniqueBranches);
+          setBranches(uniqueBranches.map(b => ({ 
+            value: b!, 
+            label: b!.charAt(0).toUpperCase() + b!.slice(1) // Capitalize first letter
+          })));
+        } else {
+          console.log('No branches found, using default');
+          setBranches([{ value: 'main', label: 'Main Branch' }]);
+        }
+      } catch (err) {
+        console.error('Error fetching branches:', err);
         setBranches([{ value: 'main', label: 'Main Branch' }]);
       }
+      
       setBranchesLoading(false);
     };
     
@@ -136,7 +160,7 @@ const StaffSignUpForm = ({ tenantId, tenantName }: StaffSignUpFormProps) => {
       <div className="space-y-2">
         <Label htmlFor="staff-fullname">Full Name</Label>
         <div className="relative">
-          <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <Input
             id="staff-fullname"
             type="text"
@@ -152,7 +176,7 @@ const StaffSignUpForm = ({ tenantId, tenantName }: StaffSignUpFormProps) => {
       <div className="space-y-2">
         <Label htmlFor="staff-role">Role</Label>
         <div className="relative">
-          <UserCheck className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 z-10" />
+          <UserCheck className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4 z-10" />
           <Select value={role} onValueChange={(value: UserRole) => setRole(value)} required>
             <SelectTrigger className="pl-10">
               <SelectValue placeholder="Select your role" />
@@ -171,39 +195,50 @@ const StaffSignUpForm = ({ tenantId, tenantName }: StaffSignUpFormProps) => {
       <div className="space-y-2">
         <Label htmlFor="staff-department">Department</Label>
         <div className="relative">
-          <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 z-10" />
+          <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4 z-10" />
           <Select value={department} onValueChange={setDepartment} required disabled={departmentsLoading}>
             <SelectTrigger className="pl-10">
               {departmentsLoading ? (
                 <div className="flex items-center gap-2">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Loading...</span>
+                  <span>Loading departments...</span>
                 </div>
               ) : (
-                <SelectValue placeholder="Select your department" />
+                <SelectValue placeholder={departments.length === 0 ? "No departments available" : "Select your department"} />
               )}
             </SelectTrigger>
             <SelectContent>
-              {departments.map((dept) => (
-                <SelectItem key={dept.id} value={dept.name}>
-                  {dept.name}
+              {departments.length === 0 ? (
+                <SelectItem value="general" disabled>
+                  No departments configured yet
                 </SelectItem>
-              ))}
+              ) : (
+                departments.map((dept) => (
+                  <SelectItem key={dept.id} value={dept.name}>
+                    {dept.name}
+                  </SelectItem>
+                ))
+              )}
             </SelectContent>
           </Select>
         </div>
+        {!tenantId && (
+          <p className="text-xs text-muted-foreground">
+            Access the signup page via your institution's link to see available departments.
+          </p>
+        )}
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="staff-branch">Branch</Label>
         <div className="relative">
-          <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 z-10" />
+          <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4 z-10" />
           <Select value={branch} onValueChange={setBranch} required disabled={branchesLoading}>
             <SelectTrigger className="pl-10">
               {branchesLoading ? (
                 <div className="flex items-center gap-2">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Loading...</span>
+                  <span>Loading branches...</span>
                 </div>
               ) : (
                 <SelectValue placeholder="Select your branch" />
@@ -223,7 +258,7 @@ const StaffSignUpForm = ({ tenantId, tenantName }: StaffSignUpFormProps) => {
       <div className="space-y-2">
         <Label htmlFor="staff-email">Email</Label>
         <div className="relative">
-          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <Input
             id="staff-email"
             type="email"
@@ -239,7 +274,7 @@ const StaffSignUpForm = ({ tenantId, tenantName }: StaffSignUpFormProps) => {
       <div className="space-y-2">
         <Label htmlFor="staff-password">Password</Label>
         <div className="relative">
-          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <Input
             id="staff-password"
             type="password"
@@ -257,8 +292,8 @@ const StaffSignUpForm = ({ tenantId, tenantName }: StaffSignUpFormProps) => {
         {loading ? 'Creating Account...' : 'Create Account'}
       </Button>
 
-      <div className="text-sm text-center text-slate-600 bg-blue-50 p-3 rounded-lg">
-        <p className="font-medium text-blue-800">Account Approval Required</p>
+      <div className="text-sm text-center text-muted-foreground bg-muted p-3 rounded-lg">
+        <p className="font-medium text-foreground">Account Approval Required</p>
         <p>Your account will be reviewed by an administrator before activation. You will receive notification once approved.</p>
       </div>
     </form>
