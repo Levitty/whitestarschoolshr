@@ -6,6 +6,7 @@ import { LucideIcon } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Activity {
   id: string;
@@ -30,36 +31,49 @@ const iconMap: Record<Activity['type'], { icon: LucideIcon; color: string }> = {
 
 const ActivityFeed = () => {
   const { tenant } = useTenant();
+  const { user, profile } = useAuth();
 
-  // Fetch real leave requests filtered by tenant
+  // Check if user is admin/superadmin/head - they can see all activity
+  const isAdmin = profile?.role === 'admin' || profile?.role === 'superadmin' || profile?.role === 'head';
+
+  // Fetch leave requests - filtered by user for non-admins
   const { data: leaveRequests } = useQuery({
-    queryKey: ['recent-leave-requests', tenant?.id],
+    queryKey: ['recent-leave-requests', tenant?.id, user?.id, isAdmin],
     queryFn: async () => {
-      if (!tenant?.id) return [];
-      const { data, error } = await supabase
+      if (!tenant?.id || !user?.id) return [];
+      
+      let query = supabase
         .from('leave_requests')
         .select(`
           id,
           leave_type,
+          status,
           created_at,
           employee:profiles!leave_requests_employee_id_fkey(first_name, last_name, avatar_url)
         `)
         .eq('tenant_id', tenant.id)
         .order('created_at', { ascending: false })
-        .limit(3);
+        .limit(5);
       
+      // Non-admin users only see their own leave requests
+      if (!isAdmin) {
+        query = query.eq('employee_id', user.id);
+      }
+      
+      const { data, error } = await query;
       if (error) throw error;
       return data;
     },
-    enabled: !!tenant?.id
+    enabled: !!tenant?.id && !!user?.id
   });
 
-  // Fetch real document uploads filtered by tenant
+  // Fetch documents - filtered by user for non-admins
   const { data: documents } = useQuery({
-    queryKey: ['recent-documents', tenant?.id],
+    queryKey: ['recent-documents', tenant?.id, user?.id, isAdmin],
     queryFn: async () => {
-      if (!tenant?.id) return [];
-      const { data, error } = await supabase
+      if (!tenant?.id || !user?.id) return [];
+      
+      let query = supabase
         .from('documents')
         .select(`
           id,
@@ -69,53 +83,68 @@ const ActivityFeed = () => {
         `)
         .eq('tenant_id', tenant.id)
         .order('created_at', { ascending: false })
+        .limit(5);
+      
+      // Non-admin users only see documents they uploaded or are recipients of
+      if (!isAdmin) {
+        query = query.or(`uploaded_by.eq.${user.id},recipient_id.eq.${user.id}`);
+      }
+      
+      const { data, error } = await query;
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!tenant?.id && !!user?.id
+  });
+
+  // Fetch tasks assigned to the user (relevant to all users)
+  const { data: tasks } = useQuery({
+    queryKey: ['recent-tasks', tenant?.id, user?.id, isAdmin],
+    queryFn: async () => {
+      if (!tenant?.id || !user?.id) return [];
+      
+      let query = supabase
+        .from('tasks')
+        .select('id, title, status, created_at')
+        .eq('tenant_id', tenant.id)
+        .order('created_at', { ascending: false })
         .limit(3);
       
+      // Non-admin users only see tasks assigned to them
+      if (!isAdmin) {
+        query = query.eq('assigned_to', user.id);
+      }
+      
+      const { data, error } = await query;
       if (error) throw error;
       return data;
     },
-    enabled: !!tenant?.id
+    enabled: !!tenant?.id && !!user?.id
   });
 
-  // Fetch recent evaluations filtered by tenant
-  const { data: evaluations } = useQuery({
-    queryKey: ['recent-evaluations', tenant?.id],
+  // Fetch tickets - filtered by user for non-admins
+  const { data: tickets } = useQuery({
+    queryKey: ['recent-tickets', tenant?.id, user?.id, isAdmin],
     queryFn: async () => {
-      if (!tenant?.id) return [];
-      const { data, error } = await supabase
-        .from('evaluations')
-        .select(`
-          id,
-          period,
-          created_at,
-          employee:employee_profiles!evaluations_employee_id_fkey(first_name, last_name)
-        `)
+      if (!tenant?.id || !user?.id) return [];
+      
+      let query = supabase
+        .from('tickets')
+        .select('id, title, status, created_at')
         .eq('tenant_id', tenant.id)
         .order('created_at', { ascending: false })
-        .limit(2);
+        .limit(3);
       
+      // Non-admin users only see their own tickets
+      if (!isAdmin) {
+        query = query.eq('employee_id', user.id);
+      }
+      
+      const { data, error } = await query;
       if (error) throw error;
       return data;
     },
-    enabled: !!tenant?.id
-  });
-
-  // Fetch recent employee additions filtered by tenant
-  const { data: employees } = useQuery({
-    queryKey: ['recent-employees', tenant?.id],
-    queryFn: async () => {
-      if (!tenant?.id) return [];
-      const { data, error } = await supabase
-        .from('employee_profiles')
-        .select('id, first_name, last_name, created_at')
-        .eq('tenant_id', tenant.id)
-        .order('created_at', { ascending: false })
-        .limit(2);
-      
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!tenant?.id
+    enabled: !!tenant?.id && !!user?.id
   });
 
   // Build activities from real data
@@ -124,6 +153,9 @@ const ActivityFeed = () => {
   leaveRequests?.forEach((req: any) => {
     const firstName = req.employee?.first_name || 'Unknown';
     const lastName = req.employee?.last_name || '';
+    const statusText = req.status === 'approved' ? 'was approved' : 
+                       req.status === 'rejected' ? 'was rejected' : 
+                       'is pending';
     activities.push({
       id: `leave-${req.id}`,
       user: {
@@ -131,7 +163,7 @@ const ActivityFeed = () => {
         initials: `${firstName[0] || ''}${lastName[0] || ''}`.toUpperCase(),
         avatar: req.employee?.avatar_url
       },
-      action: 'submitted a leave request',
+      action: isAdmin ? 'submitted a leave request' : `Leave request ${statusText}`,
       target: req.leave_type,
       type: 'leave',
       timestamp: new Date(req.created_at)
@@ -148,40 +180,39 @@ const ActivityFeed = () => {
         initials: `${firstName[0] || 'S'}${lastName[0] || ''}`.toUpperCase(),
         avatar: doc.uploader?.avatar_url
       },
-      action: 'uploaded a document',
+      action: isAdmin ? 'uploaded a document' : 'Document shared with you',
       target: doc.title,
       type: 'document',
       timestamp: new Date(doc.created_at)
     });
   });
 
-  evaluations?.forEach((ev: any) => {
-    const firstName = ev.employee?.first_name || 'Unknown';
-    const lastName = ev.employee?.last_name || '';
+  tasks?.forEach((task: any) => {
     activities.push({
-      id: `eval-${ev.id}`,
+      id: `task-${task.id}`,
       user: {
-        name: 'HR System',
-        initials: 'HR'
+        name: 'Task',
+        initials: 'T'
       },
-      action: 'completed evaluation for',
-      target: `${firstName} ${lastName}`.trim(),
-      type: 'performance',
-      timestamp: new Date(ev.created_at)
+      action: task.status === 'completed' ? 'Task completed' : 'Task assigned to you',
+      target: task.title,
+      type: 'message',
+      timestamp: new Date(task.created_at)
     });
   });
 
-  employees?.forEach((emp: any) => {
+  tickets?.forEach((ticket: any) => {
     activities.push({
-      id: `emp-${emp.id}`,
+      id: `ticket-${ticket.id}`,
       user: {
-        name: 'HR System',
-        initials: 'HR'
+        name: 'Support',
+        initials: 'S'
       },
-      action: 'added new employee',
-      target: `${emp.first_name} ${emp.last_name}`.trim(),
-      type: 'employee',
-      timestamp: new Date(emp.created_at)
+      action: ticket.status === 'closed' ? 'Ticket closed' : 
+              ticket.status === 'in_progress' ? 'Ticket in progress' : 'Ticket created',
+      target: ticket.title,
+      type: 'message',
+      timestamp: new Date(ticket.created_at)
     });
   });
 
@@ -190,12 +221,14 @@ const ActivityFeed = () => {
     .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
     .slice(0, 6);
 
-  const isLoading = !leaveRequests && !documents && !evaluations && !employees;
+  const isLoading = !leaveRequests && !documents && !tasks && !tickets;
 
   return (
     <Card className="border-0 shadow-sm bg-card">
       <CardHeader className="pb-4">
-        <CardTitle className="text-lg font-semibold">Recent Activity</CardTitle>
+        <CardTitle className="text-lg font-semibold">
+          {isAdmin ? 'Recent Activity' : 'My Activity'}
+        </CardTitle>
       </CardHeader>
       <CardContent className="pt-0">
         {isLoading ? (

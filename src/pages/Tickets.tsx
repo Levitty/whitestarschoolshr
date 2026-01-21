@@ -6,16 +6,21 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useTickets } from '@/hooks/useTickets';
+import { useAuth } from '@/hooks/useAuth';
 import TicketSystem from '@/components/TicketSystem';
 import { AlertCircle, Clock, CheckCircle, Users, Search, Plus } from 'lucide-react';
 
 const Tickets = () => {
-  const { tickets, updateTicketStatus } = useTickets();
+  const { tickets, loading, updateTicketStatus } = useTickets();
+  const { profile } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('');
   const [selectedTicket, setSelectedTicket] = useState<any>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+
+  // Check if user is admin/superadmin/head - they can manage all tickets
+  const isAdmin = profile?.role === 'admin' || profile?.role === 'superadmin' || profile?.role === 'head';
 
   const getTicketStats = () => {
     const totalTickets = tickets.length;
@@ -71,12 +76,24 @@ const Tickets = () => {
     await updateTicketStatus(ticketId, newStatus);
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Support Tickets</h1>
-          <p className="text-muted-foreground mt-1">Manage employee complaints and support requests</p>
+          <h1 className="text-2xl font-bold text-foreground">
+            {isAdmin ? 'Support Tickets' : 'My Support Tickets'}
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            {isAdmin ? 'Manage employee complaints and support requests' : 'View and track your support requests'}
+          </p>
         </div>
         <Button onClick={() => setShowCreateDialog(true)}>
           <Plus className="mr-2 h-4 w-4" />
@@ -143,10 +160,9 @@ const Tickets = () => {
         </Card>
       </div>
 
-      {/* Tickets List */}
       <Card>
         <CardHeader className="pb-4">
-          <CardTitle>All Tickets</CardTitle>
+          <CardTitle>{isAdmin ? 'All Tickets' : 'Your Tickets'}</CardTitle>
           <div className="flex flex-col sm:flex-row gap-3 mt-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -207,7 +223,7 @@ const Tickets = () => {
                     >
                       View
                     </Button>
-                    {ticket.status === 'open' && (
+                    {isAdmin && ticket.status === 'open' && (
                       <Button 
                         size="sm"
                         onClick={() => handleStatusChange(ticket.id, 'in_progress')}
@@ -263,26 +279,28 @@ const Tickets = () => {
                 </div>
               </div>
 
-              <div>
-                <h4 className="text-sm font-medium text-muted-foreground mb-2">Update Status</h4>
-                <Select 
-                  value={selectedTicket.status || 'open'} 
-                  onValueChange={(value) => {
-                    handleStatusChange(selectedTicket.id, value);
-                    setSelectedTicket({ ...selectedTicket, status: value });
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="open">Open</SelectItem>
-                    <SelectItem value="in_progress">In Progress</SelectItem>
-                    <SelectItem value="resolved">Resolved</SelectItem>
-                    <SelectItem value="closed">Closed</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              {isAdmin && (
+                <div>
+                  <h4 className="text-sm font-medium text-muted-foreground mb-2">Update Status</h4>
+                  <Select 
+                    value={selectedTicket.status || 'open'} 
+                    onValueChange={(value) => {
+                      handleStatusChange(selectedTicket.id, value);
+                      setSelectedTicket({ ...selectedTicket, status: value });
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="open">Open</SelectItem>
+                      <SelectItem value="in_progress">In Progress</SelectItem>
+                      <SelectItem value="resolved">Resolved</SelectItem>
+                      <SelectItem value="closed">Closed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
               <div className="flex justify-end">
                 <Button variant="outline" onClick={() => setSelectedTicket(null)}>
