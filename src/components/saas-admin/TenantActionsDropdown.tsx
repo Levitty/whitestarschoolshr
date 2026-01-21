@@ -14,7 +14,8 @@ import {
   Ban, 
   UserPlus,
   Power,
-  LogIn
+  LogIn,
+  Trash2
 } from 'lucide-react';
 import { TenantWithStats } from '@/types/tenant';
 
@@ -24,6 +25,7 @@ interface TenantActionsDropdownProps {
   onManageSubscription: (tenant: TenantWithStats) => void;
   onToggleActive: (tenantId: string, currentStatus: boolean) => void;
   onCreateAdmin: (tenant: TenantWithStats) => void;
+  onDeleteTenant: (tenant: TenantWithStats) => void;
 }
 
 const TenantActionsDropdown = ({
@@ -32,6 +34,7 @@ const TenantActionsDropdown = ({
   onManageSubscription,
   onToggleActive,
   onCreateAdmin,
+  onDeleteTenant,
 }: TenantActionsDropdownProps) => {
   return (
     <DropdownMenu>
@@ -70,6 +73,13 @@ const TenantActionsDropdown = ({
               Activate Tenant
             </>
           )}
+        </DropdownMenuItem>
+        <DropdownMenuItem 
+          onClick={() => onDeleteTenant(tenant)}
+          className="text-destructive focus:text-destructive"
+        >
+          <Trash2 className="h-4 w-4 mr-2" />
+          Delete Tenant
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem disabled className="opacity-50">

@@ -39,7 +39,8 @@ const SaasAdmin = () => {
     fetchTenants, 
     createTenant, 
     updateTenant,
-    toggleTenantActive, 
+    toggleTenantActive,
+    deleteTenant,
     getPlatformStats,
     getRecentActivity 
   } = useSaasAdmin();
@@ -58,6 +59,7 @@ const SaasAdmin = () => {
   const [searchQuery, setSearchQuery] = useState('');
   
   // Dialog states
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isCreateAdminOpen, setIsCreateAdminOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -148,6 +150,24 @@ const SaasAdmin = () => {
     } catch (error) {
       console.error('Error toggling tenant:', error);
     }
+  };
+
+  const handleDeleteTenant = async () => {
+    if (!selectedTenant) return;
+    try {
+      await deleteTenant(selectedTenant.id);
+      setIsDeleteOpen(false);
+      setSelectedTenant(null);
+      loadData();
+      loadActivities();
+    } catch (error) {
+      console.error('Error deleting tenant:', error);
+    }
+  };
+
+  const openDeleteTenant = (tenant: TenantWithStats) => {
+    setSelectedTenant(tenant);
+    setIsDeleteOpen(true);
   };
 
   const handleManageSubscription = async (tenantId: string, data: { subscription_tier: string; max_employees: number }) => {
@@ -352,6 +372,7 @@ const SaasAdmin = () => {
                       onManageSubscription={openManageSubscription}
                       onToggleActive={handleToggleActive}
                       onCreateAdmin={openCreateAdmin}
+                      onDeleteTenant={openDeleteTenant}
                     />
                   </CardContent>
                 </Card>
@@ -551,6 +572,36 @@ const SaasAdmin = () => {
         }}
         onSave={handleManageSubscription}
       />
+
+      {/* Delete Tenant Confirmation Dialog */}
+      <Dialog open={isDeleteOpen} onOpenChange={(open) => {
+        setIsDeleteOpen(open);
+        if (!open) setSelectedTenant(null);
+      }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Tenant</DialogTitle>
+          </DialogHeader>
+          {selectedTenant && (
+            <div className="space-y-4 py-4">
+              <p className="text-muted-foreground">
+                Are you sure you want to permanently delete <span className="font-semibold text-foreground">{selectedTenant.name}</span>?
+              </p>
+              <p className="text-sm text-destructive">
+                This action cannot be undone. All associated data including users, employees, and documents will be removed.
+              </p>
+            </div>
+          )}
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button variant="destructive" onClick={handleDeleteTenant}>
+              Delete Tenant
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
