@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Users, UserCheck, UserX, Building2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useTenant } from '@/contexts/TenantContext';
 import DashboardStatsCard from './DashboardStatsCard';
 
 interface DashboardStats {
@@ -11,6 +12,7 @@ interface DashboardStats {
 }
 
 const DashboardStatsCards = () => {
+  const { tenant } = useTenant();
   const [stats, setStats] = useState<DashboardStats>({
     totalEmployees: 0,
     activeEmployees: 0,
@@ -20,20 +22,26 @@ const DashboardStatsCards = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchStats();
-  }, []);
+    if (tenant?.id) {
+      fetchStats();
+    }
+  }, [tenant?.id]);
 
   const fetchStats = async () => {
+    if (!tenant?.id) return;
+    
     try {
       const { data: employees, error: empError } = await supabase
         .from('employee_profiles')
-        .select('status');
+        .select('status')
+        .eq('tenant_id', tenant.id);
 
       if (empError) throw empError;
 
       const { data: departments, error: deptError } = await supabase
         .from('departments')
-        .select('id');
+        .select('id')
+        .eq('tenant_id', tenant.id);
 
       if (deptError) throw deptError;
 
