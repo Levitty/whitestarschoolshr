@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Settings as SettingsIcon, FileText, Users, Shield, Bell, UserCheck, Tag, Palette } from 'lucide-react';
+import { Settings as SettingsIcon, FileText, Users, Shield, Bell, UserCheck, Tag, Palette, Activity } from 'lucide-react';
 import RoleGuard from '@/components/RoleGuard';
 import SuperAdminSetup from '@/components/SuperAdminSetup';
 import RolePermissionsManager from '@/components/RolePermissionsManager';
@@ -11,6 +11,7 @@ import { EmployeeProfileLinker } from '@/components/EmployeeProfileLinker';
 import LetterCategoryManager from '@/components/LetterCategoryManager';
 import DocumentTemplateManager from '@/components/DocumentTemplateManager';
 import TenantBrandingUpload from '@/components/TenantBrandingUpload';
+import LoginAuditLog from '@/components/admin/LoginAuditLog';
 
 const Settings = () => {
   return (
@@ -31,7 +32,7 @@ const Settings = () => {
           </div>
 
           <Tabs defaultValue="approvals" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-10">
+            <TabsList className="grid w-full grid-cols-11">
               <TabsTrigger value="approvals">Approvals</TabsTrigger>
               <TabsTrigger value="permissions">Permissions</TabsTrigger>
               <TabsTrigger value="users">Users</TabsTrigger>
@@ -40,6 +41,7 @@ const Settings = () => {
               <TabsTrigger value="employee-linking">Linking</TabsTrigger>
               <TabsTrigger value="templates">Templates</TabsTrigger>
               <TabsTrigger value="categories">Categories</TabsTrigger>
+              <TabsTrigger value="login-audit">Login Audit</TabsTrigger>
               <TabsTrigger value="notifications">Alerts</TabsTrigger>
               <TabsTrigger value="system">System</TabsTrigger>
             </TabsList>
@@ -74,6 +76,10 @@ const Settings = () => {
 
             <TabsContent value="categories">
               <LetterCategoryManager />
+            </TabsContent>
+
+            <TabsContent value="login-audit">
+              <LoginAuditLog />
             </TabsContent>
 
             <TabsContent value="notifications">
