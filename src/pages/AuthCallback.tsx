@@ -1,16 +1,29 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
 
 const AuthCallback = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // Get the session - Supabase will automatically exchange the code from the URL
+        // Check URL hash for recovery type (Supabase puts type=recovery in hash for password reset)
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const type = hashParams.get('type');
+        const accessToken = hashParams.get('access_token');
+        
+        // If this is a password recovery link, redirect immediately to reset page
+        if (type === 'recovery' && accessToken) {
+          console.log('Password recovery detected, redirecting to reset page');
+          navigate('/reset-password');
+          return;
+        }
+
+        // For other flows (magic link, email confirmation), get the session
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
@@ -20,25 +33,21 @@ const AuthCallback = () => {
           return;
         }
 
-        // Listen for auth state changes to detect PASSWORD_RECOVERY event
+        // Listen for auth state changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
           console.log('Auth event:', event);
           
           if (event === 'PASSWORD_RECOVERY') {
-            // User clicked a password reset link
             navigate('/reset-password');
           } else if (event === 'SIGNED_IN' && session) {
-            // User signed in via magic link or email confirmation
             navigate('/dashboard');
           } else if (event === 'TOKEN_REFRESHED' && session) {
-            // Session was refreshed, redirect to dashboard
             navigate('/dashboard');
           }
         });
 
-        // If we already have a session and no specific event, redirect to dashboard
+        // If we have a session and this isn't a recovery flow, redirect to dashboard
         if (session) {
-          // Small delay to allow event listeners to fire first
           setTimeout(() => {
             navigate('/dashboard');
           }, 500);
