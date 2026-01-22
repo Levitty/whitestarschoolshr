@@ -191,7 +191,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string): Promise<{ error: any; userId?: string; tenantId?: string }> => {
     console.log('Attempting sign in for:', email);
     setLoading(true);
     
@@ -211,7 +211,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (data.user) {
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
-          .select('status, is_active')
+          .select('status, is_active, tenant_id')
           .eq('id', data.user.id)
           .single();
         
@@ -224,7 +224,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               message: 'Unable to verify account status. Please try again.',
               name: 'ProfileError',
               status: 500
-            } 
+            },
+            userId: data.user.id
           };
         }
         
@@ -237,7 +238,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               message: 'Your account is pending approval. Please wait for a super admin to activate your account.',
               name: 'AccountNotApproved',
               status: 403
-            } 
+            },
+            userId: data.user.id,
+            tenantId: profileData.tenant_id
           };
         }
         
@@ -249,9 +252,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               message: 'Your account has been deactivated. Please contact an administrator.',
               name: 'AccountDeactivated',
               status: 403
-            } 
+            },
+            userId: data.user.id,
+            tenantId: profileData.tenant_id
           };
         }
+        
+        console.log('Sign in successful:', data.user?.email);
+        setLoading(false);
+        return { error: null, userId: data.user.id, tenantId: profileData.tenant_id };
       }
       
       console.log('Sign in successful:', data.user?.email);

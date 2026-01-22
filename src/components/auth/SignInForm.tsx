@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,6 +5,8 @@ import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { Mail, Lock } from 'lucide-react';
+import ForgotPasswordDialog from './ForgotPasswordDialog';
+import { logLoginAttempt } from '@/hooks/useLoginAudit';
 
 const SignInForm = () => {
   const [email, setEmail] = useState('');
@@ -20,21 +21,34 @@ const SignInForm = () => {
     console.log('Sign in attempt for:', email);
     setLoading(true);
 
-    const { error } = await signIn(email, password);
+    const { error, userId, tenantId } = await signIn(email, password);
     
     if (error) {
       console.error('Sign in error:', error);
       
+      // Determine error type for logging
+      let errorType = 'unknown';
       let errorMessage = error.message;
       
-      // Handle specific error cases with user-friendly messages
       if (error.message.includes('Email not confirmed')) {
+        errorType = 'email_not_confirmed';
         errorMessage = 'Please check your email and click the confirmation link before signing in.';
       } else if (error.message.includes('Invalid login credentials')) {
+        errorType = 'invalid_credentials';
         errorMessage = 'Invalid email or password. Please check your credentials and try again.';
       } else if (error.message.includes('Too many requests')) {
+        errorType = 'rate_limited';
         errorMessage = 'Too many sign-in attempts. Please wait a moment and try again.';
+      } else if (error.name === 'AccountNotApproved') {
+        errorType = 'account_pending';
+      } else if (error.name === 'AccountDeactivated') {
+        errorType = 'account_inactive';
+      } else if (error.name === 'ProfileError') {
+        errorType = 'profile_error';
       }
+      
+      // Log failed attempt
+      await logLoginAttempt(email, false, errorType, errorMessage, userId, tenantId);
       
       toast({
         title: "Sign In Failed",
@@ -43,6 +57,10 @@ const SignInForm = () => {
       });
     } else {
       console.log('Sign in successful');
+      
+      // Log successful attempt
+      await logLoginAttempt(email, true, undefined, undefined, userId, tenantId);
+      
       toast({
         title: "Welcome back!",
         description: "You have successfully signed in.",
@@ -57,7 +75,7 @@ const SignInForm = () => {
       <div className="space-y-2">
         <Label htmlFor="signin-email">Email</Label>
         <div className="relative">
-          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <Input
             id="signin-email"
             type="email"
@@ -71,9 +89,12 @@ const SignInForm = () => {
       </div>
       
       <div className="space-y-2">
-        <Label htmlFor="signin-password">Password</Label>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="signin-password">Password</Label>
+          <ForgotPasswordDialog />
+        </div>
         <div className="relative">
-          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <Input
             id="signin-password"
             type="password"
@@ -90,7 +111,7 @@ const SignInForm = () => {
         {loading ? 'Signing In...' : 'Sign In'}
       </Button>
       
-      <div className="text-sm text-center text-slate-600">
+      <div className="text-sm text-center text-muted-foreground">
         <p>Having trouble signing in? Make sure your account has been approved by an administrator.</p>
       </div>
     </form>
