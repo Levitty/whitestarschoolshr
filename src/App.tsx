@@ -11,6 +11,8 @@ import { getSavedTheme, applySidebarTheme } from '@/components/SidebarThemeSelec
 // Import pages
 import Index from '@/pages/Index';
 import Auth from '@/pages/Auth';
+import AuthCallback from '@/pages/AuthCallback';
+import ResetPassword from '@/pages/ResetPassword';
 import SuperAdminAuth from '@/pages/SuperAdminAuth';
 import Jobs from '@/pages/Jobs';
 import JobDetail from '@/pages/JobDetail';
@@ -56,8 +58,10 @@ function App() {
             <DynamicFavicon />
             <Router>
               <Routes>
-                <Route path="/" element={<Index />} />
+              <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
+                <Route path="/auth/callback" element={<AuthCallback />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/admin-auth" element={<SuperAdminAuth />} />
                 <Route path="/jobs" element={<Jobs />} />
                 <Route path="/jobs-board" element={<JobsBoard />} />
