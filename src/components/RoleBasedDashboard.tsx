@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useTenant } from '@/contexts/TenantContext';
 import { useTenantLabels } from '@/hooks/useTenantLabels';
+import { useOnboardingCheck } from '@/hooks/useOnboardingCheck';
 import { Button } from '@/components/ui/button';
 import { 
   Users, Calendar, Briefcase, BarChart, GraduationCap, 
@@ -23,17 +24,19 @@ import { HRActionsRequired } from '@/components/HRActionsRequired';
 import { PendingApprovalsCard } from '@/components/PendingApprovalsCard';
 import WorkforceDistribution from '@/components/dashboard/WorkforceDistribution';
 import GenderAgeDistribution from '@/components/dashboard/GenderAgeDistribution';
+import StatutoryOnboardingModal from '@/components/StatutoryOnboardingModal';
 
 const RoleBasedDashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { profile, hasRole, loading: profileLoading } = useProfile();
   const { loading: tenantLoading, tenant } = useTenant();
+  const { needsOnboarding, loading: onboardingLoading, markOnboardingComplete } = useOnboardingCheck();
   
   // Get tenant labels at the parent level so they're available when dashboard renders
   const { corporateFeatures, labels, isCorporate } = useTenantLabels();
   
-  console.log('RoleBasedDashboard: tenant:', tenant?.slug, 'isCorporate:', isCorporate, 'probationTracker:', corporateFeatures.probationTracker);
+  console.log('RoleBasedDashboard: tenant:', tenant?.slug, 'isCorporate:', isCorporate, 'needsOnboarding:', needsOnboarding);
 
   useEffect(() => {
     if (!user) {
@@ -41,8 +44,8 @@ const RoleBasedDashboard = () => {
     }
   }, [user, navigate]);
 
-  // Wait for profile and tenant to load
-  if (profileLoading || tenantLoading) {
+  // Wait for profile, tenant, and onboarding check to load
+  if (profileLoading || tenantLoading || onboardingLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
@@ -351,11 +354,19 @@ const RoleBasedDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      <div className="container mx-auto px-4 py-6 max-w-7xl">
-        {getDashboardContent()}
+    <>
+      {/* Statutory Onboarding Modal - shows if user hasn't completed profile */}
+      <StatutoryOnboardingModal 
+        isOpen={needsOnboarding} 
+        onComplete={markOnboardingComplete} 
+      />
+      
+      <div className="min-h-screen bg-muted/30">
+        <div className="container mx-auto px-4 py-6 max-w-7xl">
+          {getDashboardContent()}
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
