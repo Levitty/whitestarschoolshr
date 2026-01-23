@@ -61,7 +61,11 @@ const RoleBasedDashboard = () => {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center space-y-4">
-          <p className="text-muted-foreground">Unable to load tenant information.</p>
+          <div className="text-destructive font-medium">Organization Not Found</div>
+          <p className="text-muted-foreground text-sm max-w-md">
+            We couldn't find your organization details. This may happen if your account hasn't been fully set up yet.
+            Please contact your administrator or try again.
+          </p>
           <Button onClick={() => window.location.reload()} variant="outline">
             Retry
           </Button>

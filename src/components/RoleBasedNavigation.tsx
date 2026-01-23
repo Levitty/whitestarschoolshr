@@ -96,6 +96,7 @@ const RoleBasedNavigation = () => {
     { path: "/performance", label: "My Performance", icon: BarChart },
     { path: "/upskilling", label: "My Training", icon: GraduationCap },
     { path: "/records", label: "My Documents", icon: FolderOpen },
+    { path: "/profile", label: "My Profile", icon: UserCircle },
     { path: "/tickets", label: "Support", icon: Settings },
   ];
 
