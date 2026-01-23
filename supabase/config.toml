@@ -14,3 +14,9 @@ verify_jwt = false
 
 [functions.notify-clearance-complete]
 verify_jwt = false
+
+[functions.delete-user]
+verify_jwt = false
+
+[functions.generate-letter]
+verify_jwt = false
