@@ -229,13 +229,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           };
         }
         
-        // Block sign-in if account is not active or approved
-        if (profileData.status === 'pending' || !profileData.is_active) {
+        // Block sign-in if account is pending approval
+        if (profileData.status === 'pending') {
           await supabase.auth.signOut();
           setLoading(false);
           return { 
             error: { 
-              message: 'Your account is pending approval. Please wait for a super admin to activate your account.',
+              message: 'Your account is pending approval. Please wait for an administrator to activate your account.',
               name: 'AccountNotApproved',
               status: 403
             },
@@ -244,7 +244,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           };
         }
         
-        if (profileData.status === 'inactive' || profileData.status === 'suspended') {
+        // Block sign-in if account is inactive or is_active is false
+        if (profileData.status === 'inactive' || profileData.status === 'suspended' || !profileData.is_active) {
           await supabase.auth.signOut();
           setLoading(false);
           return { 
