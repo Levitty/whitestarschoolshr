@@ -40,6 +40,7 @@ import TenantRegister from '@/pages/TenantRegister';
 import Tasks from '@/pages/Tasks';
 import Assets from '@/pages/Assets';
 import Clearances from '@/pages/Clearances';
+import MyProfile from '@/pages/MyProfile';
 
 const queryClient = new QueryClient();
 
@@ -133,6 +134,10 @@ function App() {
 
             <Route path="/clearances" element={<Layout />}>
               <Route index element={<Clearances />} />
+            </Route>
+
+            <Route path="/profile" element={<Layout />}>
+              <Route index element={<MyProfile />} />
             </Route>
             
               <Route path="/settings" element={<Layout />}>
