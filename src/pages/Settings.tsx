@@ -7,6 +7,7 @@ import SuperAdminSetup from '@/components/SuperAdminSetup';
 import RolePermissionsManager from '@/components/RolePermissionsManager';
 import AccountApprovalManager from '@/components/AccountApprovalManager';
 import DepartmentManager from '@/components/DepartmentManager';
+import BranchManager from '@/components/BranchManager';
 import { EmployeeProfileLinker } from '@/components/EmployeeProfileLinker';
 import LetterCategoryManager from '@/components/LetterCategoryManager';
 import DocumentTemplateManager from '@/components/DocumentTemplateManager';
@@ -59,7 +60,10 @@ const Settings = () => {
             </TabsContent>
 
             <TabsContent value="departments">
-              <DepartmentManager />
+              <div className="space-y-6">
+                <DepartmentManager />
+                <BranchManager />
+              </div>
             </TabsContent>
 
             <TabsContent value="branding">
