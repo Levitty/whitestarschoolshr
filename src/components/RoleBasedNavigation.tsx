@@ -1,4 +1,4 @@
-import { Home, Users, UserPlus, Briefcase, BarChart, FolderOpen, Calendar, GraduationCap, Settings, LogOut, Menu, X, Crown, ChevronRight, ClipboardList, Monitor, ClipboardCheck } from "lucide-react";
+import { Home, Users, UserPlus, Briefcase, BarChart, FolderOpen, Calendar, GraduationCap, Settings, LogOut, Menu, X, Crown, ChevronRight, ClipboardList, Monitor, ClipboardCheck, UserCircle } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { UserRole } from "@/types/auth";
@@ -268,24 +268,52 @@ const RoleBasedNavigation = () => {
       
       {/* User Profile Section */}
       <div className="p-3" style={{ borderTop: '1px solid hsl(var(--sidebar-border))' }}>
-        <div className="flex items-center gap-3 p-3 rounded-xl" style={{ backgroundColor: 'hsl(var(--sidebar-accent))' }}>
+        <button
+          onClick={() => handleNavigation('/profile')}
+          className="w-full flex items-center gap-3 p-3 rounded-xl transition-all duration-200"
+          style={{ 
+            backgroundColor: location.pathname === '/profile' ? 'hsl(var(--sidebar-primary))' : 'hsl(var(--sidebar-accent))',
+            color: location.pathname === '/profile' ? 'hsl(var(--sidebar-primary-foreground))' : 'inherit'
+          }}
+          onMouseEnter={(e) => {
+            if (location.pathname !== '/profile') {
+              e.currentTarget.style.backgroundColor = 'hsl(var(--sidebar-accent) / 0.8)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (location.pathname !== '/profile') {
+              e.currentTarget.style.backgroundColor = 'hsl(var(--sidebar-accent))';
+            }
+          }}
+        >
           <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{
-            background: 'linear-gradient(135deg, hsl(var(--sidebar-primary) / 0.3), hsl(var(--sidebar-primary) / 0.1))',
+            background: location.pathname === '/profile' 
+              ? 'hsl(var(--sidebar-primary-foreground) / 0.2)' 
+              : 'linear-gradient(135deg, hsl(var(--sidebar-primary) / 0.3), hsl(var(--sidebar-primary) / 0.1))',
             boxShadow: '0 0 0 2px hsl(var(--sidebar-primary) / 0.3)'
           }}>
-            <span className="font-semibold text-sm" style={{ color: 'hsl(var(--sidebar-primary))' }}>
+            <span className="font-semibold text-sm" style={{ 
+              color: location.pathname === '/profile' ? 'hsl(var(--sidebar-primary-foreground))' : 'hsl(var(--sidebar-primary))' 
+            }}>
               {profile?.first_name?.charAt(0).toUpperCase() || profile?.full_name?.charAt(0).toUpperCase() || 'U'}
             </span>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate" style={{ color: 'hsl(var(--sidebar-foreground))' }}>
+          <div className="flex-1 min-w-0 text-left">
+            <p className="text-sm font-medium truncate" style={{ 
+              color: location.pathname === '/profile' ? 'hsl(var(--sidebar-primary-foreground))' : 'hsl(var(--sidebar-foreground))' 
+            }}>
               {profile?.first_name ? `${profile.first_name} ${profile.last_name || ''}` : profile?.full_name || 'User'}
             </p>
-            <p className="text-xs truncate" style={{ color: 'hsl(var(--sidebar-muted))' }}>
+            <p className="text-xs truncate" style={{ 
+              color: location.pathname === '/profile' ? 'hsl(var(--sidebar-primary-foreground) / 0.7)' : 'hsl(var(--sidebar-muted))' 
+            }}>
               {profile?.email}
             </p>
           </div>
-        </div>
+          <UserCircle className="h-4 w-4" style={{ 
+            color: location.pathname === '/profile' ? 'hsl(var(--sidebar-primary-foreground))' : 'hsl(var(--sidebar-muted))' 
+          }} />
+        </button>
         
         <button
           onClick={handleSignOut}
