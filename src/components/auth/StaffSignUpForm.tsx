@@ -41,7 +41,7 @@ const StaffSignUpForm = ({ tenantId, tenantName }: StaffSignUpFormProps) => {
     console.log('StaffSignUpForm - departments loaded:', departments.length, departments);
   }, [tenantId, tenantName, departments]);
 
-  // Fetch branches for the tenant
+  // Fetch branches from the branches table
   useEffect(() => {
     const fetchBranches = async () => {
       console.log('Fetching branches for tenant:', tenantId);
@@ -58,22 +58,24 @@ const StaffSignUpForm = ({ tenantId, tenantName }: StaffSignUpFormProps) => {
       
       setBranchesLoading(true);
       
-      // First try to fetch from branches table if it exists, otherwise from employee_profiles
       try {
+        // Fetch from branches table
         const { data: branchData, error } = await supabase
-          .from('employee_profiles')
-          .select('branch')
+          .from('branches')
+          .select('id, name')
           .eq('tenant_id', tenantId)
-          .not('branch', 'is', null);
+          .order('name');
         
         console.log('Branches query result:', branchData, error);
         
-        if (branchData && branchData.length > 0) {
-          const uniqueBranches = [...new Set(branchData.map(e => e.branch).filter(Boolean))];
-          console.log('Unique branches found:', uniqueBranches);
-          setBranches(uniqueBranches.map(b => ({ 
-            value: b!, 
-            label: b!.charAt(0).toUpperCase() + b!.slice(1) // Capitalize first letter
+        if (error) {
+          console.error('Error fetching branches:', error);
+          setBranches([{ value: 'main', label: 'Main Branch' }]);
+        } else if (branchData && branchData.length > 0) {
+          console.log('Branches found:', branchData);
+          setBranches(branchData.map(b => ({ 
+            value: b.name, 
+            label: b.name
           })));
         } else {
           console.log('No branches found, using default');
