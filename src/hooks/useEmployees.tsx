@@ -180,7 +180,7 @@ export const useEmployees = () => {
 
   const deleteEmployee = async (id: string) => {
     try {
-      // Delete from employee_profiles (cascade will handle related data)
+      // Delete from employee_profiles only (keeps the user account)
       const { error } = await supabase
         .from('employee_profiles')
         .delete()
@@ -197,6 +197,34 @@ export const useEmployees = () => {
     }
   };
 
+  // Complete user deletion - removes from auth.users, profiles, and all related data
+  const deleteUserCompletely = async (profileId: string) => {
+    try {
+      console.log('Initiating complete user deletion for profile:', profileId);
+      
+      const { data, error } = await supabase.functions.invoke('delete-user', {
+        body: { userId: profileId }
+      });
+
+      if (error) {
+        console.error('Error calling delete-user function:', error);
+        return { error };
+      }
+
+      if (data?.error) {
+        console.error('Delete user function returned error:', data.error);
+        return { error: { message: data.error } };
+      }
+
+      console.log('User completely deleted:', data);
+      await fetchEmployees();
+      return { error: null };
+    } catch (error) {
+      console.error('Error deleting user completely:', error);
+      return { error };
+    }
+  };
+
   return {
     employees,
     loading,
@@ -205,6 +233,7 @@ export const useEmployees = () => {
     updateEmployee,
     getExpiringContracts,
     inactivateEmployee,
-    deleteEmployee
+    deleteEmployee,
+    deleteUserCompletely
   };
 };

@@ -60,7 +60,7 @@ const EmployeeProfile = ({ employee, onClose, onEmployeeUpdated }: EmployeeProfi
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [hasSalesPIP, setHasSalesPIP] = useState(false);
   const { toast } = useToast();
-  const { inactivateEmployee, deleteEmployee } = useEmployees();
+  const { inactivateEmployee, deleteUserCompletely } = useEmployees();
   const { corporateFeatures, hiddenFeatures, labels, isCorporate } = useTenantLabels();
   const { fetchEmployeePIP } = usePIP();
   
@@ -118,17 +118,28 @@ const EmployeeProfile = ({ employee, onClose, onEmployeeUpdated }: EmployeeProfi
   };
 
   const handleDelete = async () => {
-    const { error } = await deleteEmployee(employee.id);
+    // Use the profile_id if available, otherwise use employee.id
+    const userIdToDelete = employee.profile_id || employee.id;
+    
+    if (!employee.profile_id) {
+      toast({
+        title: "Warning",
+        description: "This employee has no linked user account. Only employee record will be deleted.",
+        variant: "default",
+      });
+    }
+    
+    const { error } = await deleteUserCompletely(userIdToDelete);
     if (error) {
       toast({
         title: "Error",
-        description: "Failed to delete employee. Please try again.",
+        description: error.message || "Failed to delete user. Please try again.",
         variant: "destructive",
       });
     } else {
       toast({
-        title: "Employee Deleted",
-        description: "Employee and all related data have been permanently deleted.",
+        title: "User Deleted",
+        description: "User account and all related data have been permanently deleted. They can no longer access the system.",
       });
       setShowDeleteDialog(false);
       onEmployeeUpdated?.();
