@@ -22,6 +22,7 @@ import ProbationTracker from '@/components/dashboard/ProbationTracker';
 import { HRActionsRequired } from '@/components/HRActionsRequired';
 import { PendingApprovalsCard } from '@/components/PendingApprovalsCard';
 import WorkforceDistribution from '@/components/dashboard/WorkforceDistribution';
+import GenderAgeDistribution from '@/components/dashboard/GenderAgeDistribution';
 
 const RoleBasedDashboard = () => {
   const navigate = useNavigate();
@@ -114,12 +115,15 @@ const RoleBasedDashboard = () => {
           </div>
         )}
 
+        {/* Demographics & Workforce Distribution */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <GenderAgeDistribution />
+          <WorkforceDistribution />
+        </div>
+
         {/* Corporate-only widgets */}
         {corporateFeatures.probationTracker && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <ProbationTracker />
-            <WorkforceDistribution />
-          </div>
+          <ProbationTracker />
         )}
 
         {/* HR Actions Required - Corporate only */}

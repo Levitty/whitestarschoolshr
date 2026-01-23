@@ -11,10 +11,27 @@ const AuthCallback = () => {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
+        console.log('AuthCallback: Processing callback...');
+        console.log('AuthCallback: Full URL:', window.location.href);
+        console.log('AuthCallback: Hash:', window.location.hash);
+        
         // Check URL hash for recovery type (Supabase puts type=recovery in hash for password reset)
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         const type = hashParams.get('type');
         const accessToken = hashParams.get('access_token');
+        const errorParam = hashParams.get('error');
+        const errorDescription = hashParams.get('error_description');
+        
+        console.log('AuthCallback: type=', type, 'accessToken=', !!accessToken, 'error=', errorParam);
+        
+        // Handle error from Supabase (e.g., expired link)
+        if (errorParam) {
+          console.error('Auth error from Supabase:', errorParam, errorDescription);
+          const errorMsg = errorDescription?.replace(/\+/g, ' ') || 'The link is invalid or has expired.';
+          setError(errorMsg);
+          setTimeout(() => navigate('/auth'), 3000);
+          return;
+        }
         
         // If this is a password recovery link, redirect immediately to reset page
         if (type === 'recovery' && accessToken) {
@@ -22,6 +39,20 @@ const AuthCallback = () => {
           navigate('/reset-password');
           return;
         }
+
+        // Listen for auth state changes FIRST before checking session
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+          console.log('Auth event:', event);
+          
+          if (event === 'PASSWORD_RECOVERY') {
+            console.log('PASSWORD_RECOVERY event detected, redirecting to reset page');
+            navigate('/reset-password');
+          } else if (event === 'SIGNED_IN' && session) {
+            navigate('/dashboard');
+          } else if (event === 'TOKEN_REFRESHED' && session) {
+            navigate('/dashboard');
+          }
+        });
 
         // For other flows (magic link, email confirmation), get the session
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -33,21 +64,8 @@ const AuthCallback = () => {
           return;
         }
 
-        // Listen for auth state changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-          console.log('Auth event:', event);
-          
-          if (event === 'PASSWORD_RECOVERY') {
-            navigate('/reset-password');
-          } else if (event === 'SIGNED_IN' && session) {
-            navigate('/dashboard');
-          } else if (event === 'TOKEN_REFRESHED' && session) {
-            navigate('/dashboard');
-          }
-        });
-
         // If we have a session and this isn't a recovery flow, redirect to dashboard
-        if (session) {
+        if (session && type !== 'recovery') {
           setTimeout(() => {
             navigate('/dashboard');
           }, 500);
