@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useLeaveRequests } from '@/hooks/useLeaveRequests';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useProfile } from '@/hooks/useProfile';
-import { CheckCircle, XCircle, Clock, Download, Filter, ArrowRight, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Download, Filter, ArrowRight, AlertCircle, Eye, EyeOff, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface LeaveApprovalListProps {
@@ -18,7 +18,7 @@ interface LeaveApprovalListProps {
 }
 
 const LeaveApprovalList = ({ mode = 'head' }: LeaveApprovalListProps) => {
-  const { leaveRequests, loading, approveLeaveRequest, rejectLeaveRequest, forwardToHR } = useLeaveRequests();
+  const { leaveRequests, loading, approveLeaveRequest, rejectLeaveRequest, forwardToHR, deleteLeaveRequest } = useLeaveRequests();
   const { employees } = useEmployees();
   const { profile, hasRole } = useProfile();
   const [processingId, setProcessingId] = useState<string | null>(null);
@@ -461,6 +461,29 @@ const LeaveApprovalList = ({ mode = 'head' }: LeaveApprovalListProps) => {
                       <Badge className={getWorkflowStageColor(workflowStage)}>
                         {getWorkflowStageLabel(workflowStage)}
                       </Badge>
+                      {isHR && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                          onClick={async () => {
+                            if (window.confirm('Are you sure you want to delete this leave request? This action cannot be undone.')) {
+                              setProcessingId(request.id);
+                              const result = await deleteLeaveRequest(request.id);
+                              setProcessingId(null);
+                              if (result.error) {
+                                toast.error('Failed to delete leave request');
+                              } else {
+                                toast.success('Leave request deleted successfully');
+                              }
+                            }
+                          }}
+                          disabled={processingId === request.id}
+                          title="Delete leave request"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   </div>
 
