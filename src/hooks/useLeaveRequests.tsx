@@ -255,6 +255,27 @@ export const useLeaveRequests = () => {
     }
   };
 
+  // Delete leave request (for admins to remove invalid requests)
+  const deleteLeaveRequest = async (requestId: string) => {
+    if (!user) return { error: 'No user found' };
+
+    try {
+      const { error } = await supabase
+        .from('leave_requests')
+        .delete()
+        .eq('id', requestId);
+
+      if (error) {
+        return { error };
+      }
+
+      await fetchLeaveRequests();
+      return { error: null };
+    } catch (error) {
+      return { error };
+    }
+  };
+
   return {
     leaveRequests,
     loading,
@@ -262,6 +283,7 @@ export const useLeaveRequests = () => {
     createLeaveRequest,
     forwardToHR,
     approveLeaveRequest,
-    rejectLeaveRequest
+    rejectLeaveRequest,
+    deleteLeaveRequest
   };
 };
