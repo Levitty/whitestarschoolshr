@@ -138,14 +138,24 @@ const LeaveApprovalList = ({ mode = 'head' }: LeaveApprovalListProps) => {
       const employee = request.employee_profile || request.profile;
       const workflowStage = (request as any).workflow_stage || 'pending_head';
       
-      // Head teachers see pending_head requests
-      // HR/Admin sees pending_hr requests and can also view all
-      if (effectiveMode === 'head' && !isHR) {
+      // HR/Admin/SuperAdmin can see ALL pending requests in both tabs
+      // Mode just changes the default view but admins see everything
+      if (isHR) {
+        // Admins see all pending requests regardless of stage
+        // Only filter out already processed requests (approved/rejected)
+        if (mode === 'head') {
+          // In Head Review tab: show pending_head AND pending_hr for admins
+          if (workflowStage !== 'pending_head' && workflowStage !== 'pending_hr') return false;
+        } else if (mode === 'hr') {
+          // In HR Approval tab: show all pending requests for admins
+          if (workflowStage !== 'pending_head' && workflowStage !== 'pending_hr') return false;
+        }
+      } else if (isHead) {
+        // Head teachers only see pending_head requests
         if (workflowStage !== 'pending_head') return false;
-      } else if (effectiveMode === 'hr') {
-        // HR can see pending_hr and all past requests
-        // Filter to show pending_hr primarily
-        if (workflowStage === 'pending_head') return false;
+      } else {
+        // Regular staff shouldn't see approval lists
+        return false;
       }
       
       // Leave type filter
@@ -168,7 +178,7 @@ const LeaveApprovalList = ({ mode = 'head' }: LeaveApprovalListProps) => {
       
       return true;
     });
-  }, [leaveRequests, leaveTypeFilter, departmentFilter, startDateFilter, endDateFilter, effectiveMode, isHR]);
+  }, [leaveRequests, leaveTypeFilter, departmentFilter, startDateFilter, endDateFilter, mode, isHR, isHead]);
 
   // Head teacher forwards to HR
   const handleForwardToHR = async (requestId: string) => {
