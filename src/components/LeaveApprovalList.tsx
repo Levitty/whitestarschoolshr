@@ -550,35 +550,18 @@ const LeaveApprovalList = ({ mode = 'head' }: LeaveApprovalListProps) => {
                         <div className="flex items-center gap-2">
                           <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                           <span className="text-sm text-amber-800 dark:text-amber-300">
-                            Review and forward to HR for final approval
+                            <strong>As Head of Department:</strong> Review this request and send your recommendation to HR for final approval
                           </span>
                         </div>
                       </div>
 
                       <div>
-                        <Label className="text-foreground">Your Recommendation</Label>
-                        <Select 
-                          value={recommendations[request.id] || ''} 
-                          onValueChange={(value) => setRecommendations(prev => ({ ...prev, [request.id]: value }))}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select recommendation" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="recommend_approve">Recommend Approval</SelectItem>
-                            <SelectItem value="recommend_reject">Recommend Rejection</SelectItem>
-                            <SelectItem value="neutral">Neutral / No Preference</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div>
                         <Label htmlFor={`internal-notes-${request.id}`} className="text-foreground">
-                          Internal Notes (Only visible to HR - Not visible to employee)
+                          Internal Notes for HR (Optional - Not visible to employee)
                         </Label>
                         <Textarea
                           id={`internal-notes-${request.id}`}
-                          placeholder="Add internal notes for HR review..."
+                          placeholder="Add any notes for HR (e.g., workload considerations, team availability)..."
                           value={internalNotes[request.id] || ''}
                           onChange={(e) => setInternalNotes(prev => ({
                             ...prev,
@@ -592,14 +575,50 @@ const LeaveApprovalList = ({ mode = 'head' }: LeaveApprovalListProps) => {
                         </p>
                       </div>
 
-                      <Button
-                        onClick={() => handleForwardToHR(request.id)}
-                        disabled={processingId === request.id}
-                        className="bg-purple-600 hover:bg-purple-700"
-                      >
-                        <ArrowRight className="h-4 w-4 mr-2" />
-                        {processingId === request.id ? 'Forwarding...' : 'Forward to HR'}
-                      </Button>
+                      <div className="flex flex-wrap gap-3">
+                        <Button
+                          onClick={() => {
+                            setRecommendations(prev => ({ ...prev, [request.id]: 'recommend_approve' }));
+                            setTimeout(() => handleForwardToHR(request.id), 100);
+                          }}
+                          disabled={processingId === request.id}
+                          className="bg-green-600 hover:bg-green-700 text-white"
+                        >
+                          <CheckCircle className="h-4 w-4 mr-2" />
+                          {processingId === request.id && recommendations[request.id] === 'recommend_approve' 
+                            ? 'Sending...' 
+                            : 'Recommend Approve'}
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            setRecommendations(prev => ({ ...prev, [request.id]: 'recommend_reject' }));
+                            setTimeout(() => handleForwardToHR(request.id), 100);
+                          }}
+                          disabled={processingId === request.id}
+                          variant="destructive"
+                        >
+                          <XCircle className="h-4 w-4 mr-2" />
+                          {processingId === request.id && recommendations[request.id] === 'recommend_reject' 
+                            ? 'Sending...' 
+                            : 'Recommend Reject'}
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            setRecommendations(prev => ({ ...prev, [request.id]: 'neutral' }));
+                            setTimeout(() => handleForwardToHR(request.id), 100);
+                          }}
+                          disabled={processingId === request.id}
+                          variant="outline"
+                        >
+                          <ArrowRight className="h-4 w-4 mr-2" />
+                          {processingId === request.id && recommendations[request.id] === 'neutral' 
+                            ? 'Sending...' 
+                            : 'Forward (Neutral)'}
+                        </Button>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Your recommendation will be sent to HR for final approval. Only HR can approve or reject the leave request.
+                      </p>
                     </div>
                   )}
 
