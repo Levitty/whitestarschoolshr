@@ -33,9 +33,24 @@ export const useLeaveRequests = () => {
 
   useEffect(() => {
     if (user && tenant?.id) {
-      fetchLeaveRequests();
+      // Fix any orphaned leave requests first, then fetch
+      const init = async () => {
+        await fixMissingTenantIds();
+        await fetchLeaveRequests();
+      };
+      init();
     }
   }, [user, tenant?.id]);
+
+  const fixMissingTenantIds = async () => {
+    if (!user || !tenant?.id) return;
+    
+    // Update leave requests missing tenant_id for the current tenant's users
+    await supabase
+      .from('leave_requests')
+      .update({ tenant_id: tenant.id } as any)
+      .is('tenant_id', null);
+  };
 
   const fetchLeaveRequests = async () => {
     if (!user) return;
@@ -123,6 +138,7 @@ export const useLeaveRequests = () => {
     reason: string
   ) => {
     if (!user) return { error: 'No user found' };
+    if (!tenant?.id) return { error: 'No tenant found' };
 
     try {
       const start = new Date(startDate);
@@ -139,7 +155,8 @@ export const useLeaveRequests = () => {
           days_requested: daysRequested,
           reason,
           status: 'pending',
-          workflow_stage: 'pending_head'
+          workflow_stage: 'pending_head',
+          tenant_id: tenant.id
         } as any);
 
       if (error) {
