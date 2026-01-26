@@ -238,21 +238,27 @@ export const useLeaveRequests = () => {
       const leaveType = leaveRequest.leave_type.toLowerCase();
       const daysRequested = leaveRequest.days_requested;
 
+      console.log('Deducting leave balance for employee:', leaveRequest.employee_id, 'Type:', leaveType, 'Days:', daysRequested);
+
       // Get employee_profile id from the profile_id (employee_id in leave_requests)
-      const { data: employeeProfile } = await supabase
+      const { data: employeeProfile, error: empError } = await supabase
         .from('employee_profiles')
         .select('id')
         .eq('profile_id', leaveRequest.employee_id)
-        .single();
+        .maybeSingle();
+
+      console.log('Employee profile lookup:', employeeProfile, 'Error:', empError);
 
       if (employeeProfile) {
         // Get current leave balance
-        const { data: currentBalance } = await supabase
+        const { data: currentBalance, error: balanceError } = await supabase
           .from('leave_balances')
           .select('*')
           .eq('employee_id', employeeProfile.id)
           .eq('year', currentYear)
-          .single();
+          .maybeSingle();
+
+        console.log('Current balance:', currentBalance, 'Error:', balanceError);
 
         if (currentBalance) {
           // Determine which field to update based on leave type
@@ -261,12 +267,24 @@ export const useLeaveRequests = () => {
             const currentUsed = (currentBalance as any)[updateField] || 0;
             const newUsed = currentUsed + daysRequested;
 
-            await supabase
+            console.log('Updating field:', updateField, 'From:', currentUsed, 'To:', newUsed);
+
+            const { error: updateError } = await supabase
               .from('leave_balances')
               .update({ [updateField]: newUsed } as any)
               .eq('id', currentBalance.id);
+
+            if (updateError) {
+              console.error('Failed to update leave balance:', updateError);
+            } else {
+              console.log('Leave balance updated successfully');
+            }
           }
+        } else {
+          console.warn('No leave balance found for employee:', employeeProfile.id, 'Year:', currentYear);
         }
+      } else {
+        console.warn('No employee profile found for user:', leaveRequest.employee_id);
       }
 
       await fetchLeaveRequests();
