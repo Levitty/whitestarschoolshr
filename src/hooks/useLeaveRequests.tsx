@@ -201,11 +201,23 @@ export const useLeaveRequests = () => {
     }
   };
 
-  // HR/Admin approves leave request (final decision)
+  // HR/Admin approves leave request (final decision) and deducts leave balance
   const approveLeaveRequest = async (requestId: string, comments?: string) => {
     if (!user) return { error: 'No user found' };
 
     try {
+      // First, get the leave request details
+      const { data: leaveRequest, error: fetchError } = await supabase
+        .from('leave_requests')
+        .select('*')
+        .eq('id', requestId)
+        .single();
+
+      if (fetchError || !leaveRequest) {
+        return { error: fetchError || 'Leave request not found' };
+      }
+
+      // Update the leave request status
       const { error } = await supabase
         .from('leave_requests')
         .update({
@@ -221,11 +233,59 @@ export const useLeaveRequests = () => {
         return { error };
       }
 
+      // Deduct leave balance
+      const currentYear = new Date().getFullYear();
+      const leaveType = leaveRequest.leave_type.toLowerCase();
+      const daysRequested = leaveRequest.days_requested;
+
+      // Get employee_profile id from the profile_id (employee_id in leave_requests)
+      const { data: employeeProfile } = await supabase
+        .from('employee_profiles')
+        .select('id')
+        .eq('profile_id', leaveRequest.employee_id)
+        .single();
+
+      if (employeeProfile) {
+        // Get current leave balance
+        const { data: currentBalance } = await supabase
+          .from('leave_balances')
+          .select('*')
+          .eq('employee_id', employeeProfile.id)
+          .eq('year', currentYear)
+          .single();
+
+        if (currentBalance) {
+          // Determine which field to update based on leave type
+          const updateField = getLeaveBalanceField(leaveType);
+          if (updateField) {
+            const currentUsed = (currentBalance as any)[updateField] || 0;
+            const newUsed = currentUsed + daysRequested;
+
+            await supabase
+              .from('leave_balances')
+              .update({ [updateField]: newUsed } as any)
+              .eq('id', currentBalance.id);
+          }
+        }
+      }
+
       await fetchLeaveRequests();
       return { error: null };
     } catch (error) {
       return { error };
     }
+  };
+
+  // Helper function to get the correct leave balance field name
+  const getLeaveBalanceField = (leaveType: string): string | null => {
+    const typeMap: Record<string, string> = {
+      'annual': 'annual_leave_used',
+      'sick': 'sick_leave_used',
+      'maternity': 'maternity_leave_used',
+      'study': 'study_leave_used',
+      'unpaid': 'unpaid_leave_used',
+    };
+    return typeMap[leaveType] || null;
   };
 
   // HR/Admin rejects leave request (final decision)

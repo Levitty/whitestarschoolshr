@@ -44,6 +44,7 @@ import ClearanceChecklist from '@/components/ClearanceChecklist';
 import { SalesPerformanceTracker } from '@/components/SalesPerformanceTracker';
 import { usePIP } from '@/hooks/usePIP';
 import EmployeeAssetsTab from '@/components/EmployeeAssetsTab';
+import EmployeeLeaveTab from '@/components/EmployeeLeaveTab';
 import { WorkflowStatusBadge } from '@/components/WorkflowStatusBadge';
 
 interface EmployeeProfileProps {
@@ -209,9 +210,10 @@ const EmployeeProfile = ({ employee, onClose, onEmployeeUpdated }: EmployeeProfi
           </DialogHeader>
 
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className={`grid w-full ${isCorporate ? 'grid-cols-7' : 'grid-cols-4'}`}>
+          <TabsList className={`grid w-full ${isCorporate ? 'grid-cols-8' : 'grid-cols-5'}`}>
             <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="documents">Documents</TabsTrigger>
+            <TabsTrigger value="leave">Leave</TabsTrigger>
             <TabsTrigger value="performance">Performance</TabsTrigger>
             {isCorporate && (
               <TabsTrigger value="assets" className="flex items-center gap-1">
@@ -574,6 +576,14 @@ const EmployeeProfile = ({ employee, onClose, onEmployeeUpdated }: EmployeeProfi
               />
               <DocumentsList employeeId={employee.id} />
             </div>
+          </TabsContent>
+
+          <TabsContent value="leave" className="space-y-6">
+            <EmployeeLeaveTab 
+              employeeId={employee.id} 
+              profileId={employee.profile_id}
+              employeeName={`${employee.first_name} ${employee.last_name}`}
+            />
           </TabsContent>
 
           <TabsContent value="performance" className="space-y-6">
