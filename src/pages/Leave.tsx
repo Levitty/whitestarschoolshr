@@ -10,7 +10,8 @@ import LeaveApprovalList from '@/components/LeaveApprovalList';
 import MyLeaveRequests from '@/components/MyLeaveRequests';
 import LeaveBalanceManager from '@/components/LeaveBalanceManager';
 import MyLeaveBalance from '@/components/MyLeaveBalance';
-import { Calendar, Users, Clock, TrendingUp, ArrowRight } from 'lucide-react';
+import ApprovedLeavesList from '@/components/ApprovedLeavesList';
+import { Calendar, Users, Clock, TrendingUp, ArrowRight, CheckCircle } from 'lucide-react';
 
 const Leave = () => {
   const { user } = useAuth();
@@ -61,16 +62,6 @@ const Leave = () => {
   };
 
   const stats = getLeaveStats();
-
-  // Determine number of tabs
-  const getTabCount = () => {
-    let count = 2; // My Requests + Balance
-    if (isHead && !isHR) count++; // Head Review
-    if (isHR) count += 2; // Head Review + HR Approval
-    return count;
-  };
-
-  const tabCount = getTabCount();
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-7xl">
@@ -148,10 +139,11 @@ const Leave = () => {
         )}
 
         <Tabs defaultValue="my-requests" className="space-y-6">
-          <TabsList className={`grid w-full grid-cols-${tabCount}`}>
+          <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${isHR ? 5 : isHead ? 3 : 2}, minmax(0, 1fr))` }}>
             <TabsTrigger value="my-requests">My Requests</TabsTrigger>
             {(isHead || isHR) && <TabsTrigger value="head-review">Head Review</TabsTrigger>}
             {isHR && <TabsTrigger value="hr-approval">HR Approval</TabsTrigger>}
+            {isHR && <TabsTrigger value="leave-records">Leave Records</TabsTrigger>}
             <TabsTrigger value="balances">Leave Balance</TabsTrigger>
           </TabsList>
 
@@ -171,6 +163,12 @@ const Leave = () => {
           {isHR && (
             <TabsContent value="hr-approval">
               <LeaveApprovalList mode="hr" />
+            </TabsContent>
+          )}
+
+          {isHR && (
+            <TabsContent value="leave-records">
+              <ApprovedLeavesList />
             </TabsContent>
           )}
 
