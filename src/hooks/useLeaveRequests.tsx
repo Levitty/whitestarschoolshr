@@ -135,7 +135,8 @@ export const useLeaveRequests = () => {
     leaveType: string,
     startDate: string,
     endDate: string,
-    reason: string
+    reason: string,
+    proofFile?: File
   ) => {
     if (!user) return { error: 'No user found' };
     if (!tenant?.id) return { error: 'No tenant found' };
@@ -144,6 +145,32 @@ export const useLeaveRequests = () => {
       const start = new Date(startDate);
       const end = new Date(endDate);
       const daysRequested = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+      let proofUrl: string | null = null;
+      let proofFileName: string | null = null;
+
+      // Upload proof file if provided
+      if (proofFile) {
+        const fileExt = proofFile.name.split('.').pop();
+        const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+        
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('leave-proofs')
+          .upload(fileName, proofFile);
+
+        if (uploadError) {
+          console.error('Error uploading proof file:', uploadError);
+          return { error: uploadError };
+        }
+
+        // Get public URL
+        const { data: urlData } = supabase.storage
+          .from('leave-proofs')
+          .getPublicUrl(fileName);
+
+        proofUrl = urlData.publicUrl;
+        proofFileName = proofFile.name;
+      }
 
       const { error } = await supabase
         .from('leave_requests')
@@ -156,7 +183,9 @@ export const useLeaveRequests = () => {
           reason,
           status: 'pending',
           workflow_stage: 'pending_head',
-          tenant_id: tenant.id
+          tenant_id: tenant.id,
+          proof_url: proofUrl,
+          proof_file_name: proofFileName
         } as any);
 
       if (error) {

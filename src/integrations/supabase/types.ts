@@ -1590,6 +1590,8 @@ export type Database = {
           head_reviewed_by: string | null
           id: string
           leave_type: string
+          proof_file_name: string | null
+          proof_url: string | null
           reason: string | null
           start_date: string
           status: string | null
@@ -1612,6 +1614,8 @@ export type Database = {
           head_reviewed_by?: string | null
           id?: string
           leave_type: string
+          proof_file_name?: string | null
+          proof_url?: string | null
           reason?: string | null
           start_date: string
           status?: string | null
@@ -1634,6 +1638,8 @@ export type Database = {
           head_reviewed_by?: string | null
           id?: string
           leave_type?: string
+          proof_file_name?: string | null
+          proof_url?: string | null
           reason?: string | null
           start_date?: string
           status?: string | null
@@ -2931,6 +2937,8 @@ export type Database = {
           head_reviewed_by: string | null
           id: string
           leave_type: string
+          proof_file_name: string | null
+          proof_url: string | null
           reason: string | null
           start_date: string
           status: string | null
