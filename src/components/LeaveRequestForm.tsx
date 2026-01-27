@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useLeaveRequests } from '@/hooks/useLeaveRequests';
 import { useToast } from '@/hooks/use-toast';
-import { Calendar, Clock } from 'lucide-react';
+import { Calendar, Clock, Paperclip, X, FileText, FileImage } from 'lucide-react';
 
 interface LeaveRequestFormProps {
   onSuccess?: () => void;
@@ -19,9 +19,58 @@ const LeaveRequestForm = ({ onSuccess }: LeaveRequestFormProps) => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [reason, setReason] = useState('');
+  const [proofFile, setProofFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { createLeaveRequest } = useLeaveRequests();
   const { toast } = useToast();
+
+  const ALLOWED_FILE_TYPES = [
+    'image/jpeg',
+    'image/jpg',
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  ];
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+      toast({
+        title: "Invalid File Type",
+        description: "Please upload a JPG, PDF, or Word document.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      toast({
+        title: "File Too Large",
+        description: "File size must be less than 5MB.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setProofFile(file);
+  };
+
+  const removeFile = () => {
+    setProofFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const getFileIcon = (file: File) => {
+    if (file.type.startsWith('image/')) {
+      return <FileImage className="h-4 w-4" />;
+    }
+    return <FileText className="h-4 w-4" />;
+  };
 
   const calculateDays = () => {
     if (!startDate || !endDate) return 0;
@@ -43,6 +92,15 @@ const LeaveRequestForm = ({ onSuccess }: LeaveRequestFormProps) => {
       return;
     }
 
+    if (!proofFile) {
+      toast({
+        title: "Proof Required",
+        description: "Please attach proof document (JPG, PDF, or Word).",
+        variant: "destructive"
+      });
+      return;
+    }
+
     if (new Date(startDate) > new Date(endDate)) {
       toast({
         title: "Invalid Dates",
@@ -53,7 +111,7 @@ const LeaveRequestForm = ({ onSuccess }: LeaveRequestFormProps) => {
     }
 
     setSubmitting(true);
-    const { error } = await createLeaveRequest(leaveType, startDate, endDate, reason);
+    const { error } = await createLeaveRequest(leaveType, startDate, endDate, reason, proofFile);
 
     if (error) {
       toast({
@@ -70,6 +128,10 @@ const LeaveRequestForm = ({ onSuccess }: LeaveRequestFormProps) => {
       setStartDate('');
       setEndDate('');
       setReason('');
+      setProofFile(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
       onSuccess?.();
     }
     setSubmitting(false);
@@ -144,9 +206,44 @@ const LeaveRequestForm = ({ onSuccess }: LeaveRequestFormProps) => {
             />
           </div>
 
+          <div className="space-y-2">
+            <Label htmlFor="proof" className="flex items-center gap-1">
+              Proof Document <span className="text-destructive">*</span>
+            </Label>
+            <div className="flex flex-col gap-2">
+              <Input
+                ref={fileInputRef}
+                id="proof"
+                type="file"
+                accept=".jpg,.jpeg,.pdf,.doc,.docx"
+                onChange={handleFileChange}
+                className="cursor-pointer"
+              />
+              <p className="text-xs text-muted-foreground">
+                Accepted formats: JPG, PDF, Word (.doc, .docx). Max 5MB.
+              </p>
+              
+              {proofFile && (
+                <div className="flex items-center gap-2 p-2 bg-muted rounded-md">
+                  {getFileIcon(proofFile)}
+                  <span className="text-sm flex-1 truncate">{proofFile.name}</span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={removeFile}
+                    className="h-6 w-6 p-0"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+
           <Button 
             type="submit" 
-            disabled={submitting || !leaveType || !startDate || !endDate}
+            disabled={submitting || !leaveType || !startDate || !endDate || !proofFile}
             className="w-full"
           >
             {submitting ? 'Submitting...' : 'Submit Leave Request'}
