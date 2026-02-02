@@ -325,14 +325,100 @@ export const useLeaveRequests = () => {
 
   // Helper function to get the correct leave balance field name
   const getLeaveBalanceField = (leaveType: string): string | null => {
+    // Normalize the leave type - handle various formats
+    const normalizedType = leaveType.toLowerCase().trim();
     const typeMap: Record<string, string> = {
       'annual': 'annual_leave_used',
+      'annual leave': 'annual_leave_used',
       'sick': 'sick_leave_used',
+      'sick leave': 'sick_leave_used',
       'maternity': 'maternity_leave_used',
+      'maternity leave': 'maternity_leave_used',
       'study': 'study_leave_used',
+      'study leave': 'study_leave_used',
       'unpaid': 'unpaid_leave_used',
+      'unpaid leave': 'unpaid_leave_used',
     };
-    return typeMap[leaveType] || null;
+    return typeMap[normalizedType] || null;
+  };
+
+  // Sync leave balances for all approved requests (retroactive fix)
+  const syncApprovedLeaveBalances = async () => {
+    if (!user || !tenant?.id) return { error: 'No user or tenant found' };
+
+    try {
+      console.log('Starting retroactive leave balance sync...');
+      
+      // Get all approved leave requests
+      const { data: approvedRequests, error: fetchError } = await supabase
+        .from('leave_requests')
+        .select('*')
+        .eq('status', 'approved')
+        .eq('tenant_id', tenant.id);
+
+      if (fetchError) {
+        console.error('Error fetching approved requests:', fetchError);
+        return { error: fetchError };
+      }
+
+      console.log('Found approved requests:', approvedRequests?.length || 0);
+
+      // Reset all leave balances to 0 first
+      const currentYear = new Date().getFullYear();
+      await supabase
+        .from('leave_balances')
+        .update({
+          annual_leave_used: 0,
+          sick_leave_used: 0,
+          maternity_leave_used: 0,
+          study_leave_used: 0,
+          unpaid_leave_used: 0
+        } as any)
+        .eq('year', currentYear);
+
+      // Now add up all approved leave
+      for (const request of (approvedRequests || [])) {
+        const leaveType = request.leave_type.toLowerCase();
+        const daysRequested = request.days_requested;
+
+        // Get employee_profile id
+        const { data: employeeProfile } = await supabase
+          .from('employee_profiles')
+          .select('id')
+          .eq('profile_id', request.employee_id)
+          .maybeSingle();
+
+        if (employeeProfile) {
+          const { data: currentBalance } = await supabase
+            .from('leave_balances')
+            .select('*')
+            .eq('employee_id', employeeProfile.id)
+            .eq('year', currentYear)
+            .maybeSingle();
+
+          if (currentBalance) {
+            const updateField = getLeaveBalanceField(leaveType);
+            if (updateField) {
+              const currentUsed = (currentBalance as any)[updateField] || 0;
+              const newUsed = currentUsed + daysRequested;
+
+              console.log(`Updating ${employeeProfile.id}: ${updateField} from ${currentUsed} to ${newUsed}`);
+
+              await supabase
+                .from('leave_balances')
+                .update({ [updateField]: newUsed } as any)
+                .eq('id', currentBalance.id);
+            }
+          }
+        }
+      }
+
+      console.log('Leave balance sync complete');
+      return { error: null };
+    } catch (error) {
+      console.error('Error syncing leave balances:', error);
+      return { error };
+    }
   };
 
   // HR/Admin rejects leave request (final decision)
@@ -391,6 +477,7 @@ export const useLeaveRequests = () => {
     forwardToHR,
     approveLeaveRequest,
     rejectLeaveRequest,
-    deleteLeaveRequest
+    deleteLeaveRequest,
+    syncApprovedLeaveBalances
   };
 };
