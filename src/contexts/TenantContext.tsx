@@ -24,12 +24,25 @@ export const useTenant = () => {
 
 const SELECTED_TENANT_KEY = 'selected_tenant_id';
 
+// Map custom domains to tenant slugs
+const getDomainTenantSlug = (): string | null => {
+  const hostname = window.location.hostname.toLowerCase();
+  
+  const domainToTenant: Record<string, string> = {
+    'hr.whitestarschools.com': 'whitestar-schools',
+    'www.hr.whitestarschools.com': 'whitestar-schools',
+  };
+  
+  return domainToTenant[hostname] || null;
+};
+
 export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   const [tenant, setTenant] = useState<Tenant | null>(null);
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSaasAdmin, setIsSaasAdmin] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
   const checkSaasAdmin = async () => {
     if (!user) return false;
@@ -41,6 +54,28 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       .maybeSingle();
     
     return !error && !!data;
+  };
+
+  // Fallback: fetch tenant by custom domain slug
+  const fetchTenantByDomain = async (): Promise<Tenant | null> => {
+    const slug = getDomainTenantSlug();
+    if (!slug) return null;
+    
+    console.log('TenantContext: Attempting domain-based tenant lookup for slug:', slug);
+    
+    const { data, error } = await supabase
+      .from('tenants')
+      .select('*')
+      .eq('slug', slug)
+      .eq('is_active', true)
+      .maybeSingle();
+    
+    if (!error && data) {
+      console.log('TenantContext: Found tenant via domain lookup:', data.name);
+      return data as unknown as Tenant;
+    }
+    
+    return null;
   };
 
   const fetchTenants = async () => {
@@ -133,13 +168,32 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             setTenants([typedTenant]);
             setTenant(typedTenant);
             console.log('TenantContext: Setting tenant for regular user:', typedTenant.name, typedTenant.slug);
+          } else {
+            // If tenant fetch failed, try domain-based lookup
+            const domainTenant = await fetchTenantByDomain();
+            if (domainTenant) {
+              setTenants([domainTenant]);
+              setTenant(domainTenant);
+            }
           }
         } else {
-          console.log('TenantContext: No tenant_id found for user');
+          // No tenant_id found, try domain-based lookup as last resort
+          console.log('TenantContext: No tenant_id found for user, trying domain lookup');
+          const domainTenant = await fetchTenantByDomain();
+          if (domainTenant) {
+            setTenants([domainTenant]);
+            setTenant(domainTenant);
+          }
         }
       }
     } catch (error) {
       console.error('Error fetching tenants:', error);
+      // On error, try domain-based lookup
+      const domainTenant = await fetchTenantByDomain();
+      if (domainTenant) {
+        setTenants([domainTenant]);
+        setTenant(domainTenant);
+      }
     } finally {
       setLoading(false);
     }
@@ -155,12 +209,13 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   const refreshTenant = async () => {
+    setRetryCount(prev => prev + 1);
     await fetchTenants();
   };
 
   useEffect(() => {
     fetchTenants();
-  }, [user]);
+  }, [user, retryCount]);
 
   return (
     <TenantContext.Provider value={{
