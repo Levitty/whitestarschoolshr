@@ -4,17 +4,40 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { Mail, Lock } from 'lucide-react';
+import { Mail, Lock, Chrome } from 'lucide-react';
 import ForgotPasswordDialog from './ForgotPasswordDialog';
 import { logLoginAttempt } from '@/hooks/useLoginAudit';
+import { supabase } from '@/integrations/supabase/client';
 
 const SignInForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   
   const { signIn } = useAuth();
   const { toast } = useToast();
+
+  const handleGoogleSignIn = async () => {
+    setGoogleLoading(true);
+    
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`
+      }
+    });
+    
+    if (error) {
+      console.error('Google sign in error:', error);
+      toast({
+        title: "Google Sign In Failed",
+        description: error.message,
+        variant: "destructive"
+      });
+      setGoogleLoading(false);
+    }
+  };
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -118,6 +141,26 @@ const SignInForm = () => {
       
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? 'Signing In...' : 'Sign In'}
+      </Button>
+      
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+        </div>
+      </div>
+      
+      <Button 
+        type="button" 
+        variant="outline" 
+        className="w-full" 
+        onClick={handleGoogleSignIn}
+        disabled={googleLoading}
+      >
+        <Chrome className="mr-2 h-4 w-4" />
+        {googleLoading ? 'Connecting...' : 'Sign in with Google'}
       </Button>
       
       <div className="text-sm text-center text-muted-foreground">
