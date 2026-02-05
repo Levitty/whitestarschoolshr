@@ -33,7 +33,6 @@ const RoleBasedDashboard = () => {
   const { loading: tenantLoading, tenant, refreshTenant } = useTenant();
   const { needsOnboarding, loading: onboardingLoading, markOnboardingComplete } = useOnboardingCheck();
   const [retryAttempts, setRetryAttempts] = useState(0);
-  const [isRetrying, setIsRetrying] = useState(false);
   
   // Get tenant labels at the parent level so they're available when dashboard renders
   const { corporateFeatures, labels, isCorporate } = useTenantLabels();
@@ -46,63 +45,26 @@ const RoleBasedDashboard = () => {
     }
   }, [user, navigate]);
 
-  // Auto-retry tenant loading if it fails (up to 3 times)
+  // Auto-retry tenant loading if it fails (keeps retrying)
   useEffect(() => {
-    if (!tenantLoading && !tenant && user && retryAttempts < 3) {
+    if (!tenantLoading && !tenant && user) {
       const timer = setTimeout(() => {
         console.log('RoleBasedDashboard: Auto-retrying tenant fetch, attempt:', retryAttempts + 1);
         setRetryAttempts(prev => prev + 1);
         refreshTenant();
-      }, 1000); // Wait 1 second before retry
+      }, 1500); // Wait 1.5 seconds before retry
       
       return () => clearTimeout(timer);
     }
   }, [tenantLoading, tenant, user, retryAttempts, refreshTenant]);
 
-  const handleManualRetry = async () => {
-    setIsRetrying(true);
-    setRetryAttempts(0); // Reset retry counter
-    await refreshTenant();
-    setIsRetrying(false);
-  };
-
   // Wait for profile, tenant, and onboarding check to load
-  if (profileLoading || tenantLoading || onboardingLoading || isRetrying) {
+  if (profileLoading || tenantLoading || onboardingLoading || !tenant) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-muted-foreground">Loading dashboard...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // If tenant failed to load after all retry attempts, show error with manual retry
-  if (!tenant && retryAttempts >= 3) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center space-y-4">
-          <div className="text-destructive font-medium">Organization Not Found</div>
-          <p className="text-muted-foreground text-sm max-w-md">
-            We couldn't find your organization details. This may happen if your account hasn't been fully set up yet.
-            Please contact your administrator or try again.
-          </p>
-          <Button onClick={handleManualRetry} variant="outline">
-            Retry
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  // Still loading/retrying if tenant is null but we haven't exhausted retries
-  if (!tenant) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading organization...</p>
         </div>
       </div>
     );
