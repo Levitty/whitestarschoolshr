@@ -1938,6 +1938,181 @@ export type Database = {
         }
         Relationships: []
       }
+      merch_designs: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string
+          is_active: boolean
+          name: string
+          price_modifier: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url: string
+          is_active?: boolean
+          name: string
+          price_modifier?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string
+          is_active?: boolean
+          name?: string
+          price_modifier?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      merch_garments: {
+        Row: {
+          available_colors: Json
+          available_sizes: Json
+          base_price: number
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          preview_image_url: string | null
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          available_colors?: Json
+          available_sizes?: Json
+          base_price?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          preview_image_url?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          available_colors?: Json
+          available_sizes?: Json
+          base_price?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          preview_image_url?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      merch_order_items: {
+        Row: {
+          color: string
+          created_at: string
+          design_id: string
+          garment_id: string
+          id: string
+          order_id: string
+          quantity: number
+          size: string
+          unit_price: number
+        }
+        Insert: {
+          color: string
+          created_at?: string
+          design_id: string
+          garment_id: string
+          id?: string
+          order_id: string
+          quantity?: number
+          size: string
+          unit_price: number
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          design_id?: string
+          garment_id?: string
+          id?: string
+          order_id?: string
+          quantity?: number
+          size?: string
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "merch_order_items_design_id_fkey"
+            columns: ["design_id"]
+            isOneToOne: false
+            referencedRelation: "merch_designs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "merch_order_items_garment_id_fkey"
+            columns: ["garment_id"]
+            isOneToOne: false
+            referencedRelation: "merch_garments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "merch_order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "merch_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      merch_orders: {
+        Row: {
+          created_at: string
+          customer_email: string
+          customer_name: string
+          customer_phone: string
+          id: string
+          order_status: string
+          payment_reference: string | null
+          payment_status: string
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          customer_email: string
+          customer_name: string
+          customer_phone: string
+          id?: string
+          order_status?: string
+          payment_reference?: string | null
+          payment_status?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          customer_email?: string
+          customer_name?: string
+          customer_phone?: string
+          id?: string
+          order_status?: string
+          payment_reference?: string | null
+          payment_status?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string | null
