@@ -41,6 +41,7 @@ import Tasks from '@/pages/Tasks';
 import Assets from '@/pages/Assets';
 import Clearances from '@/pages/Clearances';
 import MyProfile from '@/pages/MyProfile';
+import Reports from '@/pages/Reports';
 
 const queryClient = new QueryClient();
 
@@ -138,6 +139,10 @@ function App() {
 
             <Route path="/profile" element={<Layout />}>
               <Route index element={<MyProfile />} />
+            </Route>
+
+            <Route path="/reports" element={<Layout />}>
+              <Route index element={<Reports />} />
             </Route>
             
               <Route path="/settings" element={<Layout />}>
