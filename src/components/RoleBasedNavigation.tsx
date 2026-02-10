@@ -1,4 +1,4 @@
-import { Home, Users, UserPlus, Briefcase, BarChart, FolderOpen, Calendar, GraduationCap, Settings, LogOut, Menu, X, Crown, ChevronRight, ClipboardList, Monitor, ClipboardCheck, UserCircle } from "lucide-react";
+import { Home, Users, UserPlus, Briefcase, BarChart, FolderOpen, Calendar, GraduationCap, Settings, LogOut, Menu, X, Crown, ChevronRight, ClipboardList, Monitor, ClipboardCheck, UserCircle, FileBarChart } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { UserRole } from "@/types/auth";
@@ -67,6 +67,7 @@ const RoleBasedNavigation = () => {
     { path: "/tasks", label: "Tasks", icon: ClipboardList },
     { path: "/upskilling", label: "Training", icon: GraduationCap },
     { path: "/tickets", label: "Support Tickets", icon: Settings },
+    { path: "/reports", label: "Management Reports", icon: FileBarChart },
     { path: "/settings", label: "System Settings", icon: Settings },
   ];
 

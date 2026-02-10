@@ -1942,34 +1942,43 @@ export type Database = {
         Row: {
           created_at: string
           description: string | null
+          fabric: string | null
           id: string
           image_url: string
+          image_urls: string[] | null
           is_active: boolean
           name: string
           price_modifier: number
           sort_order: number
+          style: string | null
           updated_at: string
         }
         Insert: {
           created_at?: string
           description?: string | null
+          fabric?: string | null
           id?: string
           image_url: string
+          image_urls?: string[] | null
           is_active?: boolean
           name: string
           price_modifier?: number
           sort_order?: number
+          style?: string | null
           updated_at?: string
         }
         Update: {
           created_at?: string
           description?: string | null
+          fabric?: string | null
           id?: string
           image_url?: string
+          image_urls?: string[] | null
           is_active?: boolean
           name?: string
           price_modifier?: number
           sort_order?: number
+          style?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -1981,11 +1990,13 @@ export type Database = {
           base_price: number
           created_at: string
           description: string | null
+          fabric: string | null
           id: string
           is_active: boolean
           name: string
           preview_image_url: string | null
           sort_order: number
+          style: string | null
           updated_at: string
         }
         Insert: {
@@ -1994,11 +2005,13 @@ export type Database = {
           base_price?: number
           created_at?: string
           description?: string | null
+          fabric?: string | null
           id?: string
           is_active?: boolean
           name: string
           preview_image_url?: string | null
           sort_order?: number
+          style?: string | null
           updated_at?: string
         }
         Update: {
@@ -2007,11 +2020,13 @@ export type Database = {
           base_price?: number
           created_at?: string
           description?: string | null
+          fabric?: string | null
           id?: string
           is_active?: boolean
           name?: string
           preview_image_url?: string | null
           sort_order?: number
+          style?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -2995,6 +3010,119 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      weekly_management_reports: {
+        Row: {
+          active_clearances: number | null
+          active_pips: number | null
+          created_at: string
+          email_recipients: string[] | null
+          email_sent: boolean | null
+          email_sent_at: string | null
+          evaluations_completed: number | null
+          evaluations_pending: number | null
+          generated_by: string | null
+          id: string
+          interviews_scheduled: number | null
+          leave_requests_approved: number | null
+          leave_requests_pending: number | null
+          leave_requests_rejected: number | null
+          leave_requests_submitted: number | null
+          new_applications: number | null
+          new_hires: number | null
+          open_positions: number | null
+          pending_approvals: number | null
+          report_data: Json | null
+          report_period_end: string
+          report_period_start: string
+          report_summary: string | null
+          status: string | null
+          tenant_id: string
+          terminations: number | null
+          tickets_opened: number | null
+          tickets_pending: number | null
+          tickets_resolved: number | null
+          total_headcount: number | null
+          total_leave_days_taken: number | null
+          updated_at: string
+        }
+        Insert: {
+          active_clearances?: number | null
+          active_pips?: number | null
+          created_at?: string
+          email_recipients?: string[] | null
+          email_sent?: boolean | null
+          email_sent_at?: string | null
+          evaluations_completed?: number | null
+          evaluations_pending?: number | null
+          generated_by?: string | null
+          id?: string
+          interviews_scheduled?: number | null
+          leave_requests_approved?: number | null
+          leave_requests_pending?: number | null
+          leave_requests_rejected?: number | null
+          leave_requests_submitted?: number | null
+          new_applications?: number | null
+          new_hires?: number | null
+          open_positions?: number | null
+          pending_approvals?: number | null
+          report_data?: Json | null
+          report_period_end: string
+          report_period_start: string
+          report_summary?: string | null
+          status?: string | null
+          tenant_id: string
+          terminations?: number | null
+          tickets_opened?: number | null
+          tickets_pending?: number | null
+          tickets_resolved?: number | null
+          total_headcount?: number | null
+          total_leave_days_taken?: number | null
+          updated_at?: string
+        }
+        Update: {
+          active_clearances?: number | null
+          active_pips?: number | null
+          created_at?: string
+          email_recipients?: string[] | null
+          email_sent?: boolean | null
+          email_sent_at?: string | null
+          evaluations_completed?: number | null
+          evaluations_pending?: number | null
+          generated_by?: string | null
+          id?: string
+          interviews_scheduled?: number | null
+          leave_requests_approved?: number | null
+          leave_requests_pending?: number | null
+          leave_requests_rejected?: number | null
+          leave_requests_submitted?: number | null
+          new_applications?: number | null
+          new_hires?: number | null
+          open_positions?: number | null
+          pending_approvals?: number | null
+          report_data?: Json | null
+          report_period_end?: string
+          report_period_start?: string
+          report_summary?: string | null
+          status?: string | null
+          tenant_id?: string
+          terminations?: number | null
+          tickets_opened?: number | null
+          tickets_pending?: number | null
+          tickets_resolved?: number | null
+          total_headcount?: number | null
+          total_leave_days_taken?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weekly_management_reports_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       weekly_reports: {
         Row: {

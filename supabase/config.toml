@@ -20,3 +20,9 @@ verify_jwt = false
 
 [functions.generate-letter]
 verify_jwt = false
+
+[functions.send-letter-email]
+verify_jwt = false
+
+[functions.generate-weekly-report]
+verify_jwt = false
