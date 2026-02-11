@@ -1940,6 +1940,8 @@ export type Database = {
       }
       merch_designs: {
         Row: {
+          available_colors: string[] | null
+          available_sizes: string[] | null
           created_at: string
           description: string | null
           fabric: string | null
@@ -1954,6 +1956,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          available_colors?: string[] | null
+          available_sizes?: string[] | null
           created_at?: string
           description?: string | null
           fabric?: string | null
@@ -1968,6 +1972,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          available_colors?: string[] | null
+          available_sizes?: string[] | null
           created_at?: string
           description?: string | null
           fabric?: string | null
