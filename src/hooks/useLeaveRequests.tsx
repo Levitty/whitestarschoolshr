@@ -163,12 +163,8 @@ export const useLeaveRequests = () => {
           return { error: uploadError };
         }
 
-        // Get public URL
-        const { data: urlData } = supabase.storage
-          .from('leave-proofs')
-          .getPublicUrl(fileName);
-
-        proofUrl = urlData.publicUrl;
+        // Store the file path (bucket is private, we'll use signed URLs to access)
+        proofUrl = fileName;
         proofFileName = proofFile.name;
       }
 

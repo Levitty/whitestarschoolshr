@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLeaveRequests } from '@/hooks/useLeaveRequests';
+import { supabase } from '@/integrations/supabase/client';
 import { useEmployees } from '@/hooks/useEmployees';
 import { CheckCircle, Download, Filter, Calendar, XCircle, Paperclip, Eye, FileDown } from 'lucide-react';
 import { toast } from 'sonner';
@@ -366,7 +367,17 @@ const ApprovedLeavesList = ({ statusFilter = 'all' }: ApprovedLeavesListProps) =
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => window.open((request as any).proof_url, '_blank')}
+                          onClick={async () => {
+                            const filePath = (request as any).proof_url;
+                            const { data, error } = await supabase.storage
+                              .from('leave-proofs')
+                              .createSignedUrl(filePath, 3600);
+                            if (error || !data?.signedUrl) {
+                              toast.error('Failed to load proof document');
+                              return;
+                            }
+                            window.open(data.signedUrl, '_blank');
+                          }}
                         >
                           <Eye className="h-4 w-4 mr-1" />
                           View
@@ -374,12 +385,25 @@ const ApprovedLeavesList = ({ statusFilter = 'all' }: ApprovedLeavesListProps) =
                         <Button
                           variant="outline"
                           size="sm"
-                          asChild
+                          onClick={async () => {
+                            const filePath = (request as any).proof_url;
+                            const { data, error } = await supabase.storage
+                              .from('leave-proofs')
+                              .download(filePath);
+                            if (error || !data) {
+                              toast.error('Failed to download proof document');
+                              return;
+                            }
+                            const url = URL.createObjectURL(data);
+                            const link = document.createElement('a');
+                            link.href = url;
+                            link.download = (request as any).proof_file_name || 'proof';
+                            link.click();
+                            URL.revokeObjectURL(url);
+                          }}
                         >
-                          <a href={(request as any).proof_url} download={(request as any).proof_file_name || 'proof'} target="_blank" rel="noopener noreferrer">
-                            <FileDown className="h-4 w-4 mr-1" />
-                            Download
-                          </a>
+                          <FileDown className="h-4 w-4 mr-1" />
+                          Download
                         </Button>
                       </div>
                     </div>
