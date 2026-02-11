@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useLeaveRequests } from '@/hooks/useLeaveRequests';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useProfile } from '@/hooks/useProfile';
-import { CheckCircle, XCircle, Clock, Download, Filter, ArrowRight, AlertCircle, Eye, EyeOff, Trash2 } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Download, Filter, ArrowRight, AlertCircle, Eye, EyeOff, Trash2, Paperclip, FileDown } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface LeaveApprovalListProps {
@@ -510,6 +510,39 @@ const LeaveApprovalList = ({ mode = 'head' }: LeaveApprovalListProps) => {
                     <div>
                       <p className="font-medium text-muted-foreground mb-1">Reason:</p>
                       <p className="text-sm text-foreground">{request.reason}</p>
+                    </div>
+                  )}
+
+                  {/* Proof/Evidence attachment */}
+                  {(request as any).proof_url && (
+                    <div className="flex items-center gap-3 p-3 bg-muted/50 border rounded-lg">
+                      <Paperclip className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">
+                          {(request as any).proof_file_name || 'Proof Document'}
+                        </p>
+                        <p className="text-xs text-muted-foreground">Evidence attached</p>
+                      </div>
+                      <div className="flex gap-2 shrink-0">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => window.open((request as any).proof_url, '_blank')}
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          View
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          asChild
+                        >
+                          <a href={(request as any).proof_url} download={(request as any).proof_file_name || 'proof'} target="_blank" rel="noopener noreferrer">
+                            <FileDown className="h-4 w-4 mr-1" />
+                            Download
+                          </a>
+                        </Button>
+                      </div>
                     </div>
                   )}
 
