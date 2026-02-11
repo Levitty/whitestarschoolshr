@@ -368,7 +368,10 @@ const ApprovedLeavesList = ({ statusFilter = 'all' }: ApprovedLeavesListProps) =
                           variant="outline"
                           size="sm"
                           onClick={async () => {
-                            const filePath = (request as any).proof_url;
+                            const raw = (request as any).proof_url as string;
+                            const filePath = raw.includes('/leave-proofs/') 
+                              ? raw.split('/leave-proofs/').pop()! 
+                              : raw;
                             const { data, error } = await supabase.storage
                               .from('leave-proofs')
                               .createSignedUrl(filePath, 3600);
@@ -386,7 +389,10 @@ const ApprovedLeavesList = ({ statusFilter = 'all' }: ApprovedLeavesListProps) =
                           variant="outline"
                           size="sm"
                           onClick={async () => {
-                            const filePath = (request as any).proof_url;
+                            const raw = (request as any).proof_url as string;
+                            const filePath = raw.includes('/leave-proofs/') 
+                              ? raw.split('/leave-proofs/').pop()! 
+                              : raw;
                             const { data, error } = await supabase.storage
                               .from('leave-proofs')
                               .download(filePath);
