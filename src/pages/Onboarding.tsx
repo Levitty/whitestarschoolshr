@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import EmployeeOnboarding from '@/components/EmployeeOnboarding';
+import { Button } from '@/components/ui/button';
 
 const Onboarding = () => {
   const { user, profile, loading } = useAuth();
@@ -39,7 +40,16 @@ const Onboarding = () => {
     return null;
   }
 
-  return <EmployeeOnboarding />;
+  return (
+    <div className="relative">
+      <div className="absolute top-4 right-4 z-10">
+        <Button variant="ghost" onClick={() => navigate('/dashboard')}>
+          Skip for now
+        </Button>
+      </div>
+      <EmployeeOnboarding />
+    </div>
+  );
 };
 
 export default Onboarding;
