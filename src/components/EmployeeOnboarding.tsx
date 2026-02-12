@@ -42,14 +42,7 @@ const EmployeeOnboarding = () => {
       return;
     }
 
-    // Validate required fields
-    const requiredFields = ['phone', 'id_number', 'birth_date', 'gender', 'physical_address', 'next_of_kin_name', 'next_of_kin_phone'];
-    const missingFields = requiredFields.filter(field => !formData[field as keyof typeof formData]);
-    
-    if (missingFields.length > 0) {
-      toast.error('Please fill in all required fields');
-      return;
-    }
+    // All fields are now optional - no validation required
 
     setLoading(true);
     
@@ -107,41 +100,38 @@ const EmployeeOnboarding = () => {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Telephone Number *</Label>
+                  <Label htmlFor="phone">Telephone Number</Label>
                   <Input
                     id="phone"
                     type="tel"
                     placeholder="e.g., 0712345678"
                     value={formData.phone}
                     onChange={(e) => handleInputChange('phone', e.target.value)}
-                    required
                   />
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="id_number">ID Number *</Label>
+                  <Label htmlFor="id_number">ID Number</Label>
                   <Input
                     id="id_number"
                     placeholder="National ID Number"
                     value={formData.id_number}
                     onChange={(e) => handleInputChange('id_number', e.target.value)}
-                    required
                   />
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="birth_date">Date of Birth *</Label>
+                  <Label htmlFor="birth_date">Date of Birth</Label>
                   <Input
                     id="birth_date"
                     type="date"
                     value={formData.birth_date}
                     onChange={(e) => handleInputChange('birth_date', e.target.value)}
-                    required
                   />
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="gender">Gender *</Label>
+                  <Label htmlFor="gender">Gender</Label>
                   <Select value={formData.gender} onValueChange={(value) => handleInputChange('gender', value)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select gender" />
@@ -156,13 +146,12 @@ const EmployeeOnboarding = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="physical_address">Physical Address *</Label>
+                <Label htmlFor="physical_address">Physical Address</Label>
                 <Textarea
                   id="physical_address"
                   placeholder="Enter your physical address"
                   value={formData.physical_address}
                   onChange={(e) => handleInputChange('physical_address', e.target.value)}
-                  required
                 />
               </div>
             </div>
@@ -226,25 +215,23 @@ const EmployeeOnboarding = () => {
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="next_of_kin_name">Name *</Label>
+                  <Label htmlFor="next_of_kin_name">Name</Label>
                   <Input
                     id="next_of_kin_name"
                     placeholder="Full name"
                     value={formData.next_of_kin_name}
                     onChange={(e) => handleInputChange('next_of_kin_name', e.target.value)}
-                    required
                   />
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="next_of_kin_phone">Phone Number *</Label>
+                  <Label htmlFor="next_of_kin_phone">Phone Number</Label>
                   <Input
                     id="next_of_kin_phone"
                     type="tel"
                     placeholder="e.g., 0712345678"
                     value={formData.next_of_kin_phone}
                     onChange={(e) => handleInputChange('next_of_kin_phone', e.target.value)}
-                    required
                   />
                 </div>
                 

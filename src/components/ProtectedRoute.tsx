@@ -28,14 +28,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
-  // Check if onboarding is completed (skip for superadmins and admins)
-  const isSuperAdminOrAdmin = profile?.role === 'superadmin' || profile?.role === 'admin';
-  const onboardingCompleted = (profile as any)?.onboarding_completed;
-  
-  if (profile && !isSuperAdminOrAdmin && !onboardingCompleted && location.pathname !== '/onboarding') {
-    console.log('ProtectedRoute - Onboarding not completed, redirecting to /onboarding');
-    return <Navigate to="/onboarding" replace />;
-  }
+  // Onboarding redirect temporarily disabled - users can access dashboard without completing profile
 
   return <>{children}</>;
 };
