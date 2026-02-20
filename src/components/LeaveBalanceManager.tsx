@@ -352,7 +352,11 @@ const LeaveBalanceManager = () => {
                   <div key={balance.id} className="border rounded-lg p-4">
                     <div className="flex justify-between items-center mb-2">
                       <h4 className="font-medium">
-                        {employee ? `${employee.first_name} ${employee.last_name}` : 'Unknown Employee'}
+                        {employee
+                          ? (employee.first_name || employee.last_name
+                              ? `${employee.first_name || ''} ${employee.last_name || ''}`.trim()
+                              : (employee as any).email || 'Unknown Employee')
+                          : 'Unknown Employee'}
                       </h4>
                       <span className="text-sm text-muted-foreground">{employee?.department}</span>
                     </div>
