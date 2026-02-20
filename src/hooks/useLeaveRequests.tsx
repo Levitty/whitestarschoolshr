@@ -88,7 +88,7 @@ export const useLeaveRequests = () => {
             let employeeData = null;
             
             if (request.employee_id) {
-              // Try to get from employee_profiles first
+              // Try to get from employee_profiles by profile_id first
               const { data: empProfile } = await supabase
                 .from('employee_profiles')
                 .select('id, first_name, last_name, email, department, position')
@@ -98,15 +98,26 @@ export const useLeaveRequests = () => {
               if (empProfile) {
                 employeeData = { employee_profile: empProfile };
               } else {
-                // Fallback to profiles table
-                const { data: profile } = await supabase
-                  .from('profiles')
-                  .select('id, first_name, last_name, email, department')
+                // Try employee_profiles by id (employee_id might reference employee_profiles directly)
+                const { data: empById } = await supabase
+                  .from('employee_profiles')
+                  .select('id, first_name, last_name, email, department, position')
                   .eq('id', request.employee_id)
                   .maybeSingle();
                 
-                if (profile) {
-                  employeeData = { profile: profile };
+                if (empById) {
+                  employeeData = { employee_profile: empById };
+                } else {
+                  // Fallback to profiles table
+                  const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('id, first_name, last_name, email, department')
+                    .eq('id', request.employee_id)
+                    .maybeSingle();
+                  
+                  if (profile) {
+                    employeeData = { profile: profile };
+                  }
                 }
               }
             }
