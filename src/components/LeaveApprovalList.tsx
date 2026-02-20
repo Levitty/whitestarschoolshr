@@ -449,7 +449,11 @@ const LeaveApprovalList = ({ mode = 'head' }: LeaveApprovalListProps) => {
                   <div className="flex items-start justify-between">
                     <div>
                       <h3 className="font-semibold text-lg text-foreground">
-                        {employee ? `${employee.first_name} ${employee.last_name}` : 'Unknown Employee'}
+                        {employee 
+                          ? (employee.first_name || employee.last_name 
+                              ? `${employee.first_name || ''} ${employee.last_name || ''}`.trim() 
+                              : employee.email || 'Unknown Employee')
+                          : 'Unknown Employee'}
                       </h3>
                       <p className="text-sm text-muted-foreground">
                         {employee?.department} • {(employee as any)?.position || 'Staff'}
