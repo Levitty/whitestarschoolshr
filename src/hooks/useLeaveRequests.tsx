@@ -109,14 +109,26 @@ export const useLeaveRequests = () => {
                   employeeData = { employee_profile: empById };
                 } else {
                   // Fallback to profiles table
-                  const { data: profile } = await supabase
+                  const { data: profile, error: profileError } = await supabase
                     .from('profiles')
                     .select('id, first_name, last_name, email, department')
                     .eq('id', request.employee_id)
                     .maybeSingle();
                   
+                  console.log('Profile fallback for', request.employee_id, ':', profile, 'Error:', profileError);
+                  
                   if (profile) {
-                    employeeData = { profile: profile };
+                    // Map profile data to employee_profile format so display components work uniformly
+                    employeeData = { 
+                      employee_profile: {
+                        id: profile.id,
+                        first_name: profile.first_name || '',
+                        last_name: profile.last_name || '',
+                        email: profile.email,
+                        department: profile.department || 'N/A',
+                        position: 'Staff'
+                      }
+                    };
                   }
                 }
               }
