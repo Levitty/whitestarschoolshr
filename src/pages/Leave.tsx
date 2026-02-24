@@ -11,6 +11,7 @@ import MyLeaveRequests from '@/components/MyLeaveRequests';
 import LeaveBalanceManager from '@/components/LeaveBalanceManager';
 import MyLeaveBalance from '@/components/MyLeaveBalance';
 import ApprovedLeavesList from '@/components/ApprovedLeavesList';
+import BulkLeaveGrant from '@/components/BulkLeaveGrant';
 import { Calendar, Users, Clock, TrendingUp, ArrowRight, CheckCircle } from 'lucide-react';
 
 const Leave = () => {
@@ -139,11 +140,12 @@ const Leave = () => {
         )}
 
         <Tabs defaultValue="my-requests" className="space-y-6">
-          <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${isHR ? 5 : isHead ? 3 : 2}, minmax(0, 1fr))` }}>
+          <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${isHR ? 6 : isHead ? 3 : 2}, minmax(0, 1fr))` }}>
             <TabsTrigger value="my-requests">My Requests</TabsTrigger>
             {(isHead || isHR) && <TabsTrigger value="head-review">Head Review</TabsTrigger>}
             {isHR && <TabsTrigger value="hr-approval">HR Approval</TabsTrigger>}
             {isHR && <TabsTrigger value="leave-records">Leave Records</TabsTrigger>}
+            {isHR && <TabsTrigger value="bulk-grant">Bulk Grant</TabsTrigger>}
             <TabsTrigger value="balances">Leave Balance</TabsTrigger>
           </TabsList>
 
@@ -169,6 +171,12 @@ const Leave = () => {
           {isHR && (
             <TabsContent value="leave-records">
               <ApprovedLeavesList />
+            </TabsContent>
+          )}
+
+          {isHR && (
+            <TabsContent value="bulk-grant">
+              <BulkLeaveGrant />
             </TabsContent>
           )}
 
