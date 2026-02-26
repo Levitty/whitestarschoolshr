@@ -1,44 +1,25 @@
 
 
-## Fix: Google SSO Users Missing from Approval Page
+## Fix: Date of Birth Calendar Not Working on Mobile
 
-### Root Cause
+### Problem
+The date-of-birth calendar picker does not respond to touch/tap on mobile devices. This is a known issue where calendar components inside Popover wrappers lose pointer events on mobile browsers.
 
-When users sign up via Google SSO, the `AuthCallback.tsx` simply redirects to the dashboard without assigning a `tenant_id` to their profile. The Account Approval Manager (`AccountApprovalManager.tsx`) queries for pending users filtered by `tenant_id = tenant.id`, so users without a `tenant_id` never appear.
+### Solution
+Add `pointer-events-auto` to the Calendar component's className in all three locations where date-of-birth pickers are used:
 
-### The Fix (2 parts)
-
-**Part 1: Fix existing users (immediate data fix)**
-
-There are 18+ pending users with `tenant_id = null`. We need to assign them to the correct tenant (White Star Schools: `d469abc7-cf00-46b6-a5b0-540855405a50`). This will be done via a SQL update on the `profiles` table.
-
-**Part 2: Fix future Google SSO signups**
-
-Update `AuthCallback.tsx` to automatically assign the correct `tenant_id` to the user's profile after Google SSO login. The logic will:
-
-1. After a successful Google sign-in, check if the user's profile has a `tenant_id`
-2. If not, resolve the tenant from the domain (hr.whitestarschools.com) or fall back to a default tenant lookup
-3. Update the profile with the resolved `tenant_id`
-
-This mirrors what the Staff Signup Form already does for manual signups.
-
-### Files Changed
-
-- `src/pages/AuthCallback.tsx` -- Add tenant assignment logic after Google SSO callback
-- Database update -- Set `tenant_id` for all existing pending users with null `tenant_id`
+1. **`src/pages/MyProfile.tsx`** (line ~335) -- Profile editing page
+2. **`src/components/StatutoryOnboardingModal.tsx`** (line ~193) -- Onboarding modal
+3. **`src/components/EmployeeOnboarding.tsx`** (line ~125) -- Uses a native `<input type="date">` which should work fine, no change needed
 
 ### Technical Details
 
-In `AuthCallback.tsx`, after the `SIGNED_IN` event:
+For both `MyProfile.tsx` and `StatutoryOnboardingModal.tsx`, add `className="pointer-events-auto"` to the `<Calendar>` component:
 
 ```text
-1. Get the user's profile
-2. If profile.tenant_id is null:
-   a. Check if current domain is hr.whitestarschools.com -> use White Star tenant ID
-   b. Otherwise, look up tenant from URL or fallback
-3. Update profiles table with the resolved tenant_id
-4. Then redirect to /dashboard
+Before:  <Calendar mode="single" ... />
+After:   <Calendar mode="single" ... className="pointer-events-auto" />
 ```
 
-The existing `ProtectedRoute` will still block the user with the "Pending Approval" screen, so there's no security risk -- this just makes the user visible in the approval queue.
+This ensures touch events pass through to the calendar when it renders inside a Popover/Portal overlay. No other logic or styling changes are needed.
 
