@@ -341,6 +341,7 @@ const MyProfile = () => {
                   captionLayout="dropdown-buttons"
                   fromYear={1940}
                   toYear={new Date().getFullYear()}
+                  className="pointer-events-auto"
                 />
               </PopoverContent>
             </Popover>
