@@ -199,6 +199,7 @@ const StatutoryOnboardingModal = ({ isOpen, onComplete }: StatutoryOnboardingMod
                       captionLayout="dropdown-buttons"
                       fromYear={1940}
                       toYear={new Date().getFullYear() - 16}
+                      className="pointer-events-auto"
                     />
                   </PopoverContent>
                 </Popover>
