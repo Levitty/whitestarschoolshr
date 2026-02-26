@@ -3,6 +3,64 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
 
+// Map custom domains to tenant slugs
+const getDomainTenantSlug = (): string | null => {
+  const hostname = window.location.hostname.toLowerCase();
+  const domainToTenant: Record<string, string> = {
+    'hr.whitestarschools.com': 'whitestar-schools',
+    'www.hr.whitestarschools.com': 'whitestar-schools',
+  };
+  return domainToTenant[hostname] || null;
+};
+
+const ensureTenantAssigned = async (userId: string) => {
+  try {
+    // Check if profile already has a tenant_id
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('tenant_id')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (profileError || !profile) {
+      console.log('AuthCallback: Could not fetch profile for tenant check');
+      return;
+    }
+
+    if (profile.tenant_id) {
+      console.log('AuthCallback: Profile already has tenant_id');
+      return;
+    }
+
+    // Resolve tenant from domain
+    const slug = getDomainTenantSlug();
+    if (!slug) {
+      console.log('AuthCallback: No domain-based tenant slug found');
+      return;
+    }
+
+    const { data: tenant, error: tenantError } = await supabase
+      .from('tenants')
+      .select('id')
+      .eq('slug', slug)
+      .eq('is_active', true)
+      .maybeSingle();
+
+    if (tenantError || !tenant) {
+      console.log('AuthCallback: Could not resolve tenant from slug:', slug);
+      return;
+    }
+
+    console.log('AuthCallback: Assigning tenant_id', tenant.id, 'to user', userId);
+    await supabase
+      .from('profiles')
+      .update({ tenant_id: tenant.id })
+      .eq('id', userId);
+  } catch (err) {
+    console.error('AuthCallback: Error ensuring tenant assignment:', err);
+  }
+};
+
 const AuthCallback = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -41,13 +99,14 @@ const AuthCallback = () => {
         }
 
         // Listen for auth state changes FIRST before checking session
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
           console.log('Auth event:', event);
           
           if (event === 'PASSWORD_RECOVERY') {
             console.log('PASSWORD_RECOVERY event detected, redirecting to reset page');
             navigate('/reset-password');
           } else if (event === 'SIGNED_IN' && session) {
+            await ensureTenantAssigned(session.user.id);
             navigate('/dashboard');
           } else if (event === 'TOKEN_REFRESHED' && session) {
             navigate('/dashboard');
@@ -66,6 +125,7 @@ const AuthCallback = () => {
 
         // If we have a session and this isn't a recovery flow, redirect to dashboard
         if (session && type !== 'recovery') {
+          await ensureTenantAssigned(session.user.id);
           setTimeout(() => {
             navigate('/dashboard');
           }, 500);
