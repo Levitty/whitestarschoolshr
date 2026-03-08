@@ -81,18 +81,20 @@ const BulkLeaveGrant = () => {
       const selectedEmps = activeEmployees.filter(e => selectedEmployees.has(e.id));
 
       const records = selectedEmps.map(emp => ({
-        employee_id: emp.profile_id || emp.id, // use profile_id if linked, else fallback
+        employee_id: emp.profile_id || emp.id,
         leave_type: leaveType,
         start_date: startStr,
         end_date: endStr,
         days_requested: daysRequested,
         reason,
         status: 'approved',
-        workflow_stage: 'completed',
+        workflow_stage: 'approved',
         approved_by: user.id,
-        approved_at: now,
+        decision_at: now,
         tenant_id: tenant.id,
       }));
+
+      console.log('Bulk leave grant: inserting', records.length, 'records');
 
       const { error } = await supabase
         .from('leave_requests')
