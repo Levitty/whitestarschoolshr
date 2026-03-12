@@ -4,13 +4,14 @@ import { Resend } from "npm:resend@2.0.0";
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 const RAW_FROM = (Deno.env.get("RESEND_FROM_EMAIL") || "").trim();
 // Use Resend's testing domain by default - users should update RESEND_FROM_EMAIL secret with their verified domain
-const DEFAULT_FROM = "Whitestar Schools HR Department <onboarding@resend.dev>";
-const getFromAddress = () => {
+const DEFAULT_FROM = "HR Department <onboarding@resend.dev>";
+const getFromAddress = (orgName?: string) => {
+  const label = orgName ? `${orgName} HR Department` : 'HR Department';
   const emailOnly = /^[^<>\s@]+@[^<>\s@]+\.[^<>\s@]+$/;
   const nameAndEmail = /^.+<[^<>\s@]+@[^<>\s@]+\.[^<>\s@]+>$/;
-  if (RAW_FROM && emailOnly.test(RAW_FROM)) return `Whitestar Schools HR Department <${RAW_FROM}>`;
+  if (RAW_FROM && emailOnly.test(RAW_FROM)) return `${label} <${RAW_FROM}>`;
   if (RAW_FROM && nameAndEmail.test(RAW_FROM)) return RAW_FROM;
-  if (!RAW_FROM) return DEFAULT_FROM;
+  if (!RAW_FROM) return `${label} <onboarding@resend.dev>`;
   throw new Error('RESEND_FROM_EMAIL is invalid. Use "hr@yourdomain.com" or "Name <hr@yourdomain.com>".');
 };
 
@@ -29,6 +30,8 @@ interface InterviewScheduleRequest {
   interviewerName: string;
   location?: string;
   notes?: string;
+  tenantName?: string;
+  contactPhone?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -37,17 +40,22 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { 
-      candidateName, 
-      candidateEmail, 
-      position, 
+    const {
+      candidateName,
+      candidateEmail,
+      position,
       department,
       interviewDate,
       interviewType,
       interviewerName,
       location,
-      notes
+      notes,
+      tenantName,
+      contactPhone
     }: InterviewScheduleRequest = await req.json();
+
+    const orgName = tenantName || 'Our Organization';
+    const phone = contactPhone || '0788182510';
 
     console.log('Sending interview schedule to:', candidateEmail);
     console.log('Raw interview date received:', interviewDate);
@@ -103,7 +111,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const emailResponse = await resend.emails.send({
-      from: getFromAddress(),
+      from: getFromAddress(orgName),
       to: [candidateEmail],
       subject: `Interview Scheduled - ${position} Position`,
       html: `
@@ -112,7 +120,7 @@ const handler = async (req: Request): Promise<Response> => {
           
           <p>Dear ${candidateName},</p>
           
-          <p>Your interview has been scheduled for the <strong>${position}</strong> position at Whitestar Schools in the ${department} department.</p>
+          <p>Your interview has been scheduled for the <strong>${position}</strong> position at ${orgName} in the ${department} department.</p>
           
           <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
             <h3 style="margin-top: 0; color: #1f2937;">Interview Details:</h3>
@@ -137,13 +145,13 @@ const handler = async (req: Request): Promise<Response> => {
             ${interviewType === 'Physical' ? '<li>Bring a valid ID and original certificates</li>' : ''}
           </ul>
           
-          <p>If you have any questions, please contact us as soon as possible on 0788182510.</p>
+          <p>If you have any questions, please contact us as soon as possible on ${phone}.</p>
           
           <p>We look forward to meeting you!</p>
           
           <p style="margin-top: 30px;">
             Best regards,<br>
-            <strong>Whitestar Schools HR Department</strong>
+            <strong>${orgName} HR Department</strong>
           </p>
         </div>
       `,

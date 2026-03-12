@@ -80,6 +80,10 @@ export const useInterviews = () => {
     location?: string;
     notes?: string;
   }) => {
+    // Safari blocks window.open after async calls — open a blank window NOW
+    // while we're still in the user's click context, then set its URL later.
+    const emailWindow = window.open('', '_blank');
+
     try {
       const { data, error } = await supabase
         .from('interviews')
@@ -96,6 +100,12 @@ export const useInterviews = () => {
       if (error) throw error;
 
       // Send interview notification email
+      let emailSentViaEdgeFunction = false;
+      let candidateEmail = '';
+      let candidateName = '';
+      let position = '';
+      let department = '';
+
       try {
         const { data: application, error: appErr } = await supabase
           .from('job_applications')
@@ -114,38 +124,104 @@ export const useInterviews = () => {
           console.error('Error fetching application for email:', appErr);
         }
 
+        candidateEmail = application?.candidate_email || '';
+        candidateName = application?.candidate_name || '';
+        position = application?.job_listings?.title || '';
+        department = application?.job_listings?.department || '';
+
+        // Try Edge Function first
         console.log('Sending interview schedule notification...');
         const { error: emailError } = await supabase.functions.invoke('send-interview-schedule', {
           body: {
-            candidateName: application?.candidate_name,
-            candidateEmail: application?.candidate_email,
-            position: application?.job_listings?.title,
-            department: application?.job_listings?.department,
+            candidateName,
+            candidateEmail,
+            position,
+            department,
             interviewDate: interviewData.interview_date,
             interviewType: interviewData.interview_type,
             interviewerName: interviewData.interviewer_name,
             location: interviewData.location,
-            notes: interviewData.notes
+            notes: interviewData.notes,
+            tenantName: tenant?.name
           }
         });
 
         if (emailError) {
-          console.error('Error sending interview schedule email:', emailError);
+          console.error('Edge function email failed, using Gmail compose fallback:', emailError);
         } else {
+          emailSentViaEdgeFunction = true;
           console.log('Interview schedule notification sent successfully');
         }
       } catch (emailError) {
-        console.error('Error in email notification:', emailError);
+        console.error('Edge function unavailable, using Gmail compose fallback:', emailError);
       }
-      
+
+      // Fallback: open Gmail compose with pre-filled email
+      if (!emailSentViaEdgeFunction && candidateEmail) {
+        const orgName = tenant?.name || 'Our Organization';
+
+        // Format the interview date nicely
+        const dateObj = new Date(interviewData.interview_date);
+        const formattedDate = dateObj.toLocaleString('en-US', {
+          weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+          hour: 'numeric', minute: '2-digit', hour12: true
+        });
+
+        const locationLine = interviewData.location ? `Location/Meeting Link: ${interviewData.location}` : '';
+        const notesLine = interviewData.notes ? `\nAdditional Information:\n${interviewData.notes}` : '';
+
+        const subject = `Interview Scheduled - ${position} Position`;
+        const body = `Dear ${candidateName},
+
+Your interview has been scheduled for the ${position} position at ${orgName} in the ${department} department.
+
+Interview Details:
+- Date & Time: ${formattedDate}
+- Interview Type: ${interviewData.interview_type}
+- Interviewer: ${interviewData.interviewer_name}
+${locationLine ? `- ${locationLine}` : ''}${notesLine}
+
+Please make sure to:
+${interviewData.interview_type === 'Physical' ? '- Arrive at the location 15 minutes before the scheduled time' : '- Join the interview 5 minutes before the scheduled time'}
+- Have your CV and relevant documents ready
+- Prepare questions you'd like to ask about the role
+${interviewData.interview_type === 'Online' ? '- Test your internet connection and audio/video settings' : ''}
+${interviewData.interview_type === 'Physical' ? '- Bring a valid ID and original certificates' : ''}
+
+We look forward to meeting you!
+
+Best regards,
+${orgName} HR Department`;
+
+        const gmailUrl = `https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(candidateEmail)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        // Use the pre-opened window (Safari-safe)
+        if (emailWindow && !emailWindow.closed) {
+          emailWindow.location.href = gmailUrl;
+        } else {
+          // Last resort: navigate in same tab via mailto
+          window.location.href = `mailto:${candidateEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        }
+      } else if (emailWindow && !emailWindow.closed) {
+        // Edge function succeeded — close the blank window we opened
+        emailWindow.close();
+      }
+
       await fetchInterviews(); // Refresh the list
       toast({
-        title: "Success",
-        description: "Interview scheduled"
+        title: "Interview Scheduled",
+        description: emailSentViaEdgeFunction
+          ? `Interview scheduled and email sent to ${candidateName}`
+          : candidateEmail
+            ? `Interview scheduled — Gmail compose opened to send notification to ${candidateName}`
+            : "Interview scheduled successfully"
       });
       
       return data;
     } catch (error) {
+      // Close the blank window if interview creation itself failed
+      if (emailWindow && !emailWindow.closed) {
+        emailWindow.close();
+      }
       console.error('Error creating interview:', error);
       toast({
         title: "Error",

@@ -3,29 +3,37 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
+import { useTenant } from '@/contexts/TenantContext';
 
 type RecruitmentAssessment = Database['public']['Tables']['recruitment_assessments']['Row'];
 type RecruitmentAssessmentInsert = Database['public']['Tables']['recruitment_assessments']['Insert'];
 
 export const useRecruitmentAssessments = () => {
   const { user } = useAuth();
+  const { tenant } = useTenant();
   const [assessments, setAssessments] = useState<RecruitmentAssessment[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user) {
+    if (user && tenant?.id) {
       fetchAssessments();
     }
-  }, [user]);
+  }, [user, tenant?.id]);
 
   const fetchAssessments = async () => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('recruitment_assessments')
         .select('*')
         .order('created_at', { ascending: false });
+
+      if (tenant?.id) {
+        query = query.eq('tenant_id', tenant.id);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error('Error fetching assessments:', error);
@@ -55,7 +63,8 @@ export const useRecruitmentAssessments = () => {
         .from('recruitment_assessments')
         .insert({
           ...assessmentData,
-          created_by: user.id
+          created_by: user.id,
+          tenant_id: tenant?.id
         });
 
       if (error) {

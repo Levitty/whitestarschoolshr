@@ -1,4 +1,4 @@
-import { Home, Users, UserPlus, Briefcase, BarChart, FolderOpen, Calendar, GraduationCap, Settings, LogOut, Menu, X, Crown, ChevronRight, ClipboardList, Monitor, ClipboardCheck, UserCircle, FileBarChart } from "lucide-react";
+import { Home, Users, UserPlus, Briefcase, BarChart, FolderOpen, Calendar, GraduationCap, Settings, LogOut, Menu, X, Crown, ChevronRight, ClipboardList, Monitor, ClipboardCheck, UserCircle, FileBarChart, Banknote } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { UserRole } from "@/types/auth";
@@ -73,6 +73,7 @@ const RoleBasedNavigation = () => {
 
   // Corporate-only Operations items
   const operationsNavItems: NavItem[] = isCorporate ? [
+    { path: "/payroll", label: "Payroll", icon: Banknote },
     { path: "/assets", label: "Asset Management", icon: Monitor },
     { path: "/clearances", label: "Clearances", icon: ClipboardCheck },
   ] : [];

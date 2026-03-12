@@ -40,6 +40,7 @@ import TenantRegister from '@/pages/TenantRegister';
 import Tasks from '@/pages/Tasks';
 import Assets from '@/pages/Assets';
 import Clearances from '@/pages/Clearances';
+import Payroll from '@/pages/Payroll';
 import MyProfile from '@/pages/MyProfile';
 import Reports from '@/pages/Reports';
 
@@ -135,6 +136,10 @@ function App() {
 
             <Route path="/clearances" element={<Layout />}>
               <Route index element={<Clearances />} />
+            </Route>
+
+            <Route path="/payroll" element={<Layout />}>
+              <Route index element={<Payroll />} />
             </Route>
 
             <Route path="/profile" element={<Layout />}>

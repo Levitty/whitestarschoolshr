@@ -1,0 +1,85 @@
+apply plugin: 'com.android.application'
+apply plugin: 'org.jetbrains.kotlin.android'
+apply plugin: 'org.jetbrains.kotlin.plugin.compose'
+
+android {
+    namespace = "com.whitestar.schoolshr"
+    compileSdk = 36
+    
+    defaultConfig {
+        applicationId "com.whitestar.schoolshr"
+        minSdkVersion 24
+        targetSdkVersion 36
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        aaptOptions {
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+    }
+    
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    
+    buildFeatures {
+        compose = true
+    }
+    
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
+    }
+    
+    kotlinOptions {
+        jvmTarget = '21'
+    }
+}
+
+repositories {
+    flatDir{
+        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    
+    // Kotlin & Compose
+    implementation platform("androidx.compose:compose-bom:2025.02.00")
+    implementation "androidx.compose.ui:ui"
+    implementation "androidx.compose.ui:ui-graphics"
+    implementation "androidx.compose.ui:ui-tooling-preview"
+    implementation "androidx.compose.material3:material3"
+    implementation "androidx.activity:activity-compose:1.11.0"
+    implementation "androidx.lifecycle:lifecycle-runtime-compose:2.8.7"
+    
+    // Supabase
+    implementation "io.github.jan-tennert.supabase:postgrest-kt:3.4.1"
+    implementation "io.github.jan-tennert.supabase:auth-kt:3.4.1"
+    implementation "io.ktor:ktor-client-android:2.3.12"
+
+    // Standard AndroidX
+    implementation "androidx.appcompat:appcompat:1.7.1"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:1.3.0"
+    implementation "androidx.core:core-splashscreen:1.2.0"
+    implementation project(':capacitor-android')
+    testImplementation "junit:junit:4.13.2"
+    androidTestImplementation "androidx.test.ext:junit:1.3.0"
+    androidTestImplementation "androidx.test.espresso:espresso-core:3.7.0"
+    implementation project(':capacitor-cordova-android-plugins')
+}
+
+apply from: 'capacitor.build.gradle'
+
+try {
+    def servicesJSON = file('google-services.json')
+    if (servicesJSON.text) {
+        apply plugin: 'com.google.gms.google-services'
+    }
+} catch(Exception e) {
+    logger.info("google-services.json not found, google-services plugin not applied.")
+}

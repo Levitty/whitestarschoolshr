@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, MapPin, Building, Clock, Share2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface JobDetail {
   id: string;
@@ -23,6 +24,7 @@ interface JobDetail {
 const JobDetails = () => {
   const location = useLocation();
   const { toast } = useToast();
+  const { tenant } = useTenant();
   const [job, setJob] = useState<JobDetail | null>(null);
   const [loading, setLoading] = useState(true);
   
@@ -114,7 +116,7 @@ const JobDetails = () => {
   return (
     <>
       <Helmet>
-        <title>{job.title} - Whitestar Schools HR</title>
+        <title>{job.title} - {tenant?.name || 'Careers'}</title>
         <meta name="description" content={`Apply for ${job.title} position at ${job.department}, ${job.location}`} />
       </Helmet>
       <div className="min-h-screen bg-gray-50 py-12">

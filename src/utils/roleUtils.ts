@@ -13,16 +13,23 @@ export const normalizeRole = (role: string | null): UserRole | null => {
   return validRoles.includes(role as UserRole) ? (role as UserRole) : null;
 };
 
-// Check if tenant is corporate based on slug
-export const isCorporateTenant = (tenantSlug: string | null | undefined): boolean => {
-  if (!tenantSlug) return false;
+// Check if tenant is corporate based on slug or tenant_type
+export const isCorporateTenant = (tenantSlugOrType: string | null | undefined, tenantType?: string | null): boolean => {
+  // If tenant_type is explicitly provided, use it
+  if (tenantType === 'corporate') return true;
+  if (tenantType === 'school') return false;
+  // Also check if the first argument is a tenant_type value
+  if (tenantSlugOrType === 'corporate') return true;
+  if (tenantSlugOrType === 'school') return false;
+  // Fallback to slug check
+  if (!tenantSlugOrType) return false;
   const corporateSlugs = ['enda-sportswear', 'enda', 'corporate'];
-  return corporateSlugs.some(slug => tenantSlug.toLowerCase().includes(slug)) || 
-         !tenantSlug.toLowerCase().includes('school');
+  return corporateSlugs.some(slug => tenantSlugOrType.toLowerCase().includes(slug)) ||
+         !tenantSlugOrType.toLowerCase().includes('school');
 };
 
-export const getRoleDisplayName = (role: UserRole | null, tenantSlug?: string | null): string => {
-  const isCorporate = isCorporateTenant(tenantSlug);
+export const getRoleDisplayName = (role: UserRole | null, tenantSlugOrType?: string | null, tenantType?: string | null): string => {
+  const isCorporate = isCorporateTenant(tenantSlugOrType, tenantType);
   
   if (isCorporate) {
     switch (role) {
@@ -89,8 +96,8 @@ export const getRoleColor = (role: UserRole | null): string => {
   }
 };
 
-export const getAvailableRoles = (tenantSlug?: string | null): { value: UserRole; label: string }[] => {
-  const isCorporate = isCorporateTenant(tenantSlug);
+export const getAvailableRoles = (tenantSlugOrType?: string | null, tenantType?: string | null): { value: UserRole; label: string }[] => {
+  const isCorporate = isCorporateTenant(tenantSlugOrType, tenantType);
   
   if (isCorporate) {
     return [

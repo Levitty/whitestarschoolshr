@@ -11,6 +11,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Shield, Settings, Users, FileText, Calendar, UserCheck, Plus, Edit2, Trash2 } from 'lucide-react';
 import { UserRole } from '@/types/auth';
+import { getRoleDisplayName as getRoleDisplayNameUtil } from '@/utils/roleUtils';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface Permission {
   id: string;
@@ -154,6 +156,7 @@ const RolePermissionsManager = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [formData, setFormData] = useState<RoleFormData>({ name: '', description: '', permissions: [] });
   const { toast } = useToast();
+  const { tenant } = useTenant();
 
   useEffect(() => {
     loadRoles();
@@ -404,18 +407,7 @@ const RolePermissionsManager = () => {
   };
 
   const getRoleDisplayName = (name: string): string => {
-    const names = {
-      superadmin: 'Super Administrator',
-      admin: 'Administrator',
-      head: 'Head Teacher',
-      teacher: 'Teacher',
-      staff: 'Staff Member',
-      secretary: 'Secretary',
-      driver: 'Driver',
-      support_staff: 'Support Staff',
-      counselor: 'Counselor'
-    };
-    return names[name] || name.charAt(0).toUpperCase() + name.slice(1).replace(/_/g, ' ');
+    return getRoleDisplayNameUtil(name as UserRole, tenant?.tenant_type);
   };
 
   const getRoleBadgeColor = (name: string): string => {

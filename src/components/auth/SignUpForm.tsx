@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { User, Building, Mail, Lock, UserCheck } from 'lucide-react';
 import { getAvailableRoles } from '@/utils/roleUtils';
 import type { UserRole } from '@/types/auth';
+import { useTenant } from '@/contexts/TenantContext';
 
 const SignUpForm = () => {
   const [email, setEmail] = useState('');
@@ -19,6 +20,7 @@ const SignUpForm = () => {
   
   const { signUp } = useAuth();
   const { toast } = useToast();
+  const { tenant } = useTenant();
 
   const departments = [
     'Administration',
@@ -35,12 +37,7 @@ const SignUpForm = () => {
 
   // Get all available roles including superadmin for signup
   const getAllRoles = (): { value: UserRole; label: string }[] => [
-    { value: 'teacher', label: 'Teacher' },
-    { value: 'head', label: 'Head Teacher' },
-    { value: 'secretary', label: 'Secretary' },
-    { value: 'driver', label: 'Driver' },
-    { value: 'support_staff', label: 'Support Staff' },
-    { value: 'staff', label: 'General Staff' },
+    ...getAvailableRoles(tenant?.tenant_type),
     { value: 'superadmin', label: 'Super Administrator' }
   ];
 

@@ -10,6 +10,7 @@ import { ArrowLeft, Upload, File, X, CheckCircle } from 'lucide-react';
 import { useJobApplications } from '@/hooks/useJobApplications';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface JobListing {
   id: string;
@@ -23,6 +24,7 @@ const Apply = () => {
   const navigate = useNavigate();
   const { createApplication, uploadCV } = useJobApplications();
   const { toast } = useToast();
+  const { tenant } = useTenant();
   
   const [job, setJob] = useState<JobListing | null>(null);
   const [loading, setLoading] = useState(true);
@@ -284,7 +286,7 @@ const Apply = () => {
   return (
     <>
       <Helmet>
-        <title>Apply for {job.title} - Whitestar Schools HR</title>
+        <title>Apply for {job.title} - {tenant?.name || 'Careers'}</title>
         <meta name="description" content={`Submit your application for ${job.title} at ${job.department}`} />
       </Helmet>
       <div className="min-h-screen bg-gray-50 py-12">

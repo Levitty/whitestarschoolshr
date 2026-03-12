@@ -13,6 +13,7 @@ import { useProfile } from '@/hooks/useProfile';
 import { CheckCircle, XCircle, Clock, Download, Filter, ArrowRight, AlertCircle, Eye, EyeOff, Trash2, Paperclip, FileDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { useTenantLabels } from '@/hooks/useTenantLabels';
 
 interface LeaveApprovalListProps {
   mode?: 'head' | 'hr';
@@ -22,6 +23,8 @@ const LeaveApprovalList = ({ mode = 'head' }: LeaveApprovalListProps) => {
   const { leaveRequests, loading, approveLeaveRequest, rejectLeaveRequest, forwardToHR, deleteLeaveRequest } = useLeaveRequests();
   const { employees } = useEmployees();
   const { profile, hasRole } = useProfile();
+  const { isCorporate, labels } = useTenantLabels();
+  const headLabel = isCorporate ? 'Department Head' : 'Head Teacher';
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [comments, setComments] = useState<Record<string, string>>({});
   const [internalNotes, setInternalNotes] = useState<Record<string, string>>({});
@@ -587,7 +590,7 @@ const LeaveApprovalList = ({ mode = 'head' }: LeaveApprovalListProps) => {
                       <div className="flex items-center gap-2">
                         <EyeOff className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                         <span className="text-sm font-medium text-purple-800 dark:text-purple-300">
-                          Head Teacher's Review (Internal - Not visible to employee)
+                          {headLabel}'s Review (Internal - Not visible to employee)
                         </span>
                       </div>
                       

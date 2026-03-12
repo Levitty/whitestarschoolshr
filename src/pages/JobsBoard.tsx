@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Building, Clock, Briefcase } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { Link } from 'react-router-dom';
-import logo from '@/assets/whitestar-logo.png';
+import { Link, useSearchParams } from 'react-router-dom';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface JobListing {
   id: string;
@@ -18,19 +18,65 @@ interface JobListing {
   created_at: string;
 }
 
+interface TenantInfo {
+  id: string;
+  name: string;
+  logo_url: string | null;
+  slug: string;
+}
+
 const JobsBoard = () => {
   const [jobs, setJobs] = useState<JobListing[]>([]);
   const [loading, setLoading] = useState(true);
+  const [boardTenant, setBoardTenant] = useState<TenantInfo | null>(null);
+  const { tenant } = useTenant();
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
+    const resolveTenant = async () => {
+      // Priority: 1) query param ?tenant=slug, 2) logged-in tenant context
+      const slugParam = searchParams.get('tenant');
+
+      if (slugParam) {
+        const { data } = await supabase
+          .from('tenants')
+          .select('id, name, logo_url, slug')
+          .eq('slug', slugParam)
+          .single();
+        if (data) {
+          setBoardTenant(data);
+          return data.id;
+        }
+      }
+
+      if (tenant) {
+        setBoardTenant({
+          id: tenant.id,
+          name: tenant.name,
+          logo_url: tenant.logo_url || null,
+          slug: tenant.slug || '',
+        });
+        return tenant.id;
+      }
+
+      return null;
+    };
+
     const fetchJobs = async () => {
       try {
-        const { data, error } = await supabase
+        const tenantId = await resolveTenant();
+
+        let query = supabase
           .from('job_listings')
           .select('id, title, department, location, employment_type, created_at')
           .eq('status', 'Open')
           .order('created_at', { ascending: false });
 
+        if (tenantId) {
+          query = query.eq('tenant_id', tenantId);
+        }
+
+        const { data, error } = await query;
         if (error) throw error;
         setJobs(data || []);
       } catch (error) {
@@ -41,7 +87,10 @@ const JobsBoard = () => {
     };
 
     fetchJobs();
-  }, []);
+  }, [tenant, searchParams]);
+
+  const tenantName = boardTenant?.name || tenant?.name || 'Our Organization';
+  const tenantLogo = boardTenant?.logo_url || tenant?.logo_url;
 
   if (loading) {
     return (
@@ -59,32 +108,38 @@ const JobsBoard = () => {
   return (
     <>
       <Helmet>
-        <title>Jobs Board - Whitestar Schools</title>
-        <meta name="description" content="Browse and apply for open positions at Whitestar Schools. Join our growing team of educators and professionals." />
-        
+        <title>Jobs Board - {tenantName}</title>
+        <meta name="description" content={`Browse and apply for open positions at ${tenantName}. Join our growing team.`} />
+
         {/* Open Graph tags for social sharing */}
-        <meta property="og:title" content="Whitestar Schools Jobs Board" />
-        <meta property="og:description" content="Browse and apply for open positions at Whitestar Schools. Join our growing team of educators and professionals." />
+        <meta property="og:title" content={`${tenantName} Jobs Board`} />
+        <meta property="og:description" content={`Browse and apply for open positions at ${tenantName}. Join our growing team.`} />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={window.location.href} />
-        <meta property="og:image" content={`${window.location.origin}${logo}`} />
+        {tenantLogo && <meta property="og:image" content={tenantLogo} />}
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
-        
+
         {/* Twitter Card tags */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Whitestar Schools Jobs Board" />
-        <meta name="twitter:description" content="Browse and apply for open positions at Whitestar Schools. Join our growing team of educators and professionals." />
-        <meta name="twitter:image" content={`${window.location.origin}${logo}`} />
+        <meta name="twitter:title" content={`${tenantName} Jobs Board`} />
+        <meta name="twitter:description" content={`Browse and apply for open positions at ${tenantName}. Join our growing team.`} />
+        {tenantLogo && <meta name="twitter:image" content={tenantLogo} />}
       </Helmet>
       <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5 py-12">
         <div className="max-w-6xl mx-auto px-4">
         <div className="text-center mb-12">
-          <img 
-            src={logo} 
-            alt="Whitestar Group of Schools" 
-            className="h-32 mx-auto mb-6"
-          />
+          {tenantLogo ? (
+            <img
+              src={tenantLogo}
+              alt={tenantName}
+              className="h-32 mx-auto mb-6"
+            />
+          ) : (
+            <div className="h-32 w-32 mx-auto mb-6 rounded-full bg-primary/10 flex items-center justify-center">
+              <span className="text-5xl font-bold text-primary">{tenantName.charAt(0)}</span>
+            </div>
+          )}
           <h1 className="text-4xl font-bold text-primary mb-4">Jobs Board</h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Discover exciting career opportunities and join our growing team.

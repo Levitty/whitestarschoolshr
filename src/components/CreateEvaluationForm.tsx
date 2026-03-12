@@ -11,7 +11,95 @@ import { Separator } from '@/components/ui/separator';
 import { useEvaluations } from '@/hooks/useEvaluations';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useAuth } from '@/hooks/useAuth';
+import { useTenant } from '@/contexts/TenantContext';
 import { Star, User, Calendar, Building } from 'lucide-react';
+
+// Evaluation category configs per tenant type
+const SCHOOL_EVALUATION_CATEGORIES = [
+  {
+    title: 'Academic Achievement (20%)',
+    prefix: 'academic',
+    criteria: [
+      { key: 'academic_student_performance', label: 'Student Performance Improvement' },
+      { key: 'academic_teaching_strategies', label: 'Effective Teaching Strategies' },
+      { key: 'academic_slow_learners', label: 'Improvement on Slow Learners' },
+      { key: 'academic_initiatives', label: 'Academic Initiatives' },
+    ],
+  },
+  {
+    title: 'School Culture (20%)',
+    prefix: 'culture',
+    criteria: [
+      { key: 'culture_mission_support', label: 'Support for Mission/Vision' },
+      { key: 'culture_extracurricular', label: 'Extracurricular Engagement' },
+      { key: 'culture_collaboration', label: 'Collaboration with Colleagues' },
+      { key: 'culture_diversity', label: 'Diversity & Inclusion' },
+    ],
+  },
+  {
+    title: 'Teacher Professional Development (20%)',
+    prefix: 'development',
+    criteria: [
+      { key: 'development_workshops', label: 'Workshops & Seminars Attendance' },
+      { key: 'development_education', label: 'Further Education Pursuit' },
+      { key: 'development_methodologies', label: 'New Teaching Methodologies' },
+      { key: 'development_mentoring', label: 'Peer Mentoring & Support' },
+    ],
+  },
+  {
+    title: 'Customer Relationship (20%)',
+    prefix: 'customer',
+    criteria: [
+      { key: 'customer_responsiveness', label: 'Responsiveness to Inquiries' },
+      { key: 'customer_communication', label: 'Open Communication' },
+      { key: 'customer_feedback', label: 'Feedback Incorporation' },
+      { key: 'customer_conflict_resolution', label: 'Conflict Resolution' },
+    ],
+  },
+];
+
+const CORPORATE_EVALUATION_CATEGORIES = [
+  {
+    title: 'Job Performance & Productivity (25%)',
+    prefix: 'academic',
+    criteria: [
+      { key: 'academic_student_performance', label: 'Task Completion & Quality' },
+      { key: 'academic_teaching_strategies', label: 'Efficiency & Time Management' },
+      { key: 'academic_slow_learners', label: 'Problem Solving & Adaptability' },
+      { key: 'academic_initiatives', label: 'Innovation & Initiative' },
+    ],
+  },
+  {
+    title: 'Company Culture & Teamwork (25%)',
+    prefix: 'culture',
+    criteria: [
+      { key: 'culture_mission_support', label: 'Alignment with Company Values' },
+      { key: 'culture_extracurricular', label: 'Team Activities & Engagement' },
+      { key: 'culture_collaboration', label: 'Cross-Department Collaboration' },
+      { key: 'culture_diversity', label: 'Inclusivity & Respect' },
+    ],
+  },
+  {
+    title: 'Professional Growth & Development (25%)',
+    prefix: 'development',
+    criteria: [
+      { key: 'development_workshops', label: 'Training & Certifications' },
+      { key: 'development_education', label: 'Skills Development' },
+      { key: 'development_methodologies', label: 'Adopting Best Practices' },
+      { key: 'development_mentoring', label: 'Knowledge Sharing & Mentoring' },
+    ],
+  },
+  {
+    title: 'Customer & Client Relations (25%)',
+    prefix: 'customer',
+    criteria: [
+      { key: 'customer_responsiveness', label: 'Client Responsiveness' },
+      { key: 'customer_communication', label: 'Clear Communication' },
+      { key: 'customer_feedback', label: 'Client Satisfaction & Feedback' },
+      { key: 'customer_conflict_resolution', label: 'Issue Resolution' },
+    ],
+  },
+];
 
 interface CreateEvaluationFormProps {
   isOpen: boolean;
@@ -52,6 +140,10 @@ const CreateEvaluationForm = ({ isOpen, onClose, selectedEmployeeId }: CreateEva
   const { createEvaluation } = useEvaluations();
   const { employees } = useEmployees();
   const { profile } = useAuth();
+  const { tenant } = useTenant();
+
+  const isCorporate = tenant?.tenant_type === 'corporate';
+  const evaluationCategories = isCorporate ? CORPORATE_EVALUATION_CATEGORIES : SCHOOL_EVALUATION_CATEGORIES;
   
   const [formData, setFormData] = useState({
     employee_id: selectedEmployeeId || '',
@@ -188,7 +280,7 @@ const CreateEvaluationForm = ({ isOpen, onClose, selectedEmployeeId }: CreateEva
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Star className="h-5 w-5" />
-            Create Teacher Evaluation
+            {isCorporate ? 'Create Employee Evaluation' : 'Create Teacher Evaluation'}
           </DialogTitle>
         </DialogHeader>
 
@@ -200,14 +292,14 @@ const CreateEvaluationForm = ({ isOpen, onClose, selectedEmployeeId }: CreateEva
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="employee">Teacher Name *</Label>
+                <Label htmlFor="employee">{isCorporate ? 'Employee Name' : 'Teacher Name'} *</Label>
                 <Select
                   value={formData.employee_id}
                   onValueChange={(value) => setFormData(prev => ({ ...prev, employee_id: value }))}
                   disabled={!!selectedEmployeeId}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select teacher" />
+                    <SelectValue placeholder={isCorporate ? 'Select employee' : 'Select teacher'} />
                   </SelectTrigger>
                   <SelectContent>
                     {employees.map((employee) => (
@@ -221,7 +313,7 @@ const CreateEvaluationForm = ({ isOpen, onClose, selectedEmployeeId }: CreateEva
 
               <div>
                 <Label>Job Title</Label>
-                <Input value="Teacher" disabled />
+                <Input value={selectedEmployee?.position || (isCorporate ? 'Employee' : 'Teacher')} disabled />
               </div>
 
               <div>
@@ -240,17 +332,17 @@ const CreateEvaluationForm = ({ isOpen, onClose, selectedEmployeeId }: CreateEva
                   id="period"
                   value={formData.period}
                   onChange={(e) => setFormData(prev => ({ ...prev, period: e.target.value }))}
-                  placeholder="e.g., Term 1 2024, Annual 2024"
+                  placeholder={isCorporate ? 'e.g., Q1 2026, Annual 2026' : 'e.g., Term 1 2024, Annual 2024'}
                 />
               </div>
 
               <div>
-                <Label htmlFor="branch">Branch/School *</Label>
+                <Label htmlFor="branch">{isCorporate ? 'Branch/Location' : 'Branch/School'} *</Label>
                 <Input
                   id="branch"
                   value={formData.branch}
                   onChange={(e) => setFormData(prev => ({ ...prev, branch: e.target.value }))}
-                  placeholder="e.g., Main Campus, Secondary Branch"
+                  placeholder={isCorporate ? 'e.g., Main Branch, Village Market' : 'e.g., Main Campus, Secondary Branch'}
                 />
               </div>
             </CardContent>
@@ -258,55 +350,17 @@ const CreateEvaluationForm = ({ isOpen, onClose, selectedEmployeeId }: CreateEva
 
           <Separator />
 
-          {/* Evaluation Areas */}
+          {/* Evaluation Areas — dynamically rendered based on tenant type */}
           <div className="space-y-6">
-            <SliderSection
-              title="Academic Achievement (20%)"
-              prefix="academic"
-              comments={formData.academic_comments}
-              criteria={[
-                { key: 'academic_student_performance', label: 'Student Performance Improvement' },
-                { key: 'academic_teaching_strategies', label: 'Effective Teaching Strategies' },
-                { key: 'academic_slow_learners', label: 'Improvement on Slow Learners' },
-                { key: 'academic_initiatives', label: 'Academic Initiatives' }
-              ]}
-            />
-
-            <SliderSection
-              title="School Culture (20%)"
-              prefix="culture"
-              comments={formData.culture_comments}
-              criteria={[
-                { key: 'culture_mission_support', label: 'Support for Mission/Vision' },
-                { key: 'culture_extracurricular', label: 'Extracurricular Engagement' },
-                { key: 'culture_collaboration', label: 'Collaboration with Colleagues' },
-                { key: 'culture_diversity', label: 'Diversity & Inclusion' }
-              ]}
-            />
-
-            <SliderSection
-              title="Teacher Professional Development (20%)"
-              prefix="development"
-              comments={formData.development_comments}
-              criteria={[
-                { key: 'development_workshops', label: 'Workshops & Seminars Attendance' },
-                { key: 'development_education', label: 'Further Education Pursuit' },
-                { key: 'development_methodologies', label: 'New Teaching Methodologies' },
-                { key: 'development_mentoring', label: 'Peer Mentoring & Support' }
-              ]}
-            />
-
-            <SliderSection
-              title="Customer Relationship (20%)"
-              prefix="customer"
-              comments={formData.customer_comments}
-              criteria={[
-                { key: 'customer_responsiveness', label: 'Responsiveness to Inquiries' },
-                { key: 'customer_communication', label: 'Open Communication' },
-                { key: 'customer_feedback', label: 'Feedback Incorporation' },
-                { key: 'customer_conflict_resolution', label: 'Conflict Resolution' }
-              ]}
-            />
+            {evaluationCategories.map((category) => (
+              <SliderSection
+                key={category.prefix}
+                title={category.title}
+                prefix={category.prefix}
+                comments={formData[`${category.prefix}_comments` as keyof typeof formData] as string}
+                criteria={category.criteria}
+              />
+            ))}
           </div>
 
           <div className="flex justify-end gap-3 pt-4">

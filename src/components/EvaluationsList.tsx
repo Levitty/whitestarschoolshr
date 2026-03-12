@@ -10,12 +10,15 @@ import { useEvaluations } from '@/hooks/useEvaluations';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useProfile } from '@/hooks/useProfile';
+import { useTenant } from '@/contexts/TenantContext';
 
 const EvaluationsList = () => {
   const { evaluations, loading } = useEvaluations();
   const { user } = useAuth();
   const { canAccessAdmin, canAccessSuperAdmin } = useProfile();
   const { toast } = useToast();
+  const { tenant } = useTenant();
+  const isCorporate = tenant?.tenant_type === 'corporate';
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
   
   const isPrivileged = canAccessAdmin() || canAccessSuperAdmin();
@@ -137,7 +140,7 @@ const EvaluationsList = () => {
           <CardContent className="p-8 text-center">
             <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-600 mb-2">No Evaluations Found</h3>
-            <p className="text-gray-500">{isPrivileged ? 'Start by creating teacher evaluations to track performance.' : 'No evaluations have been created for you yet.'}</p>
+            <p className="text-gray-500">{isPrivileged ? (isCorporate ? 'Start by creating employee evaluations to track performance.' : 'Start by creating teacher evaluations to track performance.') : 'No evaluations have been created for you yet.'}</p>
           </CardContent>
         </Card>
       ) : (
@@ -171,19 +174,19 @@ const EvaluationsList = () => {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                 <div className="text-center p-3 bg-blue-50 rounded-lg">
                   <div className="text-lg font-bold text-blue-600">{evaluation.academic_total.toFixed(1)}</div>
-                  <div className="text-xs text-gray-600">Academic</div>
+                  <div className="text-xs text-gray-600">{isCorporate ? 'Performance' : 'Academic'}</div>
                 </div>
                 <div className="text-center p-3 bg-green-50 rounded-lg">
                   <div className="text-lg font-bold text-green-600">{evaluation.culture_total.toFixed(1)}</div>
-                  <div className="text-xs text-gray-600">Culture</div>
+                  <div className="text-xs text-gray-600">{isCorporate ? 'Teamwork' : 'Culture'}</div>
                 </div>
                 <div className="text-center p-3 bg-purple-50 rounded-lg">
                   <div className="text-lg font-bold text-purple-600">{evaluation.development_total.toFixed(1)}</div>
-                  <div className="text-xs text-gray-600">Development</div>
+                  <div className="text-xs text-gray-600">{isCorporate ? 'Growth' : 'Development'}</div>
                 </div>
                 <div className="text-center p-3 bg-orange-50 rounded-lg">
                   <div className="text-lg font-bold text-orange-600">{evaluation.customer_total.toFixed(1)}</div>
-                  <div className="text-xs text-gray-600">Customer</div>
+                  <div className="text-xs text-gray-600">{isCorporate ? 'Client Relations' : 'Customer'}</div>
                 </div>
               </div>
 
@@ -202,25 +205,25 @@ const EvaluationsList = () => {
                 <CollapsibleContent className="space-y-4 mt-4">
                   {evaluation.academic_comments && (
                     <div>
-                      <h5 className="font-medium text-blue-700 mb-2">Academic Achievement</h5>
+                      <h5 className="font-medium text-blue-700 mb-2">{isCorporate ? 'Job Performance & Productivity' : 'Academic Achievement'}</h5>
                       <p className="text-sm text-gray-700 bg-blue-50 p-3 rounded-lg">{evaluation.academic_comments}</p>
                     </div>
                   )}
                   {evaluation.culture_comments && (
                     <div>
-                      <h5 className="font-medium text-green-700 mb-2">School Culture</h5>
+                      <h5 className="font-medium text-green-700 mb-2">{isCorporate ? 'Company Culture & Teamwork' : 'School Culture'}</h5>
                       <p className="text-sm text-gray-700 bg-green-50 p-3 rounded-lg">{evaluation.culture_comments}</p>
                     </div>
                   )}
                   {evaluation.development_comments && (
                     <div>
-                      <h5 className="font-medium text-purple-700 mb-2">Professional Development</h5>
+                      <h5 className="font-medium text-purple-700 mb-2">{isCorporate ? 'Professional Growth & Development' : 'Professional Development'}</h5>
                       <p className="text-sm text-gray-700 bg-purple-50 p-3 rounded-lg">{evaluation.development_comments}</p>
                     </div>
                   )}
                   {evaluation.customer_comments && (
                     <div>
-                      <h5 className="font-medium text-orange-700 mb-2">Customer Relationship</h5>
+                      <h5 className="font-medium text-orange-700 mb-2">{isCorporate ? 'Customer & Client Relations' : 'Customer Relationship'}</h5>
                       <p className="text-sm text-gray-700 bg-orange-50 p-3 rounded-lg">{evaluation.customer_comments}</p>
                     </div>
                   )}

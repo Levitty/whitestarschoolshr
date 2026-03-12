@@ -103,7 +103,7 @@ const PerformanceEvaluationDetail = ({ evaluation, onClose }: PerformanceEvaluat
     return <Badge className="bg-red-100 text-red-800">Needs Improvement</Badge>;
   };
 
-  const performanceMetrics = [
+  const schoolMetrics = [
     { key: 'teaching_effectiveness', label: 'Teaching Effectiveness', icon: Star },
     { key: 'classroom_management', label: 'Classroom Management', icon: Users },
     { key: 'lesson_planning', label: 'Lesson Planning', icon: Calendar },
@@ -115,6 +115,21 @@ const PerformanceEvaluationDetail = ({ evaluation, onClose }: PerformanceEvaluat
     { key: 'punctuality', label: 'Punctuality & Reliability', icon: Calendar },
     { key: 'innovation', label: 'Innovation & Creativity', icon: Star }
   ];
+
+  const corporateMetrics = [
+    { key: 'academic_student_performance', label: 'Task Completion & Quality', icon: Star },
+    { key: 'academic_teaching_strategies', label: 'Efficiency & Time Management', icon: Calendar },
+    { key: 'academic_slow_learners', label: 'Problem Solving & Adaptability', icon: TrendingUp },
+    { key: 'academic_initiatives', label: 'Innovation & Initiative', icon: Star },
+    { key: 'culture_mission_support', label: 'Alignment with Company Values', icon: Target },
+    { key: 'culture_collaboration', label: 'Cross-Department Collaboration', icon: Users },
+    { key: 'development_workshops', label: 'Training & Certifications', icon: Award },
+    { key: 'development_mentoring', label: 'Knowledge Sharing & Mentoring', icon: Users },
+    { key: 'customer_responsiveness', label: 'Client Responsiveness', icon: TrendingUp },
+    { key: 'customer_communication', label: 'Clear Communication', icon: Users }
+  ];
+
+  const performanceMetrics = isCorporate ? corporateMetrics : schoolMetrics;
 
   return (
     <Dialog open={true} onOpenChange={onClose}>

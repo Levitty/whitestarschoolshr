@@ -3,6 +3,8 @@ import { CalendarDays, Bell, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTenant } from '@/contexts/TenantContext';
 import { useEffect, useState } from 'react';
+import { getRoleDisplayName } from '@/utils/roleUtils';
+import { UserRole } from '@/types/auth';
 
 interface WelcomeHeaderProps {
   firstName?: string | null;
@@ -48,7 +50,7 @@ const WelcomeHeader = ({ firstName, role }: WelcomeHeaderProps) => {
 
   const formatRole = (role: string | null | undefined) => {
     if (!role) return '';
-    return role.charAt(0).toUpperCase() + role.slice(1);
+    return getRoleDisplayName(role as UserRole, tenant?.tenant_type);
   };
 
   return (

@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { UserCheck, UserX, Clock, Shield, Mail, Phone, MapPin } from 'lucide-react';
 import { UserRole, UserStatus } from '@/types/auth';
 import { useTenant } from '@/contexts/TenantContext';
+import { getRoleDisplayName, getAvailableRoles } from '@/utils/roleUtils';
 
 interface PendingUser {
   id: string;
@@ -184,18 +185,7 @@ const AccountApprovalManager = () => {
   };
 
   const getRolePosition = (role: string | null): string => {
-    const positions: Record<string, string> = {
-      superadmin: 'System Administrator',
-      admin: 'Administrator',
-      head: 'Head Teacher',
-      deputy_head: 'Deputy Head Teacher',
-      teacher: 'Teacher',
-      secretary: 'Secretary',
-      driver: 'Driver',
-      support_staff: 'Support Staff',
-      staff: 'Staff Member'
-    };
-    return positions[role || 'staff'] || 'Staff Member';
+    return getRoleDisplayName(role as UserRole, tenant?.tenant_type);
   };
 
   const updateUserRole = async (userId: string, role: UserRole) => {
@@ -227,19 +217,9 @@ const AccountApprovalManager = () => {
     }
   };
 
-  const getRoleDisplayName = (role: UserRole | null): string => {
+  const getLocalRoleDisplayName = (role: UserRole | null): string => {
     if (!role) return 'No Role';
-    const names = {
-      superadmin: 'Super Administrator',
-      admin: 'Administrator',
-      head: 'Head Teacher',
-      teacher: 'Teacher',
-      staff: 'Staff Member',
-      secretary: 'Secretary',
-      driver: 'Driver',
-      support_staff: 'Support Staff'
-    };
-    return names[role];
+    return getRoleDisplayName(role, tenant?.tenant_type);
   };
 
   const getRoleBadgeColor = (role: UserRole | null): string => {
@@ -331,7 +311,7 @@ const AccountApprovalManager = () => {
                         <div className="flex items-center gap-2">
                           <span className="text-sm text-gray-600">Requested Role:</span>
                           <Badge className={getRoleBadgeColor(user.role)}>
-                            {getRoleDisplayName(user.role)}
+                            {getRoleDisplayName(user.role, tenant?.tenant_type)}
                           </Badge>
                         </div>
                       </div>
@@ -346,12 +326,9 @@ const AccountApprovalManager = () => {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="staff">Staff Member</SelectItem>
-                          <SelectItem value="teacher">Teacher</SelectItem>
-                          <SelectItem value="head">Head Teacher</SelectItem>
-                          <SelectItem value="secretary">Secretary</SelectItem>
-                          <SelectItem value="driver">Driver</SelectItem>
-                          <SelectItem value="support_staff">Support Staff</SelectItem>
+                          {getAvailableRoles(tenant?.tenant_type).map(r => (
+                            <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+                          ))}
                           <SelectItem value="admin">Administrator</SelectItem>
                         </SelectContent>
                       </Select>

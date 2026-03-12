@@ -21,6 +21,7 @@ import { useAuth } from '@/hooks/useAuth';
 
 interface EmployeeAssetsTabProps {
   employeeId: string;
+  profileId?: string | null;
   employeeName: string;
 }
 
@@ -48,7 +49,7 @@ const ASSET_COLORS: Record<AssetType, string> = {
   other: 'bg-gray-100 text-gray-700 dark:bg-gray-900/20 dark:text-gray-400',
 };
 
-const EmployeeAssetsTab = ({ employeeId, employeeName }: EmployeeAssetsTabProps) => {
+const EmployeeAssetsTab = ({ employeeId, profileId, employeeName }: EmployeeAssetsTabProps) => {
   const [assets, setAssets] = useState<CompanyAsset[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showAssignDialog, setShowAssignDialog] = useState(false);
@@ -61,7 +62,13 @@ const EmployeeAssetsTab = ({ employeeId, employeeName }: EmployeeAssetsTabProps)
 
   const loadAssets = async () => {
     setIsLoading(true);
-    const data = await fetchEmployeeAssets(employeeId);
+    // Assets are assigned using profiles.id (auth user id), but this component
+    // may receive employee_profiles.id. Try both: profile_id first (matches assignment),
+    // then fall back to employeeId for backward compatibility.
+    let data = profileId ? await fetchEmployeeAssets(profileId) : [];
+    if (data.length === 0 && employeeId !== profileId) {
+      data = await fetchEmployeeAssets(employeeId);
+    }
     setAssets(data);
     setIsLoading(false);
   };

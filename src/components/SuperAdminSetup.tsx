@@ -7,6 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Search, UserCheck, UserX, Shield } from 'lucide-react';
+import { getAvailableRoles } from '@/utils/roleUtils';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface ProfileData {
   id: string;
@@ -30,6 +32,7 @@ const SuperAdminSetup = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { tenant } = useTenant();
 
   const transformProfileData = (data: any): ProfileData => {
     return {
@@ -261,12 +264,9 @@ const SuperAdminSetup = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="staff">Staff</SelectItem>
-                      <SelectItem value="teacher">Teacher</SelectItem>
-                      <SelectItem value="head">Head Teacher</SelectItem>
-                      <SelectItem value="secretary">Secretary</SelectItem>
-                      <SelectItem value="driver">Driver</SelectItem>
-                      <SelectItem value="support_staff">Support Staff</SelectItem>
+                      {getAvailableRoles(tenant?.tenant_type).map(r => (
+                        <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+                      ))}
                       <SelectItem value="superadmin">Super Admin</SelectItem>
                     </SelectContent>
                   </Select>

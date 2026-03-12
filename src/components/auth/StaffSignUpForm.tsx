@@ -9,6 +9,8 @@ import { useDepartments } from '@/hooks/useDepartments';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Building, Mail, Lock, UserCheck, Loader2, MapPin } from 'lucide-react';
 import type { UserRole } from '@/types/auth';
+import { getAvailableRoles } from '@/utils/roleUtils';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface StaffSignUpFormProps {
   tenantId?: string;
@@ -34,6 +36,7 @@ const StaffSignUpForm = ({ tenantId, tenantName }: StaffSignUpFormProps) => {
   const { signUp } = useAuth();
   const { toast } = useToast();
   const { departments, loading: departmentsLoading } = useDepartments(tenantId);
+  const { tenant } = useTenant();
 
   // Debug logging
   useEffect(() => {
@@ -92,16 +95,8 @@ const StaffSignUpForm = ({ tenantId, tenantName }: StaffSignUpFormProps) => {
     fetchBranches();
   }, [tenantId]);
 
-  // Staff-only roles (no superadmin)
-  const staffRoles: { value: UserRole; label: string }[] = [
-    { value: 'head', label: 'Head Teacher' },
-    { value: 'deputy_head', label: 'Deputy Head Teacher' },
-    { value: 'teacher', label: 'Teacher' },
-    { value: 'secretary', label: 'Secretary' },
-    { value: 'driver', label: 'Driver' },
-    { value: 'support_staff', label: 'Support Staff' },
-    { value: 'staff', label: 'General Staff' }
-  ];
+  // Staff-only roles (no superadmin) - tenant-aware
+  const staffRoles = getAvailableRoles(tenant?.tenant_type);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -649,6 +649,7 @@ const EmployeeProfile = ({ employee, onClose, onEmployeeUpdated }: EmployeeProfi
             <TabsContent value="assets" className="space-y-6">
               <EmployeeAssetsTab
                 employeeId={employee.id}
+                profileId={employee.profile_id}
                 employeeName={`${employee.first_name} ${employee.last_name}`}
               />
             </TabsContent>

@@ -90,31 +90,37 @@ const Performance = () => {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground mb-4">
-                {corporateFeatures.salesCommission 
+                {corporateFeatures.salesCommission
                   ? 'Comprehensive employee appraisal system with performance metrics, sales targets, and professional development tracking.'
-                  : `Comprehensive ${labels.teacher.toLowerCase()} appraisal system with 4 key areas: Academic Achievement, ${labels.school} Culture, Professional Development, and Customer Relationship. Each area is weighted equally (20%) to calculate the overall rating.`
+                  : corporateFeatures.salesCommission === false && labels.teacher === 'Employee'
+                    ? 'Comprehensive employee appraisal system with 4 key areas: Job Performance, Company Culture, Professional Growth, and Client Relations. Each area is weighted equally (25%) to calculate the overall rating.'
+                    : `Comprehensive ${labels.teacher.toLowerCase()} appraisal system with 4 key areas: Academic Achievement, ${labels.school} Culture, Professional Development, and Customer Relationship. Each area is weighted equally (20%) to calculate the overall rating.`
                 }
               </p>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                 <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
                   <div className="text-sm font-bold text-blue-600 dark:text-blue-400">
-                    {corporateFeatures.salesCommission ? 'Sales Performance' : 'Academic Achievement'}
+                    {corporateFeatures.salesCommission ? 'Sales Performance' : labels.teacher === 'Employee' ? 'Job Performance' : 'Academic Achievement'}
                   </div>
-                  <div className="text-xs text-muted-foreground mt-1">20% Weight</div>
+                  <div className="text-xs text-muted-foreground mt-1">25% Weight</div>
                 </div>
                 <div className="text-center p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl">
                   <div className="text-sm font-bold text-emerald-600 dark:text-emerald-400">
-                    {corporateFeatures.salesCommission ? 'Team Collaboration' : `${labels.school} Culture`}
+                    {corporateFeatures.salesCommission ? 'Team Collaboration' : labels.teacher === 'Employee' ? 'Company Culture & Teamwork' : `${labels.school} Culture`}
                   </div>
-                  <div className="text-xs text-muted-foreground mt-1">20% Weight</div>
+                  <div className="text-xs text-muted-foreground mt-1">25% Weight</div>
                 </div>
                 <div className="text-center p-4 bg-violet-50 dark:bg-violet-900/20 rounded-xl">
-                  <div className="text-sm font-bold text-violet-600 dark:text-violet-400">Professional Development</div>
-                  <div className="text-xs text-muted-foreground mt-1">20% Weight</div>
+                  <div className="text-sm font-bold text-violet-600 dark:text-violet-400">
+                    {labels.teacher === 'Employee' ? 'Professional Growth' : 'Professional Development'}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">25% Weight</div>
                 </div>
                 <div className="text-center p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl">
-                  <div className="text-sm font-bold text-amber-600 dark:text-amber-400">Customer Relationship</div>
-                  <div className="text-xs text-muted-foreground mt-1">20% Weight</div>
+                  <div className="text-sm font-bold text-amber-600 dark:text-amber-400">
+                    {labels.teacher === 'Employee' ? 'Client Relations' : 'Customer Relationship'}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">25% Weight</div>
                 </div>
               </div>
             </CardContent>
@@ -162,7 +168,7 @@ const Performance = () => {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                Visual analytics and insights from teacher evaluations across departments and performance areas.
+                Visual analytics and insights from {labels.teacher === 'Employee' ? 'employee' : 'teacher'} evaluations across departments and performance areas.
               </p>
             </CardContent>
           </Card>
