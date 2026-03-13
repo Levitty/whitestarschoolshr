@@ -12,6 +12,16 @@ dist
 dist-ssr
 *.local
 
+# Environment variables
+.env
+.env.*
+
+# Seed/helper scripts with secrets
+create-brighton-login.js
+fix-all-vmx-demo.js
+seed-vmx-demo.html
+seed-vmx-demo.mjs
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
