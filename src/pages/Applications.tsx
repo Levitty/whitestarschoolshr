@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Download, Filter, Users, FileText, Eye, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface Application {
   id: string;
@@ -33,6 +34,7 @@ interface JobListing {
 
 const Applications = () => {
   const { toast } = useToast();
+  const { tenant } = useTenant();
   const [applications, setApplications] = useState<Application[]>([]);
   const [jobListings, setJobListings] = useState<JobListing[]>([]);
   const [filteredApplications, setFilteredApplications] = useState<Application[]>([]);
@@ -45,7 +47,7 @@ const Applications = () => {
   useEffect(() => {
     fetchApplications();
     fetchJobListings();
-  }, []);
+  }, [tenant?.id]);
 
   useEffect(() => {
     if (selectedJob === 'all') {
@@ -57,6 +59,13 @@ const Applications = () => {
 
   const fetchApplications = async () => {
     try {
+      if (!tenant?.id) {
+        console.log('Skipping applications fetch - no tenant');
+        setApplications([]);
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('job_applications')
         .select(`
@@ -67,15 +76,16 @@ const Applications = () => {
             status
           )
         `)
+        .eq('tenant_id', tenant.id)
         .order('applied_at', { ascending: false });
 
       if (error) throw error;
-      
+
       // Filter out applications for closed jobs
       const openJobApplications = (data || []).filter(
         app => app.job_listings?.status === 'Open'
       );
-      
+
       setApplications(openJobApplications);
     } catch (error) {
       console.error('Error fetching applications:', error);
@@ -91,9 +101,16 @@ const Applications = () => {
 
   const fetchJobListings = async () => {
     try {
+      if (!tenant?.id) {
+        console.log('Skipping job listings fetch - no tenant');
+        setJobListings([]);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('job_listings')
         .select('id, title, department')
+        .eq('tenant_id', tenant.id)
         .order('title');
 
       if (error) throw error;
